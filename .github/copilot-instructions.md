@@ -1,0 +1,53 @@
+# Blitzfilter Api
+
+Blitzfilter Api is the repository for the documentation of the REST API of th blitzfilter-project.
+Blitzfilter is a cloud-native application with its backend being hosted entirely on AWS.
+The backend is written in Rust, utilizes event-driven architecture with CQRS and Event-Sourcing and mainly relies on the following managed services:
+- AWS ApiGateway
+- AWS OpenSearch Service
+- AWS DynamoDB
+- AWS SQS
+- AWS Lambda
+
+The frontend is written in Next.js with TypeScript and ShadCN and is hosted on Vercel.
+You will barely need it.
+
+Frontend and backend each have their own repositories. They're referenced below such that you can always consult them.
+- Backend: https://github.com/blitzfilter/aws-backend
+- Frontend: https://github.com/blitzfilter/blitzfilter-frontend
+
+Always reference below instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
+
+## Working Effectively
+
+Your sole task is it to help with documentation.
+First and foremost this includes creating and updating OpenApi Specification Docs.
+
+### OpenApi Specification Docs
+
+We need the OpenApi Spec as Yaml inside this repository.
+It's intended usage is neither for externals nor users, but for internals - especially communication between frontend- and backend-team.
+
+**Always use OpenAPI 3.0.0** when creating or updating the specification.
+
+Whenever you are tasked with creating, extending or updating OpenApi Specification Docs for our REST-Api, 
+make sure to **traverse and inspect** the relevant code in the **repository of the backend**.
+Always inspect the branch `develop` unless explicitly stated otherwise.
+
+The OpenApi Specification should always be production-ready and as explicit as possible.
+Not only looking at the implementation of the lambda-handler but also taking a look at the unit-tests may help discover desired behavior and structure.
+Whenever the amount of values for certain types - be it query, body or path - is limited (e.g. enum or manual string-checking), 
+make sure to only include the accepted values in the docs.
+For complex objects such as those in response- or request-body, take a look at the respective Rust-Types while carefully observing it's `serde` annotations.
+Moreover, always hold onto best-practices for OpenApi-Specs for REST Apis.
+Do **never** add anything to the docs that's not clearly provable with evidence.
+
+Always include as much information as possible. This especially includes but is not limited to:
+- Descriptions
+- Query-Parameters
+- Path-Parameters
+- Request-Bodies
+- Response-Bodies
+- Request-Headers
+- Response-Headers
+- Allowed values
