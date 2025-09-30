@@ -1201,7 +1201,8 @@ paths:
           required: false
           description: |
             RFC3339 timestamp for cursor-based pagination (search-after).
-            Returns watchlist-items created after this timestamp.
+            Depending on sort-order, returns watchlist-items created, either after this timestamp for asc (oldest first) or before this timestamp for desc (latest first).
+            In general you do not have to worry about determining this key. It's given with PaginationDataDateTime::next in the preceding response if more entries are present.
           schema:
             type: string
             format: date-time
