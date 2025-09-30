@@ -6,9 +6,9 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## 2025-09-30 - Watchlist Feature
 
-### Added - 2025-09-30 - Watchlist Feature
+### Added
 
 Three new endpoints have been added to support the user item watchlist feature:
 
@@ -91,37 +91,19 @@ Three new endpoints have been added to support the user item watchlist feature:
 - `INVALID_RFC3339_TIMESTAMP`: Returned when an RFC3339 timestamp parameter is malformed
 - `WATCHLIST_ENTRY_NOT_FOUND`: Returned when attempting to delete a non-existent watchlist entry
 
-### Changed - 2025-09-30 - Watchlist Feature
+### Changed
 
-#### Authentication Requirements
-- All watchlist endpoints require Cognito JWT authentication via the `Authorization` header
-- The JWT token must contain a valid `sub` (subject) claim identifying the user
+#### Generalized type `UnprocessedPutItem`
+- The type `UnprocessedPutItem` has been generalized to `ItemKeyData`. It's a composite key for identifying an item.
+- `UnprocessedPutItem` therefore no longer exists. `ItemKeyData` is used now. Their payload does **not** differ.
 
 #### Pagination Pattern
 - Watchlist endpoints use cursor-based pagination with RFC3339 timestamps instead of offset-based pagination
 - The `from` query parameter accepts an RFC3339 timestamp
 - The response includes a `next` field in pagination metadata when more results are available
 - The `total` field in pagination metadata is optional for cursor-based pagination
+- The other endpoints using pagination are unaffected and still rely on Offset/Limit-Pagination.
 
 ### Removed
 
 No endpoints or features have been removed in this update.
-
----
-
-## How to Use This Changelog
-
-### For Frontend Developers
-- Check the **Added** section to discover new endpoints and features you can integrate
-- Review the **Changed** section to understand modifications to existing endpoints
-- Look at the **Removed** section before deploying to ensure you're not using deprecated features
-
-### For Backend Developers
-- Document all API changes immediately after merging to `develop`
-- Include comprehensive details: endpoints, parameters, request/response schemas, and examples
-- Always specify the date and feature name in section headers
-- Add error codes and their meanings when introducing new ones
-
-### Version History
-
-This changelog follows a continuous integration approach. Changes are documented when merged to the `develop` branch, not when released to production. Each entry includes the merge date and feature name for easy tracking.
