@@ -1201,7 +1201,7 @@ paths:
           required: false
           description: |
             RFC3339 timestamp for cursor-based pagination (search-after).
-            Returns items created after this timestamp.
+            Returns watchlist-items created after this timestamp.
           schema:
             type: string
             format: date-time
@@ -1221,12 +1221,21 @@ paths:
           required: false
           description: |
             Preferred language for localized content.
-            Supports single language codes.
-            Supported languages: de, en, fr, es.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^[a-z]{2}(-[A-Z]{2})?$'
-          example: "en"
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
         - name: Authorization
           in: header
           required: true
@@ -2306,30 +2315,13 @@ components:
         unprocessed:
           type: array
           items:
-            $ref: '#/components/schemas/UnprocessedPutItem'
+            $ref: '#/components/schemas/ItemKeyData'
           description: Items that could not be processed
         skipped:
           type: integer
           minimum: 0
           description: Number of items that were skipped during processing
           example: 2
-
-    UnprocessedPutItem:
-      type: object
-      description: Reference to an item that could not be processed
-      required:
-        - shopId
-        - shopsItemId
-      properties:
-        shopId:
-          type: string
-          format: uuid
-          description: Unique identifier of the shop
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        shopsItemId:
-          type: string
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
-          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
 
     GetShopData:
       type: object

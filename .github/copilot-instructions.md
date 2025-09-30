@@ -51,3 +51,36 @@ Always include as much information as possible. This especially includes but is 
 - Request-Headers
 - Response-Headers
 - Allowed values
+
+### Changelog
+
+This repository maintains a `CHANGELOG.md` file to document all API changes for internal communication between frontend and backend teams.
+
+**When to Update the Changelog:**
+- After any API change is merged to the `develop` branch
+- When new endpoints are added
+- When existing endpoints are modified
+- When endpoints are deprecated or removed
+- When new data types or error codes are introduced
+
+**Changelog Format:**
+The changelog follows the "Keep a Changelog" format with sections organized by date and feature:
+- **Added** - New endpoints, features, or functionality
+- **Changed** - Modifications to existing endpoints or behavior
+- **Removed** - Deprecated or removed endpoints
+
+**What to Include:**
+For each API change, document:
+- Complete endpoint specifications (method, path, parameters, body, responses)
+- All new data types with property descriptions
+- New error codes and their meanings
+- Authentication requirements
+- Examples of request/response payloads
+- The merge date and feature name for tracking
+
+**Purpose:**
+The changelog serves as a communication tool, not a version control mechanism. It helps:
+- Frontend developers discover and integrate new features
+- Backend developers document their changes comprehensively
+- Both teams track the evolution of the API over time
+- Everyone understand what changed, when it changed, and why
