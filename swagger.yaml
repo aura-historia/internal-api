@@ -1875,10 +1875,11 @@ components:
           nullable: true
           example: 127
         searchAfter:
-          type: string
+          type: array
           description: |
             Cursor for the next page (JSON value). Present when there are more results.
             Pass this value as the `searchAfter` query parameter to get the next page.
+            This can be ANY heterogeneous array.
           nullable: true
           example: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
 
