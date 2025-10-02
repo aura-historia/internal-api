@@ -1755,7 +1755,7 @@ paths:
                     source:
                       field: "sort"
                       sourceType: "query"
-                    message: "Expected any of: 'name', 'updated', 'created'. Got: 'invalid'"
+                    message: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
                 invalid_order:
                   summary: Invalid sort order
                   value:
@@ -2449,12 +2449,14 @@ components:
 
     SortShopFieldData:
       type: string
-      enum: [name, updated, created]
+      enum: [score, name, updated, created]
       description: |
         Fields available for sorting shops:
+        - score: Sort by relevance score (default, only available when searching with text query)
         - name: Sort by shop name
         - updated: Sort by last updated timestamp
         - created: Sort by creation timestamp
+      default: score
       example: name
 
     CollectionDataShop:

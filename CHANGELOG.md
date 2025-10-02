@@ -60,6 +60,14 @@ The item search endpoints now use cursor-based pagination (search-after pattern)
 - The `sort` query parameter now accepts: `score`, `price`, `updated`, `created`
 - **Previous valid values**: `price`, `updated`, `created`
 
+#### New Sort Field for Shop Search
+
+- **Added**: `score` sort field for shop search endpoint
+- Available for `POST /api/v1/shops/search`
+- When not specified, `score` is used as the default sort field (sorting by relevance)
+- The `sort` query parameter now accepts: `score`, `name`, `updated`, `created`
+- **Previous valid values**: `name`, `updated`, `created`
+
 #### Pagination Response Structure Changes
 
 The following endpoints now return pagination metadata at the root level instead of in a nested `pagination` object:
@@ -157,11 +165,13 @@ The following endpoints now return pagination metadata at the root level instead
      - `size` (integer, required): Number of items in current page
      - `total` (integer, optional, nullable): Total count
 
-#### Updated Sort Field Enum
+#### Updated Sort Field Enums
 
-- **SortItemFieldData** enum now includes `score` as a value
+- **SortItemFieldData** enum now includes `score` as a value (and default)
 - Values: `score`, `price`, `updated`, `created`
-- `score` is the default when not specified
+
+- **SortShopFieldData** enum now includes `score` as a value (and default)
+- Values: `score`, `name`, `updated`, `created`
 
 #### New Error Code
 
@@ -190,10 +200,11 @@ For frontend developers integrating these changes:
 4. **Shop Search Endpoint** (POST /api/v1/shops/search):
    - Read pagination fields from root level instead of `response.pagination.*`
    - Continue using `from` and `size` query parameters (no change)
-
-5. **Sort Field**:
    - The `score` sort field is now available and is the default
-   - When not specifying a sort field, results are sorted by relevance score
+
+5. **Sort Fields**:
+   - The `score` sort field is now available for both item search and shop search endpoints
+   - When not specifying a sort field, results are sorted by relevance score (default)
 
 ### Removed
 
