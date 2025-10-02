@@ -1851,21 +1851,6 @@ components:
           nullable: true
           description: Optional array of item history events
 
-    CollectionData:
-      type: object
-      description: Paginated collection of items
-      required:
-        - items
-        - pagination
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/GetItemData'
-          description: Array of items in the current page
-        pagination:
-          $ref: '#/components/schemas/PaginationData'
-
     ItemSearchResultData:
       type: object
       description: Paginated collection of items using cursor-based pagination (search-after pattern)
@@ -1880,7 +1865,7 @@ components:
           description: Array of items in the current page
         size:
           type: integer
-          minimum: 1
+          minimum: 0
           description: Number of items returned in the current page
           example: 21
         total:
@@ -1896,27 +1881,6 @@ components:
             Pass this value as the `searchAfter` query parameter to get the next page.
           nullable: true
           example: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
-
-    PaginationData:
-      type: object
-      description: Pagination metadata
-      required:
-        - from
-        - size
-        - total
-      properties:
-        from:
-          type: integer
-          minimum: 0
-          description: Number of items skipped (offset)
-        size:
-          type: integer
-          minimum: 1
-          description: Number of items in the current page
-        total:
-          type: integer
-          minimum: 0
-          description: Total number of items matching the query
 
     LocalizedTextData:
       type: object
@@ -2256,21 +2220,6 @@ components:
         - created: Sort by creation timestamp
       example: created
 
-    CollectionDataUserSearchFilter:
-      type: object
-      description: Paginated collection of user search filters
-      required:
-        - items
-        - pagination
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserSearchFilterData'
-          description: Array of search filters in the current page
-        pagination:
-          $ref: '#/components/schemas/PaginationData'
-
     SearchFilterCollectionData:
       type: object
       description: Paginated collection of user search filters with flattened pagination
@@ -2291,7 +2240,7 @@ components:
           example: 0
         size:
           type: integer
-          minimum: 1
+          minimum: 0
           description: Number of items in the current page
           example: 21
         total:
@@ -2459,21 +2408,6 @@ components:
       default: score
       example: name
 
-    CollectionDataShop:
-      type: object
-      description: Paginated collection of shops
-      required:
-        - items
-        - pagination
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/GetShopData'
-          description: Array of shops in the current page
-        pagination:
-          $ref: '#/components/schemas/PaginationData'
-
     ShopSearchResultData:
       type: object
       description: Paginated collection of shops with flattened pagination
@@ -2494,7 +2428,7 @@ components:
           example: 0
         size:
           type: integer
-          minimum: 1
+          minimum: 0
           description: Number of items in the current page
           example: 21
         total:
@@ -2550,7 +2484,7 @@ components:
           description: Array of watchlist items in the current page
         size:
           type: integer
-          minimum: 1
+          minimum: 0
           description: Number of items in the current page
           example: 21
         searchAfter:
