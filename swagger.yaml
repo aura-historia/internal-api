@@ -1197,13 +1197,13 @@ paths:
             type: string
             enum: [asc, desc]
           example: desc
-        - name: from
+        - name: searchAfter
           in: query
           required: false
           description: |
             RFC3339 timestamp for cursor-based pagination (search-after).
             Depending on sort-order, returns watchlist-items created, either after this timestamp for asc (oldest first) or before this timestamp for desc (latest first).
-            In general you do not have to worry about determining this key. It's given with PaginationDataDateTime::next in the preceding response if more entries are present.
+            In general you do not have to worry about determining this key. It's given with `searchAfter` in the preceding response if more entries are present.
           schema:
             type: string
             format: date-time
@@ -1280,10 +1280,8 @@ paths:
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     created: "2024-01-15T08:00:00Z"
-                pagination:
-                  from: "2024-01-01T00:00:00Z"
-                  size: 21
-                  next: "2024-01-15T08:00:00Z"
+                size: 21
+                searchAfter: "2024-01-15T08:00:00Z"
         '400':
           description: Bad request - invalid parameters
           content:
@@ -2541,15 +2539,30 @@ components:
       description: Paginated collection of watchlist items using cursor-based pagination
       required:
         - items
-        - pagination
+        - size
       properties:
         items:
           type: array
           items:
             $ref: '#/components/schemas/WatchlistItemData'
           description: Array of watchlist items in the current page
-        pagination:
-          $ref: '#/components/schemas/PaginationDataDateTime'
+        size:
+          type: integer
+          minimum: 1
+          description: Number of items in the current page
+          example: 21
+        searchAfter:
+          type: string
+          format: date-time
+          description: Cursor for the next page (RFC3339 timestamp). Present when there are more results.
+          nullable: true
+          example: "2024-01-15T08:00:00Z"
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items (optional, may not be available for cursor-based pagination)
+          nullable: true
+          example: 127
 
     PaginationDataDateTime:
       type: object

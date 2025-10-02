@@ -64,7 +64,36 @@ The item search endpoints now use cursor-based pagination (search-after pattern)
 
 The following endpoints now return pagination metadata at the root level instead of in a nested `pagination` object:
 
-1. **GET /api/v1/search-filters**
+1. **GET /api/v1/watchlist**
+   - Already used cursor-based pagination, now with flattened structure
+   - **Query Parameters** (breaking change):
+     - **Renamed**: `from` → `searchAfter` (RFC3339 timestamp)
+   - **Response Structure** (breaking change):
+     - Pagination fields moved to root level: `items`, `size`, `searchAfter`, `total`
+     - `searchAfter` field renamed from `next` and moved to root level
+     - Example response:
+       ```json
+       {
+         "items": [...],
+         "size": 21,
+         "searchAfter": "2024-01-15T08:00:00Z",
+         "total": 127
+       }
+       ```
+   - **Previous response structure** (deprecated):
+     ```json
+     {
+       "items": [...],
+       "pagination": {
+         "from": "2024-01-01T00:00:00Z",
+         "size": 21,
+         "next": "2024-01-15T08:00:00Z",
+         "total": 127
+       }
+     }
+     ```
+
+2. **GET /api/v1/search-filters**
    - Still uses offset/limit pagination
    - **Response Structure** (breaking change):
      - Pagination fields moved to root level: `items`, `from`, `size`, `total`
@@ -89,7 +118,7 @@ The following endpoints now return pagination metadata at the root level instead
      }
      ```
 
-2. **POST /api/v1/shops/search**
+3. **POST /api/v1/shops/search**
    - Still uses offset/limit pagination
    - **Response Structure** (breaking change):
      - Same as search filters (flattened pagination structure)
@@ -112,7 +141,15 @@ The following endpoints now return pagination metadata at the root level instead
      - `size` (integer, required): Number of items in current page
      - `total` (integer, optional, nullable): Total count
 
-3. **ShopSearchResultData**
+3. **WatchlistCollectionData**
+   - Response type for GET /api/v1/watchlist
+   - Properties (flattened pagination):
+     - `items` (array of WatchlistItemData, required): Watchlist items
+     - `size` (integer, required): Number of items in current page
+     - `searchAfter` (string, date-time, optional, nullable): Cursor for next page (RFC3339 timestamp)
+     - `total` (integer, optional, nullable): Total count
+
+4. **ShopSearchResultData**
    - Response type for POST /api/v1/shops/search
    - Properties (flattened pagination):
      - `items` (array of GetShopData, required): Shops
@@ -140,15 +177,21 @@ For frontend developers integrating these changes:
    - Use `response.searchAfter` (if present) for the next page request
    - The `total` field may be `null` in some cases
 
-2. **Search Filters Endpoint** (GET /api/v1/search-filters):
+2. **Watchlist Endpoint** (GET /api/v1/watchlist):
+   - **Rename query parameter**: `from` → `searchAfter`
+   - Read pagination fields from root level instead of `response.pagination.*`
+   - **Field renamed**: `pagination.next` → `searchAfter` (at root level)
+   - Use `response.searchAfter` (if present) for the next page request
+
+3. **Search Filters Endpoint** (GET /api/v1/search-filters):
    - Read pagination fields from root level instead of `response.pagination.*`
    - Continue using `from` and `size` query parameters (no change)
 
-3. **Shop Search Endpoint** (POST /api/v1/shops/search):
+4. **Shop Search Endpoint** (POST /api/v1/shops/search):
    - Read pagination fields from root level instead of `response.pagination.*`
    - Continue using `from` and `size` query parameters (no change)
 
-4. **Sort Field**:
+5. **Sort Field**:
    - The `score` sort field is now available and is the default
    - When not specifying a sort field, results are sorted by relevance score
 
