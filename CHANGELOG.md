@@ -6,6 +6,156 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-02 - Pagination Improvements
+
+### Changed
+
+#### Item Search Endpoints - Search-After Cursor Pagination
+
+The item search endpoints now use cursor-based pagination (search-after pattern) instead of offset/limit pagination:
+
+1. **GET /api/v1/items**
+   - Changed from offset/limit pagination to search-after cursor pagination
+   - **Query Parameters** (breaking changes):
+     - **Removed**: `from` (offset) parameter
+     - **Added**: `searchAfter` (optional, string): JSON cursor value from previous response
+   - **Response Structure** (breaking changes):
+     - Pagination fields are now at the root level (no nested `pagination` object)
+     - Fields: `items`, `size`, `total`, `searchAfter`
+     - `searchAfter` is returned when more results are available
+     - Example response:
+       ```json
+       {
+         "items": [...],
+         "size": 21,
+         "total": 127,
+         "searchAfter": "[2999, \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\"]"
+       }
+       ```
+   - **Previous response structure** (deprecated):
+     ```json
+     {
+       "items": [...],
+       "pagination": {
+         "from": 0,
+         "size": 21,
+         "total": 127
+       }
+     }
+     ```
+
+2. **POST /api/v1/items/search**
+   - Changed from offset/limit pagination to search-after cursor pagination
+   - **Query Parameters** (breaking changes):
+     - **Removed**: `from` (offset) parameter
+     - **Added**: `searchAfter` (optional, string): JSON cursor value from previous response
+   - **Response Structure** (breaking changes):
+     - Same as GET /api/v1/items (flattened pagination with `searchAfter`)
+
+#### New Sort Field for Item Searches
+
+- **Added**: `score` sort field for item search endpoints
+- Available for both `GET /api/v1/items` and `POST /api/v1/items/search`
+- When not specified, `score` is used as the default sort field (sorting by relevance)
+- The `sort` query parameter now accepts: `score`, `price`, `updated`, `created`
+- **Previous valid values**: `price`, `updated`, `created`
+
+#### Pagination Response Structure Changes
+
+The following endpoints now return pagination metadata at the root level instead of in a nested `pagination` object:
+
+1. **GET /api/v1/search-filters**
+   - Still uses offset/limit pagination
+   - **Response Structure** (breaking change):
+     - Pagination fields moved to root level: `items`, `from`, `size`, `total`
+     - Example response:
+       ```json
+       {
+         "items": [...],
+         "from": 0,
+         "size": 21,
+         "total": 127
+       }
+       ```
+   - **Previous response structure** (deprecated):
+     ```json
+     {
+       "items": [...],
+       "pagination": {
+         "from": 0,
+         "size": 21,
+         "total": 127
+       }
+     }
+     ```
+
+2. **POST /api/v1/shops/search**
+   - Still uses offset/limit pagination
+   - **Response Structure** (breaking change):
+     - Same as search filters (flattened pagination structure)
+
+#### New Data Types
+
+1. **ItemSearchResultData**
+   - Response type for item search endpoints (GET /api/v1/items, POST /api/v1/items/search)
+   - Properties:
+     - `items` (array of GetItemData, required): Items in current page
+     - `size` (integer, required): Number of items in current page
+     - `total` (integer, optional, nullable): Total count of matching items
+     - `searchAfter` (string, optional, nullable): Cursor for next page (JSON value)
+
+2. **SearchFilterCollectionData**
+   - Response type for GET /api/v1/search-filters
+   - Properties (flattened pagination):
+     - `items` (array of UserSearchFilterData, required): Search filters
+     - `from` (integer, required): Offset
+     - `size` (integer, required): Number of items in current page
+     - `total` (integer, optional, nullable): Total count
+
+3. **ShopSearchResultData**
+   - Response type for POST /api/v1/shops/search
+   - Properties (flattened pagination):
+     - `items` (array of GetShopData, required): Shops
+     - `from` (integer, required): Offset
+     - `size` (integer, required): Number of items in current page
+     - `total` (integer, optional, nullable): Total count
+
+#### Updated Sort Field Enum
+
+- **SortItemFieldData** enum now includes `score` as a value
+- Values: `score`, `price`, `updated`, `created`
+- `score` is the default when not specified
+
+#### New Error Code
+
+- `INVALID_JSON`: Returned when the `searchAfter` parameter contains invalid JSON
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **Item Search Endpoints** (GET /api/v1/items, POST /api/v1/items/search):
+   - Replace `from` query parameter with `searchAfter`
+   - Read pagination fields from root level instead of `response.pagination.*`
+   - Use `response.searchAfter` (if present) for the next page request
+   - The `total` field may be `null` in some cases
+
+2. **Search Filters Endpoint** (GET /api/v1/search-filters):
+   - Read pagination fields from root level instead of `response.pagination.*`
+   - Continue using `from` and `size` query parameters (no change)
+
+3. **Shop Search Endpoint** (POST /api/v1/shops/search):
+   - Read pagination fields from root level instead of `response.pagination.*`
+   - Continue using `from` and `size` query parameters (no change)
+
+4. **Sort Field**:
+   - The `score` sort field is now available and is the default
+   - When not specifying a sort field, results are sorted by relevance score
+
+### Removed
+
+No endpoints or features have been removed in this update. The changes are modifications to existing endpoints.
+
 ## 2025-09-30 - Watchlist Feature
 
 ### Added
