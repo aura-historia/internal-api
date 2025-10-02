@@ -2564,36 +2564,6 @@ components:
           nullable: true
           example: 127
 
-    PaginationDataDateTime:
-      type: object
-      description: Pagination metadata for cursor-based pagination using timestamps
-      required:
-        - from
-        - size
-      properties:
-        from:
-          type: string
-          format: date-time
-          description: Starting cursor timestamp (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        size:
-          type: integer
-          minimum: 1
-          description: Number of items in the current page
-          example: 21
-        total:
-          type: integer
-          minimum: 0
-          description: Total number of items (optional, may not be available for cursor-based pagination)
-          nullable: true
-          example: 127
-        next:
-          type: string
-          format: date-time
-          description: Cursor for the next page (RFC3339 format). Present when there are more results.
-          nullable: true
-          example: "2024-01-15T08:00:00Z"
-
     SortWatchlistItemFieldData:
       type: string
       enum: [created]
