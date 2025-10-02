@@ -1982,7 +1982,7 @@ components:
 
     ItemStateData:
       type: string
-      enum: [LISTED, AVAILABLE, RESERVED, SOLD, REMOVED]
+      enum: [LISTED, AVAILABLE, RESERVED, SOLD, REMOVED, UNKNOWN]
       description: |
         Current state of the item:
         - LISTED: Item has been listed
@@ -1990,6 +1990,7 @@ components:
         - RESERVED: Item is reserved by a buyer
         - SOLD: Item has been sold
         - REMOVED: Item has been removed and can no longer be tracked
+        - UNKNOWN: Item has an unknown state
       example: AVAILABLE
 
     SortItemFieldData:
@@ -2004,7 +2005,7 @@ components:
 
     ItemEventTypeData:
       type: string
-      enum: [STATE_AVAILABLE, PRICE_DROPPED, STATE_LISTED, STATE_RESERVED, STATE_SOLD, STATE_REMOVED]
+      enum: [STATE_AVAILABLE, PRICE_DROPPED, STATE_LISTED, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN]
       description: Types of events that can occur for an item
       example: STATE_AVAILABLE
 
