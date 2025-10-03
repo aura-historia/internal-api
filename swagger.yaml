@@ -241,8 +241,9 @@ paths:
             This is a JSON value returned as `searchAfter` in the previous response.
             Use this to fetch the next page of results.
             In general you do not have to worry about determining this key. It's given with the `searchAfter` field in the preceding response if more entries are present.
+            This can be ANY heterogeneous array.
           schema:
-            type: string
+            type: array
           example: "[2999, \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\"]"
         - name: size
           in: query
@@ -455,8 +456,9 @@ paths:
             This is a JSON value returned as `searchAfter` in the previous response.
             Use this to fetch the next page of results.
             In general you do not have to worry about determining this key. It's given with the `searchAfter` field in the preceding response if more entries are present.
+            This can be ANY heterogeneous array.
           schema:
-            type: string
+            type: array
           example: "[2999, \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\"]"
         - name: size
           in: query
