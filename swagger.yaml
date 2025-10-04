@@ -1913,6 +1913,17 @@ components:
           minimum: 0
           example: 2999
 
+    ItemCreatedEventPayloadData:
+      type: object
+      description: Minimal information about an item when it was created
+      required:
+        - state
+      properties:
+        state:
+          $ref: '#/components/schemas/ItemStateData'
+        price:
+          $ref: '#/components/schemas/PriceData'
+
     GetItemEventData:
       type: object
       description: Historical event for an item
@@ -2009,6 +2020,7 @@ components:
 
     ItemEventPayloadData:
       oneOf:
+        - $ref: '#/components/schemas/ItemCreatedEventPayloadData'
         - $ref: '#/components/schemas/ItemStateData'
         - $ref: '#/components/schemas/PriceData'
       description: Event-specific payload data
