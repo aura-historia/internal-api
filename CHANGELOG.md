@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+#### GerShopData
+- Type `GetShopData` replaced field `url` that contained a single URL with an array `urls` which contains all known URLs for a shop.
+
 #### PUT /api/v1/items - Automatic Shop Enrichment
 
 The PUT items endpoint now automatically enriches items with shop information based on their URLs. This removes the need for clients to provide shop identifiers.
