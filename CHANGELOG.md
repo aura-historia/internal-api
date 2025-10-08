@@ -6,6 +6,84 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-08 - Item Enrichment with Shop Information
+
+### Changed
+
+#### PUT /api/v1/items - Automatic Shop Enrichment
+
+The PUT items endpoint now automatically enriches items with shop information based on their URLs. This removes the need for clients to provide shop identifiers.
+
+**Request Body Changes (breaking changes)**:
+- **Removed**: `shopId` field - No longer required in request body
+- **Removed**: `shopName` field - No longer required in request body
+- **Shop Enrichment**: Shop information is now automatically determined from the item's `url` field
+  - The item's URL must belong to a shop that is already registered in the system
+  - If the shop cannot be identified, the item will fail with a `SHOP_NOT_FOUND` error
+
+**Request Body Example**:
+```json
+{
+  "items": [
+    {
+      "shopsItemId": "item-123",
+      "title": {
+        "text": "Smartphone Case",
+        "language": "en"
+      },
+      "price": {
+        "currency": "EUR",
+        "amount": 2999
+      },
+      "state": "AVAILABLE",
+      "url": "https://tech-store.com/items/case-123",
+      "images": ["https://tech-store.com/images/case.jpg"]
+    }
+  ]
+}
+```
+
+**Response Body Changes (breaking changes)**:
+- **Changed**: `unprocessed` field now contains an array of item URLs (strings) instead of ItemKeyData objects
+  - Old format: `[{"shopId": "uuid", "shopsItemId": "string"}]`
+  - New format: `["https://shop.com/item1", "https://shop.com/item2"]`
+  - These are items that could not be processed due to temporary issues and may succeed if retried
+
+- **Added**: `failed` field - A map of item URLs to error codes for items that permanently failed processing
+  - Type: Object with URL keys and error code values
+  - Example: `{"https://unknown-shop.com/item": "SHOP_NOT_FOUND"}`
+  - These items failed permanently and will not succeed without changes
+
+**Response Example**:
+```json
+{
+  "unprocessed": [
+    "https://tech-store.com/temporary-issue-item"
+  ],
+  "failed": {
+    "https://unknown-shop.com/item": "SHOP_NOT_FOUND",
+    "https://tech-store.com/expensive-item": "MONETARY_AMOUNT_OVERFLOW"
+  },
+  "skipped": 5
+}
+```
+
+**New Error Codes**:
+- `SHOP_NOT_FOUND`: The shop associated with the item's URL is not registered in the system
+- `MONETARY_AMOUNT_OVERFLOW`: The price amount exceeds the maximum supported value during currency conversion
+- `ITEM_ENRICHMENT_FAILED`: Failed to enrich the item with additional shop and price information
+
+**Migration Guide**:
+1. Remove `shopId` and `shopName` fields from your PUT items requests
+2. Ensure the `url` field points to a shop that is registered in the system
+3. Handle new error responses in the `failed` field
+4. Update error handling for `SHOP_NOT_FOUND`, `MONETARY_AMOUNT_OVERFLOW`, and `ITEM_ENRICHMENT_FAILED` error codes
+5. Update processing of `unprocessed` field to handle URL strings instead of ItemKeyData objects
+
+### Removed
+
+No endpoints have been removed in this update.
+
 ## 2025-10-02 - Pagination Improvements
 
 ### Changed
