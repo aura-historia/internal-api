@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-#### GerShopData
+#### GetShopData
 - Type `GetShopData` replaced field `url` that contained a single URL with an array `urls` which contains all known URLs for a shop.
 
 #### PUT /api/v1/items - Automatic Shop Enrichment
