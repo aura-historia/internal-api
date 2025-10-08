@@ -2398,7 +2398,7 @@ components:
       required:
         - shopId
         - name
-        - url
+        - urls
         - created
         - updated
       properties:
@@ -2411,9 +2411,11 @@ components:
           type: string
           description: Display name of the shop
           example: "Tech Store Premium"
-        url:
-          type: string
-          format: uri
+        urls:
+          type: array
+          items:
+            type: string
+            format: uri
           description: URL to the shop's website
           example: "https://tech-store-premium.com"
         image:
