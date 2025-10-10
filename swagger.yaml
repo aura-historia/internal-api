@@ -230,7 +230,7 @@ paths:
           description: Sort order (only valid when sort is specified)
           schema:
             type: string
-            enum: [asc, desc]
+            enum: [ asc, desc ]
           example: asc
         - name: searchAfter
           in: query
@@ -372,7 +372,7 @@ paths:
                     language: "en"
                   state: "LISTED"
                   url: "https://tech-store.com/basic-case"
-                  images: []
+                  images: [ ]
       responses:
         '200':
           description: Items processed successfully
@@ -462,7 +462,7 @@ paths:
           description: Sort order (only valid when sort is specified)
           schema:
             type: string
-            enum: [asc, desc]
+            enum: [ asc, desc ]
           example: asc
         - name: searchAfter
           in: query
@@ -504,7 +504,7 @@ paths:
               price:
                 min: 1000
                 max: 5000
-              state: ["AVAILABLE"]
+              state: [ "AVAILABLE" ]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -620,7 +620,7 @@ paths:
           description: Sort order (only valid when sort is specified)
           schema:
             type: string
-            enum: [asc, desc]
+            enum: [ asc, desc ]
             default: asc
           example: desc
         - name: Authorization
@@ -656,7 +656,7 @@ paths:
                       price:
                         min: 1000
                         max: 5000
-                      state: ["AVAILABLE"]
+                      state: [ "AVAILABLE" ]
                     created: "2024-01-01T10:00:00Z"
                     updated: "2024-01-01T12:00:00Z"
                 from: 0
@@ -739,7 +739,7 @@ paths:
               price:
                 min: 1000
                 max: 5000
-              state: ["AVAILABLE"]
+              state: [ "AVAILABLE" ]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -784,7 +784,7 @@ paths:
                   price:
                     min: 1000
                     max: 5000
-                  state: ["AVAILABLE"]
+                  state: [ "AVAILABLE" ]
                 created: "2024-01-01T12:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         '400':
@@ -893,7 +893,7 @@ paths:
                   price:
                     min: 1000
                     max: 5000
-                  state: ["AVAILABLE"]
+                  state: [ "AVAILABLE" ]
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         '400':
@@ -1079,7 +1079,7 @@ paths:
                     max: 8000
               empty_update:
                 summary: No changes (returns existing filter)
-                value: {}
+                value: { }
       responses:
         '200':
           description: Search filter updated successfully
@@ -1115,7 +1115,7 @@ paths:
                   price:
                     min: 2000
                     max: 8000
-                  state: ["AVAILABLE"]
+                  state: [ "AVAILABLE" ]
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:30:00Z"
         '400':
@@ -1213,7 +1213,7 @@ paths:
           description: Sort order (only valid when sort is specified)
           schema:
             type: string
-            enum: [asc, desc]
+            enum: [ asc, desc ]
           example: desc
         - name: searchAfter
           in: query
@@ -1606,7 +1606,7 @@ paths:
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
                 name: "Tech Store Premium"
-                urls: ["https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com"]
+                urls: [ "https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com" ]
                 image: "https://tech-store-premium.com/logo.svg"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -1678,7 +1678,7 @@ paths:
           description: Sort order (only valid when sort is specified)
           schema:
             type: string
-            enum: [asc, desc]
+            enum: [ asc, desc ]
             default: asc
           example: desc
         - name: from
@@ -1853,7 +1853,7 @@ components:
             type: string
             format: uri
           description: Array of image URLs for the item
-          default: []
+          default: [ ]
         created:
           type: string
           format: date-time
@@ -1979,7 +1979,7 @@ components:
 
     LanguageData:
       type: string
-      enum: [de, en, fr, es]
+      enum: [ de, en, fr, es ]
       description: |
         Supported languages (ISO 639-1 codes):
         - de: German (includes de-DE, de-AT, de-CH, de-LU, de-LI)
@@ -1991,7 +1991,7 @@ components:
 
     CurrencyData:
       type: string
-      enum: [EUR, GBP, USD, AUD, CAD, NZD]
+      enum: [ EUR, GBP, USD, AUD, CAD, NZD ]
       description: |
         Supported currencies (ISO 4217 codes):
         - EUR: Euro
@@ -2005,7 +2005,7 @@ components:
 
     ItemStateData:
       type: string
-      enum: [LISTED, AVAILABLE, RESERVED, SOLD, REMOVED, UNKNOWN]
+      enum: [ LISTED, AVAILABLE, RESERVED, SOLD, REMOVED, UNKNOWN ]
       description: |
         Current state of the item:
         - LISTED: Item has been listed
@@ -2018,7 +2018,7 @@ components:
 
     SortItemFieldData:
       type: string
-      enum: [score, price, updated, created]
+      enum: [ score, price, updated, created ]
       description: |
         Fields available for sorting:
         - score: Sort by relevance score (default, only available when searching with text query)
@@ -2030,7 +2030,7 @@ components:
 
     ItemEventTypeData:
       type: string
-      enum: [CREATED, STATE_LISTED, STATE_AVAILABLE. STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN, PRICE_DISCOVERED, PRICE_DROPPED, PRICE_INCREASED, PRICE_REMOVED]
+      enum: [ CREATED, STATE_LISTED, STATE_AVAILABLE. STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN, PRICE_DISCOVERED, PRICE_DROPPED, PRICE_INCREASED, PRICE_REMOVED ]
       description: Types of events that can occur for an item
       example: STATE_AVAILABLE
 
@@ -2076,7 +2076,7 @@ components:
           example: "shopId"
         sourceType:
           type: string
-          enum: [query, path, header, body]
+          enum: [ query, path, header, body ]
           description: Type of parameter that caused the error
           example: "path"
 
@@ -2114,9 +2114,9 @@ components:
             $ref: '#/components/schemas/ItemStateData'
           description: Optional filter by item states
           uniqueItems: true
-          default: []
+          default: [ ]
           nullable: true
-          example: ["AVAILABLE"]
+          example: [ "AVAILABLE" ]
         created:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
@@ -2169,7 +2169,7 @@ components:
           description: Optional filter by item states
           uniqueItems: true
           nullable: true
-          example: ["AVAILABLE", "LISTED"]
+          example: [ "AVAILABLE", "LISTED" ]
         created:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
@@ -2246,7 +2246,7 @@ components:
 
     SortSearchFilterFieldData:
       type: string
-      enum: [created]
+      enum: [ created ]
       description: |
         Fields available for sorting search filters:
         - created: Sort by creation timestamp
@@ -2338,7 +2338,7 @@ components:
             type: string
             format: uri
           description: Array of image URLs for the item
-          default: []
+          default: [ ]
           example:
             - "https://tech-store-premium.com/images/case-1.jpg"
             - "https://tech-store-premium.com/images/case-2.jpg"
@@ -2357,7 +2357,7 @@ components:
           description: |
             Item URLs that could not be processed due to temporary issues.
             These items may succeed if retried.
-          default: []
+          default: [ ]
           example:
             - "https://tech-store.com/items/temporary-issue"
         failed:
@@ -2367,7 +2367,7 @@ components:
           description: |
             Map of item URLs to error codes for items that failed processing.
             The key is the item URL, and the value is the error code explaining why it failed.
-          default: {}
+          default: { }
           example:
             "https://unknown-shop.com/item": "SHOP_NOT_FOUND"
             "https://tech-store.com/expensive-item": "MONETARY_AMOUNT_OVERFLOW"
@@ -2402,8 +2402,8 @@ components:
             type: string
             format: uri
           description: All known URLs to the shop's website
-          default: []
-          example: ["https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com"]
+          default: [ ]
+          example: [ "https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com" ]
 
         image:
           type: string
@@ -2444,7 +2444,7 @@ components:
 
     SortShopFieldData:
       type: string
-      enum: [score, name, updated, created]
+      enum: [ score, name, updated, created ]
       description: |
         Fields available for sorting shops:
         - score: Sort by relevance score (default, only available when searching with text query)
@@ -2548,7 +2548,7 @@ components:
 
     SortWatchlistItemFieldData:
       type: string
-      enum: [created]
+      enum: [ created ]
       description: |
         Fields available for sorting watchlist items:
         - created: Sort by when item was added to watchlist
@@ -2556,7 +2556,7 @@ components:
 
     PutItemError:
       type: string
-      enum: [SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, ITEM_ENRICHMENT_FAILED]
+      enum: [ SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, ITEM_ENRICHMENT_FAILED ]
       description: |
         Error codes for items that failed during processing:
         - SHOP_NOT_FOUND: The shop associated with the item's URL is not registered in the system
