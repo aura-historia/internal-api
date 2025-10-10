@@ -44,8 +44,7 @@ paths:
           description: Shop's unique identifier for the item. Can be any arbitrary string.
           schema:
             type: string
-            format: uuid
-            example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+            example: "6ba7b810"
         - name: currency
           in: query
           required: false
@@ -115,7 +114,7 @@ paths:
                 itemId: "550e8400-e29b-41d4-a716-446655440000"
                 eventId: "550e8400-e29b-41d4-a716-446655440001"
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                shopsItemId: "6ba7b810"
                 shopName: "My Shop"
                 title:
                   text: "Amazing Product"
@@ -273,7 +272,7 @@ paths:
                   - itemId: "550e8400-e29b-41d4-a716-446655440000"
                     eventId: "550e8400-e29b-41d4-a716-446655440001"
                     shopId: "550e8400-e29b-41d4-a716-446655440000"
-                    shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                    shopsItemId: "6ba7b810"
                     shopName: "Tech Store"
                     title:
                       text: "Smartphone Case"
@@ -352,7 +351,7 @@ paths:
               $ref: '#/components/schemas/PutItemsCollectionData'
             example:
               items:
-                - shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                - shopsItemId: "6ba7b810"
                   title:
                     text: "Smartphone Case Premium"
                     language: "en"
@@ -391,6 +390,8 @@ paths:
                 all_processed:
                   summary: All items processed successfully
                   value:
+                    unprocessed:
+                    failed:
                     skipped: 0
                 partial_processing_with_failures:
                   summary: Some items failed with errors
@@ -405,6 +406,7 @@ paths:
                     unprocessed:
                       - "https://tech-store.com/item-1"
                       - "https://tech-store.com/item-2"
+                    failed:
                     skipped: 2
         '400':
           description: Bad request - invalid request body
@@ -425,24 +427,6 @@ paths:
                     status: 400
                     error: "BAD_BODY_VALUE"
                     message: "Invalid JSON format"
-                shop_not_found:
-                  summary: Shop not found for item URL
-                  value:
-                    status: 400
-                    error: "SHOP_NOT_FOUND"
-                    message: "No shop registered for the provided item URL"
-                monetary_overflow:
-                  summary: Price amount overflow during enrichment
-                  value:
-                    status: 400
-                    error: "MONETARY_AMOUNT_OVERFLOW"
-                    message: "Price amount exceeds maximum value during currency conversion"
-                enrichment_failed:
-                  summary: Item enrichment failed
-                  value:
-                    status: 400
-                    error: "ITEM_ENRICHMENT_FAILED"
-                    message: "Failed to enrich item with shop and price information"
         '500':
           description: Internal server error
           content:
@@ -542,7 +526,7 @@ paths:
                   - itemId: "550e8400-e29b-41d4-a716-446655440000"
                     eventId: "550e8400-e29b-41d4-a716-446655440001"
                     shopId: "550e8400-e29b-41d4-a716-446655440000"
-                    shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                    shopsItemId: "6ba7b810"
                     shopName: "Tech Store"
                     title:
                       text: "Premium Smartphone Case"
@@ -1299,7 +1283,7 @@ paths:
                       itemId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
-                      shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                      shopsItemId: "6ba7b810"
                       shopName: "Tech Store"
                       title:
                         text: "Smartphone Case"
@@ -1396,7 +1380,7 @@ paths:
               $ref: '#/components/schemas/ItemKeyData'
             example:
               shopId: "550e8400-e29b-41d4-a716-446655440000"
-              shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+              shopsItemId: "6ba7b810"
       responses:
         '201':
           description: Item added to watchlist successfully
@@ -2131,6 +2115,7 @@ components:
           description: Optional filter by item states
           uniqueItems: true
           default: []
+          nullable: true
           example: ["AVAILABLE"]
         created:
           allOf:
@@ -2417,6 +2402,7 @@ components:
             type: string
             format: uri
           description: All known URLs to the shop's website
+          default: []
           example: ["https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com"]
 
         image:
@@ -2513,7 +2499,7 @@ components:
         shopsItemId:
           type: string
           description: Shop's unique identifier for the item. Can be any arbitrary string.
-          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+          example: "6ba7b810"
 
     WatchlistItemData:
       type: object
