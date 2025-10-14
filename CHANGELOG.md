@@ -6,6 +6,138 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-13 - Watchlist Notifications
+
+This update adds notification management capabilities for watchlist items and enriches watchlist item data with additional metadata.
+
+### Added
+
+#### New Endpoint
+
+**PATCH /api/v1/watchlist/{shopId}/{shopsItemId}**
+- Updates settings for a specific watchlist item (currently supports toggling notifications)
+- Requires the `created` timestamp as a query parameter to identify the exact entry
+- Returns 200 OK with updated watchlist item data including core identifiers
+- **Authentication**: Required (Cognito JWT)
+- **Path Parameters**:
+  - `shopId` (required): UUID of the shop
+  - `shopsItemId` (required): Shop's item identifier
+- **Query Parameters**:
+  - `created` (required): RFC3339 timestamp of when the watchlist entry was created
+- **Request Body**: `WatchlistItemPatch`
+  - `notifications` (optional, boolean): Whether to enable or disable notifications for this item
+- **Response Body**: `WatchlistItemPatchResponse`
+  - `shopId` (string, uuid, required): Shop identifier
+  - `shopsItemId` (string, required): Shop's item identifier
+  - `itemId` (string, uuid, required): Internal item identifier
+  - `notifications` (boolean, required): Current notification setting
+  - `created` (string, date-time, required): When item was added to watchlist
+  - `updated` (string, date-time, required): When watchlist item was last updated
+- **Headers**:
+  - `Authorization` (required): Cognito JWT Bearer token
+  - `Last-Modified` (response): RFC3339 timestamp of when the item was last updated
+
+**Example Request**:
+```json
+{
+  "notifications": true
+}
+```
+
+**Example Response**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopsItemId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "itemId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "notifications": true,
+  "created": "2024-01-15T08:00:00Z",
+  "updated": "2024-01-15T08:30:00Z"
+}
+```
+
+**Error Responses**:
+- `400 BAD_PATH_PARAMETER_VALUE`: Missing or invalid path parameters (shopId, shopsItemId)
+- `400 BAD_QUERY_PARAMETER_VALUE`: Missing created timestamp
+- `400 INVALID_RFC3339_TIMESTAMP`: Invalid created timestamp format
+- `400 INVALID_UUID`: Invalid UUID format for shopId
+- `400 BAD_BODY_VALUE`: Missing or invalid request body
+- `401 UNAUTHORIZED`: Missing or invalid JWT token
+- `404 WATCHLIST_ENTRY_NOT_FOUND`: Watchlist entry not found for the given parameters
+- `500 INTERNAL_SERVER_ERROR`: Server error
+
+#### New Data Types
+
+1. **WatchlistItemPatch**
+   - Request body schema for PATCH /api/v1/watchlist/{shopId}/{shopsItemId}
+   - Properties:
+     - `notifications` (boolean, optional): Enable or disable notifications for the watchlist item
+
+2. **WatchlistItemPatchResponse**
+   - Response schema for PATCH /api/v1/watchlist/{shopId}/{shopsItemId}
+   - Properties:
+     - `shopId` (string, uuid, required): Shop identifier
+     - `shopsItemId` (string, required): Shop's item identifier
+     - `itemId` (string, uuid, required): Internal item identifier
+     - `notifications` (boolean, required): Current notification setting
+     - `created` (string, date-time, required): When item was added to watchlist
+     - `updated` (string, date-time, required): When watchlist item was last updated
+
+### Changed
+
+#### WatchlistItemData (GET /api/v1/watchlist Response)
+
+The `WatchlistItemData` type returned by the GET /api/v1/watchlist endpoint has been enhanced with notification settings and update tracking:
+
+**New Fields Added**:
+- `notifications` (boolean, required): Whether notifications are enabled for this watchlist item
+  - Default value: `false` for newly created watchlist items
+- `updated` (string, date-time, required): RFC3339 timestamp of when the watchlist item was last updated
+  - Initially set to the same value as `created` when an item is added to the watchlist
+  - Updated whenever watchlist item settings are modified (e.g., via PATCH endpoint)
+
+**Updated Schema**:
+```json
+{
+  "item": {
+    // ... GetItemData fields
+  },
+  "notifications": false,
+  "created": "2024-01-15T08:00:00Z",
+  "updated": "2024-01-15T08:00:00Z"
+}
+```
+
+**Impact on Existing Integrations**:
+- Frontend applications should update their models to include these new required fields
+- The `notifications` field allows users to control whether they receive updates about price changes or availability for watchlist items
+- The `updated` field helps track when settings were last modified, useful for sync and conflict resolution
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **GET /api/v1/watchlist**:
+   - Update your `WatchlistItemData` model to include:
+     - `notifications: boolean` (required)
+     - `updated: string` (required, RFC3339 format)
+   - Handle these fields in your watchlist display components
+   - Consider showing notification status in the UI
+
+2. **New PATCH endpoint**:
+   - Implement notification toggle functionality using `PATCH /api/v1/watchlist/{shopId}/{shopsItemId}?created={timestamp}`
+   - Include the exact `created` timestamp from the watchlist item when making PATCH requests
+   - The response provides updated item metadata including the new `updated` timestamp
+   - Use the `Last-Modified` response header for optimistic locking if needed
+
+3. **Error Handling**:
+   - Add handlers for the new error responses from the PATCH endpoint
+   - The `created` timestamp must match exactly - handle `WATCHLIST_ENTRY_NOT_FOUND` errors appropriately
+
+### Removed
+
+No endpoints or fields have been removed in this update.
+
 ## 2025-10-08 - Item Enrichment with Shop Information
 
 ### Changed
