@@ -6,6 +6,140 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-14 - Watchlist Item Identification Refactoring
+
+This update improves the watchlist item API by simplifying item identification. Watchlist items are now uniquely identified by their composite key (shopId + shopsItemId) rather than requiring the creation timestamp. This makes the API more intuitive and reduces the likelihood of errors.
+
+### Changed
+
+#### DELETE /api/v1/watchlist/{shopId}/{shopsItemId}
+
+The DELETE endpoint has been simplified to remove the `created` query parameter requirement:
+
+**Before**:
+```
+DELETE /api/v1/watchlist/{shopId}/{shopsItemId}?created={timestamp}
+```
+
+**After**:
+```
+DELETE /api/v1/watchlist/{shopId}/{shopsItemId}
+```
+
+**Changes**:
+- **Removed** `created` query parameter - No longer required to identify the watchlist entry
+- Watchlist items are now uniquely identified by the combination of `shopId` and `shopsItemId` path parameters
+- Simplified error handling - No more `BAD_QUERY_PARAMETER_VALUE` or `INVALID_RFC3339_TIMESTAMP` errors related to the `created` parameter
+
+**Migration Impact**:
+- Frontend applications must update DELETE requests to remove the `created` query parameter
+- The endpoint now relies solely on path parameters `{shopId}/{shopsItemId}` for item identification
+- Error handling code for missing/invalid `created` timestamps can be removed
+
+#### PATCH /api/v1/watchlist/{shopId}/{shopsItemId}
+
+The PATCH endpoint has been simplified to remove the `created` query parameter requirement:
+
+**Before**:
+```
+PATCH /api/v1/watchlist/{shopId}/{shopsItemId}?created={timestamp}
+```
+
+**After**:
+```
+PATCH /api/v1/watchlist/{shopId}/{shopsItemId}
+```
+
+**Changes**:
+- **Removed** `created` query parameter - No longer required to identify the watchlist entry
+- Watchlist items are now uniquely identified by the combination of `shopId` and `shopsItemId` path parameters
+- Simplified error handling - No more `BAD_QUERY_PARAMETER_VALUE` or `INVALID_RFC3339_TIMESTAMP` errors related to the `created` parameter
+- Request body and response structure remain unchanged
+
+**Migration Impact**:
+- Frontend applications must update PATCH requests to remove the `created` query parameter
+- The endpoint now relies solely on path parameters `{shopId}/{shopsItemId}` for item identification
+- Error handling code for missing/invalid `created` timestamps can be removed
+
+#### POST /api/v1/watchlist
+
+The POST endpoint now returns the created watchlist item data in the response body:
+
+**Changes**:
+- **Added** response body containing `WatchlistItemPatchResponse` data
+- Response now includes all watchlist item metadata: `shopId`, `shopsItemId`, `itemId`, `notifications`, `created`, and `updated`
+- The `Location` header is still included pointing to the created resource
+- Default `notifications` value is `false` for newly created items
+- Both `created` and `updated` timestamps are set to the same value when an item is first added
+
+**Response Body Schema**: `WatchlistItemPatchResponse`
+- `shopId` (string, uuid, required): Shop identifier
+- `shopsItemId` (string, required): Shop's item identifier  
+- `itemId` (string, uuid, required): Internal item identifier
+- `notifications` (boolean, required): Notification setting (default: false)
+- `created` (string, date-time, required): When item was added to watchlist
+- `updated` (string, date-time, required): When watchlist item was last updated
+
+**Example Response**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopsItemId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "itemId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "notifications": false,
+  "created": "2024-01-15T08:00:00Z",
+  "updated": "2024-01-15T08:00:00Z"
+}
+```
+
+**Migration Impact**:
+- Frontend applications can now immediately use the returned watchlist item data without making an additional GET request
+- The response includes the internal `itemId` which may be useful for tracking
+- Applications should update their POST request handlers to process the response body
+
+### Implementation Details
+
+**Backend Changes**:
+- Database schema updated to use composite key (`shopId` + `shopsItemId`) as the sort key instead of `created` timestamp
+- The `created` timestamp moved to a Local Secondary Index (LSI) named `lsi1` for efficient sorting by creation date
+- Service layer methods now accept `shopId` and `shopsItemId` parameters instead of `created` timestamp
+- New `WatchlistItemData` type moved to a shared module for reuse across API handlers
+- Added `UpdateWatchlistItemCommand` for encapsulating update operations
+
+**Error Code Changes**:
+- Error code `WATCHLIST_ENTRY_NOT_FOUND` message updated to reflect new identification method:
+  - Old: "There exists no Watchlist-Item that was started being watched on '{timestamp}' for user '{userId}'"
+  - New: "There exists no Watchlist-Item for user '{userId}' with Shop-Id '{shopId}' and Shops-Item-Id '{shopsItemId}'"
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **DELETE endpoint**:
+   - Remove the `created` query parameter from DELETE requests
+   - Update URL construction: `DELETE /api/v1/watchlist/${shopId}/${shopsItemId}`
+   - Remove error handling for `BAD_QUERY_PARAMETER_VALUE` and `INVALID_RFC3339_TIMESTAMP` related to `created`
+
+2. **PATCH endpoint**:
+   - Remove the `created` query parameter from PATCH requests
+   - Update URL construction: `PATCH /api/v1/watchlist/${shopId}/${shopsItemId}`
+   - Remove error handling for `BAD_QUERY_PARAMETER_VALUE` and `INVALID_RFC3339_TIMESTAMP` related to `created`
+   - Request body and response handling remain unchanged
+
+3. **POST endpoint**:
+   - Update POST request handlers to process the response body
+   - The response now contains the complete watchlist item data including `itemId`, `notifications`, `created`, and `updated`
+   - Use the returned data to update your local state without needing an additional GET request
+
+4. **General**:
+   - The `created` timestamp is still available in GET responses and can be used for display purposes
+   - The uniqueness constraint is now on `(userId, shopId, shopsItemId)` instead of `(userId, created)`
+   - A user can only have one watchlist entry per unique item (shopId + shopsItemId combination)
+
+### Removed
+
+No endpoints or data types have been removed. The changes are modifications to existing endpoint signatures and response structures.
+
 ## 2025-10-13 - Watchlist Notifications
 
 This update adds notification management capabilities for watchlist items and enriches watchlist item data with additional metadata.

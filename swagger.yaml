@@ -1396,6 +1396,17 @@ paths:
               schema:
                 type: string
               example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchlistItemPatchResponse'
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                itemId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                notifications: false
+                created: "2024-01-15T08:00:00Z"
+                updated: "2024-01-15T08:00:00Z"
         '400':
           description: Bad request - invalid request body
           content:
@@ -1439,7 +1450,6 @@ paths:
       summary: Remove item from watchlist
       description: |
         Removes a specific item from the authenticated user's watchlist.
-        Requires the creation timestamp as a query parameter to identify the exact watchlist entry.
         Returns a 204 No Content response on success.
         Requires valid Cognito JWT authentication.
       operationId: deleteWatchlistItem
@@ -1461,16 +1471,6 @@ paths:
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: created
-          in: query
-          required: true
-          description: |
-            RFC3339 timestamp of when the watchlist entry was created.
-            Required to identify the exact entry to delete.
-          schema:
-            type: string
-            format: date-time
-          example: "2024-01-15T08:00:00Z"
         - name: Authorization
           in: header
           required: true
@@ -1511,24 +1511,6 @@ paths:
                     source:
                       field: "shopsItemId"
                       sourceType: "path"
-                missing_created:
-                  summary: Missing created timestamp
-                  value:
-                    status: 400
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "created"
-                      sourceType: "query"
-                    message: "The timestamp of when the watchlist-entry was created is required to delete it."
-                invalid_created_timestamp:
-                  summary: Invalid created timestamp format
-                  value:
-                    status: 400
-                    error: "INVALID_RFC3339_TIMESTAMP"
-                    source:
-                      field: "created"
-                      sourceType: "query"
-                    message: "Invalid RFC3339 timestamp format"
                 invalid_uuid:
                   summary: Invalid shop ID format
                   value:
@@ -1570,7 +1552,6 @@ paths:
       summary: Update watchlist item settings
       description: |
         Updates settings for a specific watchlist item (e.g., toggle notifications).
-        Requires the creation timestamp as a query parameter to identify the exact watchlist entry.
         Returns the updated watchlist item data with core identifiers and settings.
         Requires valid Cognito JWT authentication.
       operationId: patchWatchlistItem
@@ -1592,16 +1573,6 @@ paths:
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: created
-          in: query
-          required: true
-          description: |
-            RFC3339 timestamp of when the watchlist entry was created.
-            Required to identify the exact entry to update.
-          schema:
-            type: string
-            format: date-time
-          example: "2024-01-15T08:00:00Z"
         - name: Authorization
           in: header
           required: true
@@ -1675,24 +1646,6 @@ paths:
                     source:
                       field: "shopsItemId"
                       sourceType: "path"
-                missing_created:
-                  summary: Missing created timestamp
-                  value:
-                    status: 400
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "created"
-                      sourceType: "query"
-                    message: "The timestamp of when the watchlist-entry was created is required to delete it."
-                invalid_created_timestamp:
-                  summary: Invalid created timestamp format
-                  value:
-                    status: 400
-                    error: "INVALID_RFC3339_TIMESTAMP"
-                    source:
-                      field: "created"
-                      sourceType: "query"
-                    message: "Invalid RFC3339 timestamp format"
                 invalid_uuid:
                   summary: Invalid shop ID format
                   value:
