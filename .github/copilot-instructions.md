@@ -1,7 +1,7 @@
-# Blitzfilter Api
+# Aura-Historia API
 
-Blitzfilter Api is the repository for the documentation of the REST API of th blitzfilter-project.
-Blitzfilter is a cloud-native application with its backend being hosted entirely on AWS.
+Aura-Historia Api is the repository for the documentation of the REST API of th aura-historia-project.
+Aura-Historia is a cloud-native application with its backend being hosted entirely on AWS.
 The backend is written in Rust, utilizes event-driven architecture with CQRS and Event-Sourcing and mainly relies on the following managed services:
 - AWS ApiGateway
 - AWS OpenSearch Service
@@ -13,8 +13,8 @@ The frontend is written in Next.js with TypeScript and ShadCN and is hosted on V
 You will barely need it.
 
 Frontend and backend each have their own repositories. They're referenced below such that you can always consult them.
-- Backend: https://github.com/blitzfilter/aws-backend
-- Frontend: https://github.com/blitzfilter/blitzfilter-frontend
+- Backend: https://github.com/aura-historia/backend
+- Frontend: https://github.com/aura-historia/webapp
 
 Always reference below instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 

@@ -1,22 +1,22 @@
 openapi: 3.0.0
 info:
-  title: Blitzfilter Backend API
+  title: Aura-Historia Backend API
   description: |
-    REST API for the Blitzfilter backend.
+    REST API for the Aura-Historia backend.
     
     The backend is written in Rust and utilizes event-driven architecture with CQRS and Event-Sourcing,
     hosted entirely on AWS using services like API Gateway, OpenSearch, DynamoDB, SQS, and Lambda.
   version: 1.0.0
   contact:
-    name: Blitzfilter Team
-    url: https://github.com/blitzfilter
+    name: Aura-Historia Team
+    url: https://github.com/aura-hisotira
   license:
     name: License
-    url: https://github.com/blitzfilter/aws-backend/blob/develop/LICENSE
+    url: https://github.com/aura-historia/backend/blob/develop/LICENSE
 
 servers:
-  - url: https://api.blitzfilter.com
-    description: Placeholder server
+  - url: https://api.aura-historia.com
+    description: Full Development-Server
 
 paths:
   /api/v1/items/{shopId}/{shopsItemId}:
@@ -752,7 +752,7 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "https://api.blitzfilter.com/api/v1/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+              example: "https://api.aura-historia.com/api/v1/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
             Content-Language:
               description: The language of the returned content
               schema:
@@ -1390,7 +1390,7 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "https://api.blitzfilter.com/api/v1/watchlist/550e8400-e29b-41d4-a716-446655440000/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+              example: "https://api.aura-historia.com/api/v1/watchlist/550e8400-e29b-41d4-a716-446655440000/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
             Access-Control-Allow-Origin:
               description: CORS header
               schema:

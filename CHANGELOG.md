@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Blitzfilter Backend API will be documented in this file.
+All notable changes to the Aura-Historia Backend API will be documented in this file.
 
 This changelog is for internal communication between frontend and backend teams. It documents what is new, what has changed, and what has been removed for each API update.
 
