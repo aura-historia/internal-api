@@ -2069,6 +2069,48 @@ components:
         price:
           $ref: '#/components/schemas/PriceData'
 
+    ItemEventStateChangedPayloadData:
+      type: object
+      description: Payload for state change events, containing both old and new state
+      required:
+        - oldState
+        - newState
+      properties:
+        oldState:
+          $ref: '#/components/schemas/ItemStateData'
+        newState:
+          $ref: '#/components/schemas/ItemStateData'
+
+    ItemEventPriceDiscoveredPayloadData:
+      type: object
+      description: Payload for price discovered events when an item's price is first detected
+      required:
+        - newPrice
+      properties:
+        newPrice:
+          $ref: '#/components/schemas/PriceData'
+
+    ItemEventPriceChangedPayloadData:
+      type: object
+      description: Payload for price change events (dropped or increased), containing both old and new price
+      required:
+        - oldPrice
+        - newPrice
+      properties:
+        oldPrice:
+          $ref: '#/components/schemas/PriceData'
+        newPrice:
+          $ref: '#/components/schemas/PriceData'
+
+    ItemEventPriceRemovedPayloadData:
+      type: object
+      description: Payload for price removed events when an item's price is removed
+      required:
+        - oldPrice
+      properties:
+        oldPrice:
+          $ref: '#/components/schemas/PriceData'
+
     GetItemEventData:
       type: object
       description: Historical event for an item
@@ -2166,9 +2208,17 @@ components:
     ItemEventPayloadData:
       oneOf:
         - $ref: '#/components/schemas/ItemCreatedEventPayloadData'
-        - $ref: '#/components/schemas/ItemStateData'
-        - $ref: '#/components/schemas/PriceData'
-      description: Event-specific payload data
+        - $ref: '#/components/schemas/ItemEventStateChangedPayloadData'
+        - $ref: '#/components/schemas/ItemEventPriceDiscoveredPayloadData'
+        - $ref: '#/components/schemas/ItemEventPriceChangedPayloadData'
+        - $ref: '#/components/schemas/ItemEventPriceRemovedPayloadData'
+      description: |
+        Event-specific payload data. The structure varies depending on the event type:
+        - CREATED: ItemCreatedEventPayloadData (initial item state and optional price)
+        - STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN: ItemEventStateChangedPayloadData (old and new state)
+        - PRICE_DISCOVERED: ItemEventPriceDiscoveredPayloadData (new price only, when price is first detected)
+        - PRICE_DROPPED, PRICE_INCREASED: ItemEventPriceChangedPayloadData (old and new price)
+        - PRICE_REMOVED: ItemEventPriceRemovedPayloadData (old price only, when price is removed)
 
     ApiError:
       type: object
