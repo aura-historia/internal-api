@@ -6,6 +6,189 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-21 - Item Event History Enhanced with Old and New Values
+
+This update enhances the item history events to include both old and new values for state and price changes, making it easier for the frontend to display what changed without computing differences. This provides richer context for tracking item history and enables better UI experiences when showing price drops, increases, and state transitions.
+
+### Changed
+
+#### GET /api/v1/items/{shopId}/{shopsItemId}?history=true
+
+The history array in the response now includes more detailed information for each event type. Event payloads have been restructured to provide both old and new values for changes.
+
+**Breaking Changes to Event Payload Structure:**
+
+1. **State Change Events** (STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN)
+   
+   **Before:**
+   ```json
+   {
+     "eventType": "STATE_AVAILABLE",
+     "payload": "AVAILABLE"
+   }
+   ```
+   
+   **After:**
+   ```json
+   {
+     "eventType": "STATE_AVAILABLE",
+     "payload": {
+       "oldState": "LISTED",
+       "newState": "AVAILABLE"
+     }
+   }
+   ```
+
+2. **Price Discovered Events** (PRICE_DISCOVERED)
+   
+   **Before:**
+   ```json
+   {
+     "eventType": "PRICE_DISCOVERED",
+     "payload": {
+       "currency": "EUR",
+       "amount": 2999
+     }
+   }
+   ```
+   
+   **After:**
+   ```json
+   {
+     "eventType": "PRICE_DISCOVERED",
+     "payload": {
+       "newPrice": {
+         "currency": "EUR",
+         "amount": 2999
+       }
+     }
+   }
+   ```
+
+3. **Price Change Events** (PRICE_DROPPED, PRICE_INCREASED)
+   
+   **Before:**
+   ```json
+   {
+     "eventType": "PRICE_DROPPED",
+     "payload": {
+       "currency": "EUR",
+       "amount": 2499
+     }
+   }
+   ```
+   
+   **After:**
+   ```json
+   {
+     "eventType": "PRICE_DROPPED",
+     "payload": {
+       "oldPrice": {
+         "currency": "EUR",
+         "amount": 2999
+       },
+       "newPrice": {
+         "currency": "EUR",
+         "amount": 2499
+       }
+     }
+   }
+   ```
+
+4. **Price Removed Events** (PRICE_REMOVED)
+   
+   **Before:**
+   ```json
+   {
+     "eventType": "PRICE_REMOVED",
+     "payload": null
+   }
+   ```
+   
+   **After:**
+   ```json
+   {
+     "eventType": "PRICE_REMOVED",
+     "payload": {
+       "oldPrice": {
+         "currency": "EUR",
+         "amount": 2999
+       }
+     }
+   }
+   ```
+
+#### New Data Types
+
+**ItemEventStateChangedPayloadData**
+- Used for all state change events
+- Properties:
+  - `oldState` (ItemStateData, required): The previous state of the item
+  - `newState` (ItemStateData, required): The new state of the item
+
+**ItemEventPriceDiscoveredPayloadData**
+- Used for PRICE_DISCOVERED events when a price is first detected
+- Properties:
+  - `newPrice` (PriceData, required): The newly discovered price
+
+**ItemEventPriceChangedPayloadData**
+- Used for PRICE_DROPPED and PRICE_INCREASED events
+- Properties:
+  - `oldPrice` (PriceData, required): The previous price
+  - `newPrice` (PriceData, required): The new price
+
+**ItemEventPriceRemovedPayloadData**
+- Used for PRICE_REMOVED events when a price is removed from an item
+- Properties:
+  - `oldPrice` (PriceData, required): The price that was removed
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **Update item history event handling**:
+   - All state change events now return an object with `oldState` and `newState` fields
+   - Access state using `event.payload.newState` instead of just `event.payload`
+
+2. **Update price event handling**:
+   - PRICE_DISCOVERED events now have the price under `event.payload.newPrice`
+   - PRICE_DROPPED and PRICE_INCREASED events now provide both `oldPrice` and `newPrice`
+   - PRICE_REMOVED events now include the `oldPrice` that was removed
+
+3. **Display improvements**:
+   - You can now show "Changed from X to Y" messages for state transitions
+   - Display price drops/increases with the actual old and new values
+   - Show what price was removed instead of just indicating removal
+
+4. **Example complete event object**:
+   ```json
+   {
+     "eventType": "PRICE_DROPPED",
+     "itemId": "550e8400-e29b-41d4-a716-446655440000",
+     "eventId": "550e8400-e29b-41d4-a716-446655440001",
+     "shopId": "550e8400-e29b-41d4-a716-446655440000",
+     "shopsItemId": "6ba7b810",
+     "payload": {
+       "oldPrice": {
+         "currency": "USD",
+         "amount": 3499
+       },
+       "newPrice": {
+         "currency": "USD",
+         "amount": 2999
+       }
+     },
+     "timestamp": "2024-01-15T14:30:00Z"
+   }
+   ```
+
+### Backend Implementation Details
+
+- Event payloads are now separate types: `ItemEventStateChangedPayloadData`, `ItemEventPriceDiscoveredPayloadData`, `ItemEventPriceChangedPayloadData`, and `ItemEventPriceRemovedPayloadData`
+- Price discovery (first time a price is detected) is now distinguished from price changes with separate payload structure
+- All state and price change events capture the old value before modification occurs
+- The `ItemEventPayloadData` enum uses `oneOf` discriminator to allow different payload structures per event type
+
 ## 2025-10-14 - Watchlist Item Identification Refactoring
 
 This update improves the watchlist item API by simplifying item identification. Watchlist items are now uniquely identified by their composite key (shopId + shopsItemId) rather than requiring the creation timestamp. This makes the API more intuitive and reduces the likelihood of errors.
