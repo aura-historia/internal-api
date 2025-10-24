@@ -6,6 +6,193 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-10-24 - Search Filter Names and Shop Search Keyset Pagination
+
+This update introduces user-defined names for search filters and migrates shop search from offset-based pagination to cursor-based (keyset) pagination for better performance and scalability.
+
+### Added
+
+#### Search Filter Names
+
+All search filter endpoints now support a `searchFilterName` field that allows users to assign custom names to their saved search filters.
+
+**New Field in `UserSearchFilterData`:**
+```json
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "searchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+  "searchFilterName": "My Tech Store Search",
+  "searchFilter": {
+    "language": "en",
+    "currency": "USD",
+    "itemQuery": "smartphone"
+  },
+  "created": "2024-01-01T10:00:00Z",
+  "updated": "2024-01-01T12:00:00Z"
+}
+```
+
+**New Schema: `PostUserSearchFilterData`**
+- Used for creating search filters
+- Requires both `searchFilterName` (string, max 255 characters) and `searchFilter` object
+
+**New Schema: `PatchUserSearchFilterData`**
+- Used for updating search filters
+- Optional `searchFilterName` field for updating the filter name
+- Optional `searchFilter` object (type: `PatchSearchFilterData`) for updating filter criteria
+- Both fields are optional - either or both can be updated
+
+**New Schema: `PatchSearchFilterData`**
+- Contains the actual search filter criteria that can be partially updated
+- All fields from `SearchFilterData` are optional in this schema
+
+### Changed
+
+#### POST /api/v1/search-filters
+
+**Request Body Structure Changed:**
+
+Before:
+```json
+{
+  "language": "en",
+  "currency": "USD",
+  "itemQuery": "smartphone",
+  "shopNameQuery": "Tech Store",
+  "price": {
+    "min": 1000,
+    "max": 5000
+  }
+}
+```
+
+After:
+```json
+{
+  "searchFilterName": "My Tech Store Search",
+  "searchFilter": {
+    "language": "en",
+    "currency": "USD",
+    "itemQuery": "smartphone",
+    "shopNameQuery": "Tech Store",
+    "price": {
+      "min": 1000,
+      "max": 5000
+    }
+  }
+}
+```
+
+**Response:** Now includes `searchFilterName` field in the returned `UserSearchFilterData`.
+
+#### PATCH /api/v1/search-filters/{searchFilterId}
+
+**Request Body Structure Changed:**
+
+The PATCH endpoint now supports updating the search filter name separately from the filter criteria. The request body structure has been reorganized to nest the filter criteria.
+
+Before (flat structure):
+```json
+{
+  "shopNameQuery": "Updated Store",
+  "price": {
+    "min": 2000,
+    "max": 8000
+  }
+}
+```
+
+After (nested structure):
+```json
+{
+  "searchFilterName": "Updated Filter Name",
+  "searchFilter": {
+    "shopNameQuery": "Updated Store",
+    "price": {
+      "min": 2000,
+      "max": 8000
+    }
+  }
+}
+```
+
+**Update Options:**
+- Update name only: `{ "searchFilterName": "New Name" }`
+- Update filter criteria only: `{ "searchFilter": { "language": "de" } }`
+- Update both: `{ "searchFilterName": "New Name", "searchFilter": { "language": "de" } }`
+- No update (returns existing): `{}`
+
+**Response:** Now includes `searchFilterName` field in the returned `UserSearchFilterData`.
+
+#### GET /api/v1/search-filters/{searchFilterId}
+
+**Response:** Now includes `searchFilterName` field in the returned `UserSearchFilterData`.
+
+#### GET /api/v1/search-filters
+
+**Response:** All items in the `items` array now include `searchFilterName` field.
+
+#### POST /api/v1/shops/search
+
+**Pagination Changed from Offset-Based to Cursor-Based (Keyset Pagination):**
+
+Query Parameters:
+- **Removed:** `from` (offset) parameter
+- **Added:** `searchAfter` parameter (JSON array cursor)
+
+**`searchAfter` Parameter:**
+- Type: JSON array
+- Description: Cursor value from previous response's `searchAfter` field
+- Format: `[sortValue, shopId]` (heterogeneous array)
+- Example: `["Tech Store Premium", "550e8400-e29b-41d4-a716-446655440000"]`
+- Usage: Pass the `searchAfter` value from the previous page to get the next page
+
+**Response Schema Changed:**
+
+Before (`ShopSearchResultData`):
+```json
+{
+  "items": [...],
+  "from": 0,
+  "size": 21,
+  "total": 127
+}
+```
+
+After (`ShopSearchResultData`):
+```json
+{
+  "items": [...],
+  "size": 2,
+  "searchAfter": "[\"Tech Store Basic\", \"660f9500-f39c-42e5-b827-556766550001\"]",
+  "total": 42
+}
+```
+
+**Response Fields:**
+- `items`: Array of shop results (unchanged)
+- `size`: Number of items in current page (unchanged, now required)
+- `searchAfter`: Cursor for next page (nullable, present when more results available)
+- `total`: Total number of matching items (unchanged, nullable)
+- **Removed:** `from` field
+
+**Pagination Workflow:**
+1. First request: Omit `searchAfter` parameter
+2. Check response for `searchAfter` field
+3. If `searchAfter` is present, use it in next request to get the next page
+4. Repeat until `searchAfter` is not present in response
+
+**Benefits:**
+- Better performance for large result sets
+- Consistent pagination even when data changes
+- No risk of duplicates or skipped items during pagination
+
+### Removed
+
+#### Schema: `SearchFilterDataPatch`
+
+This schema has been replaced by `PatchUserSearchFilterData` and `PatchSearchFilterData` to support the new nested structure for partial updates.
+
 ## 2025-10-21 - Item Event History Enhanced with Old and New Values
 
 This update enhances the item history events to include both old and new values for state and price changes, making it easier for the frontend to display what changed without computing differences. This provides richer context for tracking item history and enables better UI experiences when showing price drops, increases, and state transitions.
