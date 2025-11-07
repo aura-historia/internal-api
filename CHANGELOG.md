@@ -173,9 +173,9 @@ All user-specific endpoints have been reorganized under the `/api/v1/me/` prefix
 **Search Filter Endpoints**:
 - `GET /api/v1/search-filters` → `GET /api/v1/me/search-filters`
 - `POST /api/v1/search-filters` → `POST /api/v1/me/search-filters`
-- `GET /api/v1/search-filters/{searchFilterId}` → `GET /api/v1/me/search-filters/{searchFilterId}`
-- `PATCH /api/v1/search-filters/{searchFilterId}` → `PATCH /api/v1/me/search-filters/{searchFilterId}`
-- `DELETE /api/v1/search-filters/{searchFilterId}` → `DELETE /api/v1/me/search-filters/{searchFilterId}`
+- `GET /api/v1/search-filters/{userSearchFilterId}` → `GET /api/v1/me/search-filters/{userSearchFilterId}`
+- `PATCH /api/v1/search-filters/{userSearchFilterId}` → `PATCH /api/v1/me/search-filters/{userSearchFilterId}`
+- `DELETE /api/v1/search-filters/{userSearchFilterId}` → `DELETE /api/v1/me/search-filters/{userSearchFilterId}`
 
 **Migration Impact**:
 - All API clients must update endpoint URLs to use `/api/v1/me/` prefix for user resources
@@ -252,16 +252,6 @@ For frontend developers integrating these changes:
    - When calling without auth, expect `userState` to be absent in responses
    - Use optional chaining when accessing user state: `response.userState?.watchlist.watching`
 
-### Backend Implementation Details
-
-- Authentication is verified via Cognito access token
-- User ID is extracted from JWT when present
-- Watchlist state is queried from DynamoDB when user is authenticated
-- Anonymous requests skip user state lookup for better performance
-- Response structure uses a generic `Personalized<Item, UserState>` wrapper
-- Path changes implemented via AWS API Gateway route updates
-- All endpoints maintain backward compatibility for request parameters and bodies
-
 ### Removed
 
 #### GET /api/v1/items (Simple Text Search)
@@ -298,25 +288,38 @@ Content-Type: application/json
 - Response structure is identical (wrapped in `PersonalizedItemSearchResultData` with authentication)
 - Additional filtering options are available through the request body (shopNameQuery, price range, state, date ranges)
 
-**Code Example**:
-```typescript
-// Before - Simple Search
-const searchItems = async (query: string, language: string, currency: string) => {
-  const params = new URLSearchParams({ q: query, language, currency });
-  const response = await fetch(`/api/v1/items?${params}`);
-  return response.json();
-};
+**Example Request/Response**:
 
-// After - Complex Search
-const searchItems = async (query: string, language: string, currency: string) => {
-  const body = { itemQuery: query, language, currency };
-  const response = await fetch('/api/v1/items/search', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  return response.json();
-};
+Before (Simple Search):
+```http
+GET /api/v1/items?q=smartphone+case&language=en&currency=USD&sort=price&order=asc&size=21
+```
+
+After (Complex Search):
+```http
+POST /api/v1/items/search?sort=price&order=asc&size=21
+Content-Type: application/json
+
+{
+  "language": "en",
+  "currency": "USD",
+  "itemQuery": "smartphone case"
+}
+```
+
+Response (identical structure, wrapped in PersonalizedItemSearchResultData):
+```json
+{
+  "items": [
+    {
+      "item": { /* GetItemData */ },
+      "userState": { /* Optional when authenticated */ }
+    }
+  ],
+  "size": 21,
+  "total": 127,
+  "searchAfter": "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
+}
 ```
 
 No other endpoints or schemas have been removed in this update. The old watchlist and search-filter paths at `/api/v1/watchlist*` and `/api/v1/search-filters*` are deprecated and will be removed in a future update. Clients should migrate to the new `/api/v1/me/*` paths immediately.
