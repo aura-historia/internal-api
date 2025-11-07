@@ -2056,39 +2056,6 @@ components:
           description: Whether notifications are enabled for this watchlist item
           example: false
 
-    ItemSearchResultData:
-      type: object
-      description: Paginated collection of items using cursor-based pagination (search-after pattern)
-      required:
-        - items
-        - size
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/GetItemData'
-          description: Array of items in the current page
-        size:
-          type: integer
-          minimum: 0
-          description: Number of items returned in the current page
-          example: 21
-        total:
-          type: integer
-          minimum: 0
-          description: Total number of items matching the query (optional, may not always be available)
-          nullable: true
-          example: 127
-        searchAfter:
-          type: array
-          items: {}
-          description: |
-            Cursor for the next page (JSON value). Present when there are more results.
-            Pass this value as the `searchAfter` query parameter to get the next page.
-            This can be ANY heterogeneous array.
-          nullable: true
-          example: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
-
     LocalizedTextData:
       type: object
       description: Text content with language information
