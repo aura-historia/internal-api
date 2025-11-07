@@ -606,7 +606,7 @@ paths:
               example:
                 items:
                   - userId: "550e8400-e29b-41d4-a716-446655440000"
-                    searchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                    userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     searchFilterName: "My Tech Store Search"
                     searchFilter:
                       language: "en"
@@ -737,7 +737,7 @@ paths:
                 $ref: '#/components/schemas/UserSearchFilterData'
               example:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
-                searchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 searchFilterName: "My Tech Store Search"
                 searchFilter:
                   language: "en"
@@ -794,7 +794,7 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/me/search-filters/{searchFilterId}:
+  /api/v1/me/search-filters/{userSearchFilterId}:
     get:
       summary: Get a specific search filter
       description: |
@@ -805,7 +805,7 @@ paths:
       tags:
         - Search Filters
       parameters:
-        - name: searchFilterId
+        - name: userSearchFilterId
           in: path
           required: true
           description: Unique identifier of the search filter
@@ -847,7 +847,7 @@ paths:
                 $ref: '#/components/schemas/UserSearchFilterData'
               example:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
-                searchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 searchFilterName: "My Tech Store Search"
                 searchFilter:
                   language: "en"
@@ -873,7 +873,7 @@ paths:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid search filter ID format
@@ -881,7 +881,7 @@ paths:
                     status: 400
                     error: "INVALID_UUID"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                     message: "Invalid UUID format"
         '401':
@@ -921,7 +921,7 @@ paths:
       tags:
         - Search Filters
       parameters:
-        - name: searchFilterId
+        - name: userSearchFilterId
           in: path
           required: true
           description: Unique identifier of the search filter to delete
@@ -959,7 +959,7 @@ paths:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid search filter ID format
@@ -967,7 +967,7 @@ paths:
                     status: 400
                     error: "INVALID_UUID"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                     message: "Invalid UUID format"
         '401':
@@ -1008,7 +1008,7 @@ paths:
       tags:
         - Search Filters
       parameters:
-        - name: searchFilterId
+        - name: userSearchFilterId
           in: path
           required: true
           description: Unique identifier of the search filter to update
@@ -1082,7 +1082,7 @@ paths:
                 $ref: '#/components/schemas/UserSearchFilterData'
               example:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
-                searchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 searchFilterName: "Updated Filter Name"
                 searchFilter:
                   language: "en"
@@ -1108,7 +1108,7 @@ paths:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid search filter ID format
@@ -1116,7 +1116,7 @@ paths:
                     status: 400
                     error: "INVALID_UUID"
                     source:
-                      field: "searchFilterId"
+                      field: "userSearchFilterId"
                       sourceType: "path"
                     message: "Invalid UUID format"
                 invalid_json:
@@ -2458,7 +2458,7 @@ components:
       description: Complete user search filter with metadata
       required:
         - userId
-        - searchFilterId
+        - userSearchFilterId
         - searchFilterName
         - searchFilter
         - created
@@ -2469,7 +2469,7 @@ components:
           format: uuid
           description: Unique identifier of the user who owns this search filter
           example: "550e8400-e29b-41d4-a716-446655440000"
-        searchFilterId:
+        userSearchFilterId:
           type: string
           format: uuid
           description: Unique identifier for this search filter
