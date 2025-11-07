@@ -26,6 +26,10 @@ paths:
         Retrieves a single item by its shop ID and shop's item ID.
         Returns localized content based on Accept-Language header and currency preferences.
         Optionally includes item history when requested.
+        
+        **Personalization**: When authenticated (via optional Authorization header), the response includes
+        user-specific state such as whether the item is on the user's watchlist and notification preferences.
+        Anonymous requests receive item data without user state.
       operationId: getItem
       tags:
         - Items
@@ -80,6 +84,17 @@ paths:
             regional:
               value: "en-US"
               description: "US English"
+        - name: Authorization
+          in: header
+          required: false
+          description: |
+            Optional Cognito JWT token for personalized response.
+            When provided, response includes user-specific state (watchlist status, notifications).
+            When omitted, response contains only item data without user state.
+          schema:
+            type: string
+            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
         '200':
           description: Item found and returned successfully
@@ -109,29 +124,62 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetItemData'
-              example:
-                itemId: "550e8400-e29b-41d4-a716-446655440000"
-                eventId: "550e8400-e29b-41d4-a716-446655440001"
-                shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsItemId: "6ba7b810"
-                shopName: "My Shop"
-                title:
-                  text: "Amazing Product"
-                  language: "en"
-                description:
-                  text: "This is an amazing product description"
-                  language: "en"
-                price:
-                  currency: "EUR"
-                  amount: 2999
-                state: "AVAILABLE"
-                url: "https://my-shop.com/products/amazing-product"
-                images:
-                  - "https://my-shop.com/images/product-1.jpg"
-                  - "https://my-shop.com/images/product-2.jpg"
-                created: "2024-01-01T10:00:00Z"
-                updated: "2024-01-01T12:00:00Z"
+                $ref: '#/components/schemas/PersonalizedGetItemData'
+              examples:
+                authenticated:
+                  summary: Authenticated user response with watchlist state
+                  value:
+                    item:
+                      itemId: "550e8400-e29b-41d4-a716-446655440000"
+                      eventId: "550e8400-e29b-41d4-a716-446655440001"
+                      shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopsItemId: "6ba7b810"
+                      shopName: "My Shop"
+                      title:
+                        text: "Amazing Product"
+                        language: "en"
+                      description:
+                        text: "This is an amazing product description"
+                        language: "en"
+                      price:
+                        currency: "EUR"
+                        amount: 2999
+                      state: "AVAILABLE"
+                      url: "https://my-shop.com/products/amazing-product"
+                      images:
+                        - "https://my-shop.com/images/product-1.jpg"
+                        - "https://my-shop.com/images/product-2.jpg"
+                      created: "2024-01-01T10:00:00Z"
+                      updated: "2024-01-01T12:00:00Z"
+                    userState:
+                      watchlist:
+                        watching: true
+                        notifications: true
+                anonymous:
+                  summary: Anonymous user response without user state
+                  value:
+                    item:
+                      itemId: "550e8400-e29b-41d4-a716-446655440000"
+                      eventId: "550e8400-e29b-41d4-a716-446655440001"
+                      shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopsItemId: "6ba7b810"
+                      shopName: "My Shop"
+                      title:
+                        text: "Amazing Product"
+                        language: "en"
+                      description:
+                        text: "This is an amazing product description"
+                        language: "en"
+                      price:
+                        currency: "EUR"
+                        amount: 2999
+                      state: "AVAILABLE"
+                      url: "https://my-shop.com/products/amazing-product"
+                      images:
+                        - "https://my-shop.com/images/product-1.jpg"
+                        - "https://my-shop.com/images/product-2.jpg"
+                      created: "2024-01-01T10:00:00Z"
+                      updated: "2024-01-01T12:00:00Z"
         '400':
           description: Bad request - invalid parameters
           content:
@@ -445,6 +493,10 @@ paths:
         This endpoint accepts a SearchFilterData object in the request body,
         allowing for complex filtering by multiple criteria simultaneously.
         Returns a paginated collection of items matching the search criteria.
+        
+        **Personalization**: When authenticated (via optional Authorization header), the response includes
+        user-specific state for each item such as whether it's on the user's watchlist and notification preferences.
+        Anonymous requests receive item data without user state.
       operationId: complexSearchItems
       tags:
         - Items
@@ -486,6 +538,17 @@ paths:
             maximum: 100
             default: 21
           example: 21
+        - name: Authorization
+          in: header
+          required: false
+          description: |
+            Optional Cognito JWT token for personalized response.
+            When provided, response includes user-specific state for each item (watchlist status, notifications).
+            When omitted, response contains only item data without user state.
+          schema:
+            type: string
+            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
+          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       requestBody:
         required: true
         description: |
@@ -520,29 +583,62 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ItemSearchResultData'
-              example:
-                items:
-                  - itemId: "550e8400-e29b-41d4-a716-446655440000"
-                    eventId: "550e8400-e29b-41d4-a716-446655440001"
-                    shopId: "550e8400-e29b-41d4-a716-446655440000"
-                    shopsItemId: "6ba7b810"
-                    shopName: "Tech Store"
-                    title:
-                      text: "Premium Smartphone Case"
-                      language: "en"
-                    price:
-                      currency: "USD"
-                      amount: 2999
-                    state: "AVAILABLE"
-                    url: "https://tech-store.com/premium-case"
-                    images:
-                      - "https://tech-store.com/images/premium-case-1.jpg"
-                    created: "2024-01-15T10:00:00Z"
-                    updated: "2024-01-15T12:00:00Z"
-                size: 21
-                total: 84
-                searchAfter: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
+                $ref: '#/components/schemas/PersonalizedItemSearchResultData'
+              examples:
+                authenticated:
+                  summary: Authenticated user response with user state for each item
+                  value:
+                    items:
+                      - item:
+                          itemId: "550e8400-e29b-41d4-a716-446655440000"
+                          eventId: "550e8400-e29b-41d4-a716-446655440001"
+                          shopId: "550e8400-e29b-41d4-a716-446655440000"
+                          shopsItemId: "6ba7b810"
+                          shopName: "Tech Store"
+                          title:
+                            text: "Premium Smartphone Case"
+                            language: "en"
+                          price:
+                            currency: "USD"
+                            amount: 2999
+                          state: "AVAILABLE"
+                          url: "https://tech-store.com/premium-case"
+                          images:
+                            - "https://tech-store.com/images/premium-case-1.jpg"
+                          created: "2024-01-15T10:00:00Z"
+                          updated: "2024-01-15T12:00:00Z"
+                        userState:
+                          watchlist:
+                            watching: true
+                            notifications: false
+                    size: 21
+                    total: 84
+                    searchAfter: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
+                anonymous:
+                  summary: Anonymous user response without user state
+                  value:
+                    items:
+                      - item:
+                          itemId: "550e8400-e29b-41d4-a716-446655440000"
+                          eventId: "550e8400-e29b-41d4-a716-446655440001"
+                          shopId: "550e8400-e29b-41d4-a716-446655440000"
+                          shopsItemId: "6ba7b810"
+                          shopName: "Tech Store"
+                          title:
+                            text: "Premium Smartphone Case"
+                            language: "en"
+                          price:
+                            currency: "USD"
+                            amount: 2999
+                          state: "AVAILABLE"
+                          url: "https://tech-store.com/premium-case"
+                          images:
+                            - "https://tech-store.com/images/premium-case-1.jpg"
+                          created: "2024-01-15T10:00:00Z"
+                          updated: "2024-01-15T12:00:00Z"
+                    size: 21
+                    total: 84
+                    searchAfter: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
         '400':
           description: Bad request - invalid parameters or body
           content:
@@ -596,7 +692,7 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/search-filters:
+  /api/v1/me/search-filters:
     get:
       summary: List user search filters
       description: |
@@ -755,7 +851,7 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "https://api.aura-historia.com/api/v1/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+              example: "https://api.aura-historia.com/api/v1/me/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
             Content-Language:
               description: The language of the returned content
               schema:
@@ -835,7 +931,7 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/search-filters/{searchFilterId}:
+  /api/v1/me/search-filters/{searchFilterId}:
     get:
       summary: Get a specific search filter
       description: |
@@ -1200,7 +1296,7 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/watchlist:
+  /api/v1/me/watchlist:
     get:
       summary: List user's watchlist items
       description: |
@@ -1408,7 +1504,7 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "https://api.aura-historia.com/api/v1/watchlist/550e8400-e29b-41d4-a716-446655440000/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+              example: "https://api.aura-historia.com/api/v1/me/watchlist/550e8400-e29b-41d4-a716-446655440000/6ba7b810-9dad-11d1-80b4-00c04fd430c8"
             Access-Control-Allow-Origin:
               description: CORS header
               schema:
@@ -1463,7 +1559,7 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/watchlist/{shopId}/{shopsItemId}:
+  /api/v1/me/watchlist/{shopId}/{shopsItemId}:
     delete:
       summary: Remove item from watchlist
       description: |
@@ -2018,6 +2114,82 @@ components:
             $ref: '#/components/schemas/GetItemEventData'
           nullable: true
           description: Optional array of item history events
+
+    PersonalizedGetItemData:
+      type: object
+      description: |
+        Wrapper for item data with optional user-specific state.
+        When user is authenticated, includes personalized information such as watchlist status.
+        When user is anonymous, only the item data is present.
+      required:
+        - item
+      properties:
+        item:
+          $ref: '#/components/schemas/GetItemData'
+        userState:
+          allOf:
+            - $ref: '#/components/schemas/ItemUserStateData'
+          nullable: true
+          description: Optional user-specific state for this item (only present when authenticated)
+
+    PersonalizedItemSearchResultData:
+      type: object
+      description: |
+        Paginated collection of personalized items using cursor-based pagination (search-after pattern).
+        Each item may include user-specific state when the request is authenticated.
+      required:
+        - items
+        - size
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonalizedGetItemData'
+          description: Array of personalized items in the current page
+        size:
+          type: integer
+          minimum: 0
+          description: Number of items returned in the current page
+          example: 21
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items matching the query (optional, may not always be available)
+          nullable: true
+          example: 127
+        searchAfter:
+          type: array
+          description: |
+            Cursor for the next page (JSON value). Present when there are more results.
+            Pass this value as the `searchAfter` query parameter to get the next page.
+            This can be ANY heterogeneous array.
+          nullable: true
+          example: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
+
+    ItemUserStateData:
+      type: object
+      description: User-specific state information for an item
+      required:
+        - watchlist
+      properties:
+        watchlist:
+          $ref: '#/components/schemas/WatchlistUserStateData'
+
+    WatchlistUserStateData:
+      type: object
+      description: Watchlist-specific user state for an item
+      required:
+        - watching
+        - notifications
+      properties:
+        watching:
+          type: boolean
+          description: Whether the item is on the user's watchlist
+          example: true
+        notifications:
+          type: boolean
+          description: Whether notifications are enabled for this watchlist item
+          example: false
 
     ItemSearchResultData:
       type: object
