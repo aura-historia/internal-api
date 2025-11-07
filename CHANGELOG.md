@@ -91,6 +91,11 @@ Item retrieval and search endpoints now support optional authentication, returni
 
 ### Changed
 
+#### Renamed Search-Filters
+
+- A `searchFilter` no longer exists. The object used for searching items is now called `ItemSearchData` along with its field `itemSearch`
+- User-stored search-filters are now called `UserSearchFilterData`. 
+
 #### GET /api/v1/items/{shopId}/{shopsItemId}
 
 This endpoint now supports optional authentication and returns personalized data.
