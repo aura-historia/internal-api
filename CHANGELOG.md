@@ -264,7 +264,62 @@ For frontend developers integrating these changes:
 
 ### Removed
 
-No endpoints or schemas have been removed in this update. The old watchlist and search-filter paths at `/api/v1/watchlist*` and `/api/v1/search-filters*` are deprecated and will be removed in a future update. Clients should migrate to the new `/api/v1/me/*` paths immediately.
+#### GET /api/v1/items (Simple Text Search)
+
+The simple text search endpoint has been removed. Use `POST /api/v1/items/search` instead for all search operations.
+
+**Removed Endpoint**:
+- `GET /api/v1/items?q={query}&language={lang}&currency={cur}&sort={field}&order={order}&searchAfter={cursor}&size={size}`
+
+**Migration Path**:
+Use the complex search endpoint (`POST /api/v1/items/search`) which provides all the functionality of the simple search and more.
+
+**Before** (Simple Search):
+```http
+GET /api/v1/items?q=smartphone+case&language=en&currency=USD&sort=price&order=asc&size=21
+```
+
+**After** (Complex Search):
+```http
+POST /api/v1/items/search?sort=price&order=asc&size=21
+Content-Type: application/json
+
+{
+  "language": "en",
+  "currency": "USD",
+  "itemQuery": "smartphone case"
+}
+```
+
+**Migration Impact**:
+- All clients using simple search must migrate to complex search
+- Query parameters `q`, `language`, and `currency` move to request body
+- Sort and pagination parameters remain as query parameters
+- Response structure is identical (wrapped in `PersonalizedItemSearchResultData` with authentication)
+- Additional filtering options are available through the request body (shopNameQuery, price range, state, date ranges)
+
+**Code Example**:
+```typescript
+// Before - Simple Search
+const searchItems = async (query: string, language: string, currency: string) => {
+  const params = new URLSearchParams({ q: query, language, currency });
+  const response = await fetch(`/api/v1/items?${params}`);
+  return response.json();
+};
+
+// After - Complex Search
+const searchItems = async (query: string, language: string, currency: string) => {
+  const body = { itemQuery: query, language, currency };
+  const response = await fetch('/api/v1/items/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return response.json();
+};
+```
+
+No other endpoints or schemas have been removed in this update. The old watchlist and search-filter paths at `/api/v1/watchlist*` and `/api/v1/search-filters*` are deprecated and will be removed in a future update. Clients should migrate to the new `/api/v1/me/*` paths immediately.
 
 ## 2025-10-24 - Search Filter Names and Shop Search Keyset Pagination
 
