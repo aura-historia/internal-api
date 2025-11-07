@@ -6,6 +6,266 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-11-07 - API Personalization and User Resource Path Restructuring
+
+This update introduces personalized API responses for item endpoints and reorganizes user-specific resources under a `/api/v1/me/` prefix for better API structure and clarity.
+
+### Added
+
+#### Personalized Item Responses
+
+Item retrieval and search endpoints now support optional authentication, returning personalized data that includes user-specific state when a valid JWT token is provided.
+
+**New Schema: `PersonalizedGetItemData`**
+- Wrapper for item data with optional user-specific state
+- Properties:
+  - `item` (GetItemData, required): Complete item information
+  - `userState` (ItemUserStateData, optional): User-specific state (only present when authenticated)
+
+**Example Response (Authenticated User)**:
+```json
+{
+  "item": {
+    "itemId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsItemId": "6ba7b810",
+    "shopName": "My Shop",
+    "title": {
+      "text": "Amazing Product",
+      "language": "en"
+    },
+    "state": "AVAILABLE",
+    "url": "https://my-shop.com/products/amazing-product",
+    "created": "2024-01-01T10:00:00Z",
+    "updated": "2024-01-01T12:00:00Z"
+  },
+  "userState": {
+    "watchlist": {
+      "watching": true,
+      "notifications": false
+    }
+  }
+}
+```
+
+**Example Response (Anonymous User)**:
+```json
+{
+  "item": {
+    "itemId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsItemId": "6ba7b810",
+    "shopName": "My Shop",
+    "title": {
+      "text": "Amazing Product",
+      "language": "en"
+    },
+    "state": "AVAILABLE",
+    "url": "https://my-shop.com/products/amazing-product",
+    "created": "2024-01-01T10:00:00Z",
+    "updated": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+**New Schema: `PersonalizedItemSearchResultData`**
+- Paginated collection of personalized items using cursor-based pagination
+- Properties:
+  - `items` (array of PersonalizedGetItemData, required): Personalized items in current page
+  - `size` (integer, required): Number of items in current page
+  - `total` (integer, optional): Total count of matching items
+  - `searchAfter` (array, optional): Cursor for next page
+
+**New Schema: `ItemUserStateData`**
+- User-specific state information for an item
+- Properties:
+  - `watchlist` (WatchlistUserStateData, required): Watchlist-related state
+
+**New Schema: `WatchlistUserStateData`**
+- Watchlist-specific user state for an item
+- Properties:
+  - `watching` (boolean, required): Whether the item is on the user's watchlist
+  - `notifications` (boolean, required): Whether notifications are enabled for this watchlist item
+
+### Changed
+
+#### GET /api/v1/items/{shopId}/{shopsItemId}
+
+This endpoint now supports optional authentication and returns personalized data.
+
+**Authentication Changed**:
+- **Before**: No authentication support
+- **After**: Optional `Authorization` header (Cognito JWT Bearer token)
+
+**Response Schema Changed**:
+- **Before**: Returns `GetItemData` directly
+- **After**: Returns `PersonalizedGetItemData` (wrapper with `item` and optional `userState`)
+
+**New Request Header**:
+- `Authorization` (optional): Cognito JWT token
+  - Format: `Bearer [JWT token]`
+  - When provided: Response includes `userState` with watchlist information
+  - When omitted: Response contains only `item` without `userState`
+
+**Response Body Structure**:
+```json
+{
+  "item": { /* GetItemData */ },
+  "userState": { /* ItemUserStateData - only when authenticated */ }
+}
+```
+
+**Migration Impact**:
+- Frontend must update response parsing to access item data via `response.item` instead of directly
+- User state is available via `response.userState` when user is authenticated
+- Anonymous requests work identically but with wrapped response structure
+
+#### POST /api/v1/items/search
+
+This endpoint now supports optional authentication and returns personalized data for each item in search results.
+
+**Authentication Changed**:
+- **Before**: No authentication support
+- **After**: Optional `Authorization` header (Cognito JWT Bearer token)
+
+**Response Schema Changed**:
+- **Before**: Returns `ItemSearchResultData` with array of `GetItemData`
+- **After**: Returns `PersonalizedItemSearchResultData` with array of `PersonalizedGetItemData`
+
+**New Request Header**:
+- `Authorization` (optional): Cognito JWT token
+  - Format: `Bearer [JWT token]`
+  - When provided: Each item in results includes `userState` with watchlist information
+  - When omitted: Items contain only item data without `userState`
+
+**Response Body Structure**:
+```json
+{
+  "items": [
+    {
+      "item": { /* GetItemData */ },
+      "userState": { /* ItemUserStateData - only when authenticated */ }
+    }
+  ],
+  "size": 21,
+  "total": 84,
+  "searchAfter": "[2999, \"6ba7b810-9dad-11d1-80b4-00c04fd430c8\"]"
+}
+```
+
+**Migration Impact**:
+- Frontend must update item access from `response.items[i]` to `response.items[i].item`
+- User state per item available via `response.items[i].userState` when authenticated
+- Pagination fields (`size`, `total`, `searchAfter`) remain at root level
+
+#### User Resource Path Restructuring
+
+All user-specific endpoints have been reorganized under the `/api/v1/me/` prefix to better reflect their nature as user-scoped resources.
+
+**Watchlist Endpoints**:
+- `GET /api/v1/watchlist` → `GET /api/v1/me/watchlist`
+- `POST /api/v1/watchlist` → `POST /api/v1/me/watchlist`
+- `DELETE /api/v1/watchlist/{shopId}/{shopsItemId}` → `DELETE /api/v1/me/watchlist/{shopId}/{shopsItemId}`
+- `PATCH /api/v1/watchlist/{shopId}/{shopsItemId}` → `PATCH /api/v1/me/watchlist/{shopId}/{shopsItemId}`
+
+**Search Filter Endpoints**:
+- `GET /api/v1/search-filters` → `GET /api/v1/me/search-filters`
+- `POST /api/v1/search-filters` → `POST /api/v1/me/search-filters`
+- `GET /api/v1/search-filters/{searchFilterId}` → `GET /api/v1/me/search-filters/{searchFilterId}`
+- `PATCH /api/v1/search-filters/{searchFilterId}` → `PATCH /api/v1/me/search-filters/{searchFilterId}`
+- `DELETE /api/v1/search-filters/{searchFilterId}` → `DELETE /api/v1/me/search-filters/{searchFilterId}`
+
+**Migration Impact**:
+- All API clients must update endpoint URLs to use `/api/v1/me/` prefix for user resources
+- Request and response structures remain unchanged - only the path has changed
+- Authentication requirements remain unchanged (all still require JWT)
+- Location headers in POST responses now point to new paths
+
+**Example URL Changes**:
+- Old: `https://api.aura-historia.com/api/v1/watchlist`
+- New: `https://api.aura-historia.com/api/v1/me/watchlist`
+
+- Old: `https://api.aura-historia.com/api/v1/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8`
+- New: `https://api.aura-historia.com/api/v1/me/search-filters/6ba7b810-9dad-11d1-80b4-00c04fd430c8`
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **Update Item GET Endpoint**:
+   ```typescript
+   // Before
+   const item: GetItemData = await getItem(shopId, shopsItemId);
+   
+   // After - Anonymous
+   const response: PersonalizedGetItemData = await getItem(shopId, shopsItemId);
+   const item = response.item;
+   
+   // After - Authenticated
+   const response: PersonalizedGetItemData = await getItem(shopId, shopsItemId, token);
+   const item = response.item;
+   const isWatching = response.userState?.watchlist.watching ?? false;
+   const notificationsEnabled = response.userState?.watchlist.notifications ?? false;
+   ```
+
+2. **Update Complex Search Endpoint**:
+   ```typescript
+   // Before
+   const result: ItemSearchResultData = await searchItems(filter);
+   const items: GetItemData[] = result.items;
+   
+   // After - Anonymous
+   const result: PersonalizedItemSearchResultData = await searchItems(filter);
+   const items = result.items.map(p => p.item);
+   
+   // After - Authenticated
+   const result: PersonalizedItemSearchResultData = await searchItems(filter, token);
+   const itemsWithState = result.items.map(personalized => ({
+     item: personalized.item,
+     watching: personalized.userState?.watchlist.watching ?? false,
+     notifications: personalized.userState?.watchlist.notifications ?? false
+   }));
+   ```
+
+3. **Update Watchlist Endpoint URLs**:
+   ```typescript
+   // Before
+   const baseUrl = 'https://api.aura-historia.com/api/v1/watchlist';
+   
+   // After
+   const baseUrl = 'https://api.aura-historia.com/api/v1/me/watchlist';
+   ```
+
+4. **Update Search Filter Endpoint URLs**:
+   ```typescript
+   // Before
+   const baseUrl = 'https://api.aura-historia.com/api/v1/search-filters';
+   
+   // After
+   const baseUrl = 'https://api.aura-historia.com/api/v1/me/search-filters';
+   ```
+
+5. **Handle Optional Authentication**:
+   - Item endpoints can now be called without authentication
+   - When calling without auth, expect `userState` to be absent in responses
+   - Use optional chaining when accessing user state: `response.userState?.watchlist.watching`
+
+### Backend Implementation Details
+
+- Authentication is verified via Cognito access token
+- User ID is extracted from JWT when present
+- Watchlist state is queried from DynamoDB when user is authenticated
+- Anonymous requests skip user state lookup for better performance
+- Response structure uses a generic `Personalized<Item, UserState>` wrapper
+- Path changes implemented via AWS API Gateway route updates
+- All endpoints maintain backward compatibility for request parameters and bodies
+
+### Removed
+
+No endpoints or schemas have been removed in this update. The old watchlist and search-filter paths at `/api/v1/watchlist*` and `/api/v1/search-filters*` are deprecated and will be removed in a future update. Clients should migrate to the new `/api/v1/me/*` paths immediately.
+
 ## 2025-10-24 - Search Filter Names and Shop Search Keyset Pagination
 
 This update introduces user-defined names for search filters and migrates shop search from offset-based pagination to cursor-based (keyset) pagination for better performance and scalability.
