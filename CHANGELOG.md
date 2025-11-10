@@ -6,6 +6,274 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-11-10 - Similar Items Endpoint with Semantic Search
+
+This update introduces a new endpoint for finding semantically similar items using k-nearest neighbors (k-NN) search on text embeddings. The endpoint leverages machine learning embeddings to provide relevant item recommendations based on content similarity.
+
+### Added
+
+#### GET /api/v1/items/{shopId}/{shopsItemId}/similar
+
+Retrieves items similar to the specified item using semantic search based on text embeddings.
+
+**Endpoint Details**:
+- **Method**: GET
+- **Path**: `/api/v1/items/{shopId}/{shopsItemId}/similar`
+- **Authentication**: Optional (Cognito JWT Bearer token)
+- **Supported Languages**: de, en, fr, es (via Accept-Language header)
+- **Supported Currencies**: EUR, USD, GBP, AUD, CAD, NZD (via currency query parameter)
+
+**How It Works**:
+- Uses k-nearest neighbors (k-NN) search on text embeddings to find semantically similar items
+- Text embeddings are 1024-dimensional vectors computed from item titles and descriptions using the baai/bge-m3 model
+- Embeddings are generated nightly via batch processing for all items
+- Returns up to 20 similar items, ranked by similarity score
+- The original item is automatically excluded from results
+
+**Path Parameters**:
+- `shopId` (string, uuid, required): Unique identifier of the shop
+- `shopsItemId` (string, required): Shop's unique identifier for the item
+
+**Query Parameters**:
+- `currency` (CurrencyData, optional): Currency for price display (default: EUR)
+  - Accepted values: `EUR`, `USD`, `GBP`, `AUD`, `CAD`, `NZD`
+
+**Request Headers**:
+- `Accept-Language` (optional): Preferred language for localized content
+  - Format: Language code with optional quality values
+  - Examples: `de`, `en;q=0.9,de;q=0.8`, `en-US`
+- `Authorization` (optional): Cognito JWT token for personalized response
+  - Format: `Bearer [JWT token]`
+  - When provided: Response includes user-specific state for each similar item
+  - When omitted: Response contains only item data without user state
+
+**Response: 200 OK**
+
+Returns an array of similar items, each following the PersonalizedGetItemData schema.
+
+**Schema**: Array of `PersonalizedGetItemData`
+
+Each item in the array contains:
+- `item` (GetItemData, required): Complete item information
+  - `itemId` (string, uuid, required): Unique item identifier
+  - `eventId` (string, uuid, required): Latest event identifier
+  - `shopId` (string, uuid, required): Shop identifier
+  - `shopsItemId` (string, required): Shop's item identifier
+  - `shopName` (string, required): Shop name
+  - `title` (LocalizedTextData, required): Localized title
+  - `description` (LocalizedTextData, optional): Localized description
+  - `price` (PriceData, optional): Price in requested currency
+  - `state` (ItemStateData, required): Item state
+  - `url` (string, uri, required): Item URL
+  - `images` (array of strings, required): Image URLs
+  - `created` (string, date-time, required): Creation timestamp
+  - `updated` (string, date-time, required): Last update timestamp
+- `userState` (ItemUserStateData, optional): User-specific state (only when authenticated)
+  - `watchlist` (WatchlistUserStateData, required): Watchlist state
+    - `watching` (boolean, required): Whether item is on user's watchlist
+    - `notifications` (boolean, required): Whether notifications are enabled
+
+**Example Response (Authenticated User)**:
+```json
+[
+  {
+    "item": {
+      "itemId": "660e8400-e29b-41d4-a716-446655440001",
+      "eventId": "660e8400-e29b-41d4-a716-446655440011",
+      "shopId": "550e8400-e29b-41d4-a716-446655440000",
+      "shopsItemId": "6ba7b811",
+      "shopName": "My Shop",
+      "title": {
+        "text": "Similar Product",
+        "language": "en"
+      },
+      "description": {
+        "text": "This product has similar features",
+        "language": "en"
+      },
+      "price": {
+        "currency": "EUR",
+        "amount": 2899
+      },
+      "state": "AVAILABLE",
+      "url": "https://my-shop.com/products/similar-product",
+      "images": [
+        "https://my-shop.com/images/similar-1.jpg"
+      ],
+      "created": "2024-01-01T10:00:00Z",
+      "updated": "2024-01-01T12:00:00Z"
+    },
+    "userState": {
+      "watchlist": {
+        "watching": true,
+        "notifications": false
+      }
+    }
+  },
+  {
+    "item": {
+      "itemId": "770e8400-e29b-41d4-a716-446655440002",
+      "eventId": "770e8400-e29b-41d4-a716-446655440012",
+      "shopId": "550e8400-e29b-41d4-a716-446655440000",
+      "shopsItemId": "6ba7b812",
+      "shopName": "My Shop",
+      "title": {
+        "text": "Another Similar Item",
+        "language": "en"
+      },
+      "price": {
+        "currency": "EUR",
+        "amount": 3199
+      },
+      "state": "AVAILABLE",
+      "url": "https://my-shop.com/products/another-item",
+      "images": [],
+      "created": "2024-01-01T11:00:00Z",
+      "updated": "2024-01-01T13:00:00Z"
+    },
+    "userState": {
+      "watchlist": {
+        "watching": false,
+        "notifications": false
+      }
+    }
+  }
+]
+```
+
+**Example Response (Anonymous User)**:
+```json
+[
+  {
+    "item": {
+      "itemId": "660e8400-e29b-41d4-a716-446655440001",
+      "eventId": "660e8400-e29b-41d4-a716-446655440011",
+      "shopId": "550e8400-e29b-41d4-a716-446655440000",
+      "shopsItemId": "6ba7b811",
+      "shopName": "My Shop",
+      "title": {
+        "text": "Similar Product",
+        "language": "en"
+      },
+      "price": {
+        "currency": "EUR",
+        "amount": 2899
+      },
+      "state": "AVAILABLE",
+      "url": "https://my-shop.com/products/similar-product",
+      "images": [
+        "https://my-shop.com/images/similar-1.jpg"
+      ],
+      "created": "2024-01-01T10:00:00Z",
+      "updated": "2024-01-01T12:00:00Z"
+    }
+  }
+]
+```
+
+**Response: 202 Accepted**
+
+Returned when the item's text embedding has not yet been computed (typically for items less than 24 hours old).
+Embeddings are generated during nightly batch processing.
+
+**Headers**:
+- `Location` (string, uri): URL to poll for similar items once embeddings are computed
+  - Example: `https://api.aura-historia.com/api/v1/items/550e8400-e29b-41d4-a716-446655440000/6ba7b810/similar`
+
+**Response Body**: None
+
+**When This Occurs**:
+- Item was created less than 24 hours ago and hasn't been processed by nightly embedding generation
+- Item's text embedding is missing from the OpenSearch index
+- Embedding generation is scheduled but not yet completed
+
+**Migration Impact**:
+- Frontend should implement polling logic when receiving 202 response
+- Use exponential backoff to avoid excessive requests
+- Check again after 24 hours or on next user visit
+- Display appropriate message to users (e.g., "Similar items will be available soon")
+
+**Response: 400 Bad Request**
+
+Returned when request parameters are invalid.
+
+**Error Codes**:
+- `BAD_PATH_PARAMETER_VALUE`: Missing or invalid path parameter
+- `INVALID_UUID`: Invalid UUID format for shopId
+- `BAD_QUERY_PARAMETER_VALUE`: Invalid query parameter value
+- `INVALID_CURRENCY`: Invalid currency code
+
+**Example**:
+```json
+{
+  "status": 400,
+  "error": "BAD_PATH_PARAMETER_VALUE",
+  "source": {
+    "field": "shopId",
+    "sourceType": "path"
+  }
+}
+```
+
+**Response: 404 Not Found**
+
+Returned when the specified item does not exist.
+
+**Error Code**: `ITEM_NOT_FOUND`
+
+**Example**:
+```json
+{
+  "status": 404,
+  "error": "ITEM_NOT_FOUND",
+  "message": "Item with ShopId '550e8400-e29b-41d4-a716-446655440000' and ShopsItemId '6ba7b810' not found."
+}
+```
+
+**Response: 500 Internal Server Error**
+
+Returned when an unexpected server error occurs.
+
+**Error Code**: `INTERNAL_SERVER_ERROR`
+
+**Technical Details**:
+
+The similar items feature is powered by:
+- **Embedding Model**: baai/bge-m3 (1024-dimensional vectors)
+- **Search Method**: k-NN (k-nearest neighbors) using cosine similarity
+- **Index**: OpenSearch with KNN plugin
+- **Field Name**: `textEmbedding` in the items index
+- **Batch Processing**: Nightly enrichment pipeline generates embeddings for items without them
+- **Maximum Results**: 20 similar items per request
+- **Exclusion**: Original item is automatically filtered from results
+
+**Use Cases**:
+- Product recommendations on item detail pages
+- "You might also like" sections
+- Discovery of related items across different shops
+- Content-based filtering for personalization
+
+**Performance Characteristics**:
+- Fast k-NN search using approximate nearest neighbors (ANN)
+- Sub-second response times for most queries
+- Scalable to millions of items
+- Real-time personalization when authenticated
+
+**Limitations**:
+- Requires items to have been processed by nightly embedding generation (24-hour delay for new items)
+- Similarity is based purely on text content (title + description)
+- Does not consider user behavior, purchase history, or collaborative filtering
+- Limited to 20 results per request
+- Results are not paginated (returns all similar items up to limit)
+
+### Changed
+
+No existing endpoints or schemas were modified in this update.
+
+### Removed
+
+No endpoints or schemas were removed in this update.
+
 ## 2025-11-07 - API Personalization and User Resource Path Restructuring
 
 This update introduces personalized API responses for item endpoints and reorganizes user-specific resources under a `/api/v1/me/` prefix for better API structure and clarity.
