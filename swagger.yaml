@@ -2289,7 +2289,7 @@ components:
     PersonalizedProductSearchResultData:
       type: object
       description: |
-        Paginated collection of personalized productss using cursor-based pagination (search-after pattern).
+        Paginated collection of personalized products using cursor-based pagination (search-after pattern).
         Each product may include user-specific state when the request is authenticated.
       required:
         - items

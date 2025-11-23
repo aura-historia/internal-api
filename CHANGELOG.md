@@ -15,8 +15,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Renamed field `message` to `detail` (human-readable for devs - not user-facing)
   - Added field `title` (human-readable for devs - not user-facing)
 
-#### GET /api/v1/items/{shopId}/{shopsItemId}/similar
-
 ## 2025-11-10 - Similar Items Endpoint with Semantic Search
 
 This update introduces a new endpoint for finding semantically similar items using k-nearest neighbors (k-NN) search on text embeddings. The endpoint leverages machine learning embeddings to provide relevant item recommendations based on content similarity.
