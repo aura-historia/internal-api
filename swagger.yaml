@@ -183,7 +183,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -191,6 +191,7 @@ paths:
                   summary: Missing shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PARAMETER"
                     source:
                       field: "shopId"
@@ -199,6 +200,7 @@ paths:
                   summary: Missing shop's product ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PARAMETER"
                     source:
                       field: "shopsProductId"
@@ -207,28 +209,31 @@ paths:
                   summary: Invalid history parameter
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "history"
                       sourceType: "query"
-                    message: "Expected any of: 'true' or 'false'. Got: 'invalid'"
+                    detail: "Expected any of: 'true' or 'false'. Got: 'invalid'"
         '404':
           description: Product not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "PRODUCT_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/products/{shopId}/{shopsProductId}/similar:
@@ -396,7 +401,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -404,6 +409,7 @@ paths:
                   summary: Missing shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopId"
@@ -412,6 +418,7 @@ paths:
                   summary: Missing shop's product ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopsProductId"
@@ -420,6 +427,7 @@ paths:
                   summary: Invalid UUID format for shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "shopId"
@@ -427,21 +435,23 @@ paths:
         '404':
           description: Product not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "PRODUCT_NOT_FOUND"
-                message: "Product with ShopId '550e8400-e29b-41d4-a716-446655440000' and ShopsProductId '6ba7b810' not found."
+                detail: "Product with ShopId '550e8400-e29b-41d4-a716-446655440000' and ShopsProductId '6ba7b810' not found."
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/products:
@@ -534,7 +544,7 @@ paths:
         '400':
           description: Bad request - invalid request body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -542,22 +552,25 @@ paths:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/products/search:
@@ -718,7 +731,7 @@ paths:
         '400':
           description: Bad request - invalid parameters or body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -726,46 +739,52 @@ paths:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
                 invalid_product_query:
                   summary: Invalid product query length
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "productQuery must be at least 3 characters long"
+                    detail: "productQuery must be at least 3 characters long"
                 invalid_sort_field:
                   summary: Invalid sort field
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "sort"
                       sourceType: "query"
-                    message: "Expected any of: 'score', 'price', 'updated', 'created'. Got: 'invalid'"
+                    detail: "Expected any of: 'score', 'price', 'updated', 'created'. Got: 'invalid'"
                 invalid_order:
                   summary: Invalid sort order
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "order"
                       sourceType: "query"
-                    message: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/me/search-filters:
@@ -838,7 +857,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -846,37 +865,41 @@ paths:
                   summary: Invalid sort field
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "sort"
                       sourceType: "query"
-                    message: "Expected any of: 'created'. Got: 'invalid'"
+                    detail: "Expected any of: 'created'. Got: 'invalid'"
                 invalid_order:
                   summary: Invalid sort order
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "order"
                       sourceType: "query"
-                    message: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
     post:
       summary: Create a new search filter
@@ -966,7 +989,7 @@ paths:
         '400':
           description: Bad request - invalid request body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -974,37 +997,42 @@ paths:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
                 invalid_product_query:
                   summary: Invalid product query
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "productQuery must be at least 3 characters long"
+                    detail: "productQuery must be at least 3 characters long"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/me/search-filters/{userSearchFilterId}:
@@ -1076,7 +1104,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1084,6 +1112,7 @@ paths:
                   summary: Missing search filter ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "userSearchFilterId"
@@ -1092,37 +1121,41 @@ paths:
                   summary: Invalid search filter ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "userSearchFilterId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '404':
           description: Search filter not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "SEARCH_FILTER_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
     delete:
       summary: Delete a search filter
@@ -1162,7 +1195,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1170,6 +1203,7 @@ paths:
                   summary: Missing search filter ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "userSearchFilterId"
@@ -1178,37 +1212,41 @@ paths:
                   summary: Invalid search filter ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "userSearchFilterId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '404':
           description: Search filter not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "SEARCH_FILTER_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
     patch:
       summary: Update a search filter
@@ -1311,7 +1349,7 @@ paths:
         '400':
           description: Bad request - invalid parameters or body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1319,6 +1357,7 @@ paths:
                   summary: Missing search filter ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "userSearchFilterId"
@@ -1327,49 +1366,55 @@ paths:
                   summary: Invalid search filter ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "userSearchFilterId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
                 invalid_product_query:
                   summary: Invalid product query length
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "productQuery must be at least 3 characters long"
+                    detail: "productQuery must be at least 3 characters long"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '404':
           description: Search filter not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "SEARCH_FILTER_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/me/watchlist:
@@ -1493,7 +1538,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1501,46 +1546,51 @@ paths:
                   summary: Invalid sort field
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "sort"
                       sourceType: "query"
-                    message: "Expected any of: 'created'. Got: 'invalid'"
+                    detail: "Expected any of: 'created'. Got: 'invalid'"
                 invalid_order:
                   summary: Invalid sort order
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "order"
                       sourceType: "query"
-                    message: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
                 invalid_from_timestamp:
                   summary: Invalid from timestamp
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_RFC3339_TIMESTAMP"
                     source:
                       field: "from"
                       sourceType: "query"
-                    message: "Invalid RFC3339 timestamp format"
+                    detail: "Invalid RFC3339 timestamp format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
     post:
       summary: Add product to watchlist
@@ -1600,7 +1650,7 @@ paths:
         '400':
           description: Bad request - invalid request body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1608,31 +1658,35 @@ paths:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/me/watchlist/{shopId}/{shopsProductId}:
@@ -1681,7 +1735,7 @@ paths:
         '400':
           description: Bad request - invalid parameters
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1689,6 +1743,7 @@ paths:
                   summary: Missing shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopId"
@@ -1697,6 +1752,7 @@ paths:
                   summary: Missing shop's product ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopsProductId"
@@ -1705,37 +1761,41 @@ paths:
                   summary: Invalid shop ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "shopId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '404':
           description: Watchlist entry not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "WATCHLIST_ENTRY_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
     patch:
@@ -1816,7 +1876,7 @@ paths:
         '400':
           description: Bad request - invalid parameters or body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1824,6 +1884,7 @@ paths:
                   summary: Missing shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopId"
@@ -1832,6 +1893,7 @@ paths:
                   summary: Missing shop's product ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopsProductId"
@@ -1840,49 +1902,55 @@ paths:
                   summary: Invalid shop ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "shopId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
                 missing_body:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_body:
                   summary: Invalid request body format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 401
+                title: "Unauthorized"
                 error: "UNAUTHORIZED"
         '404':
           description: Watchlist entry not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "WATCHLIST_ENTRY_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops/{shopId}:
@@ -1932,7 +2000,7 @@ paths:
         '400':
           description: Bad request - invalid shop ID
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -1940,6 +2008,7 @@ paths:
                   summary: Missing shop ID
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
                       field: "shopId"
@@ -1948,28 +2017,31 @@ paths:
                   summary: Invalid shop ID format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "INVALID_UUID"
                     source:
                       field: "shopId"
                       sourceType: "path"
-                    message: "Invalid UUID format"
+                    detail: "Invalid UUID format"
         '404':
           description: Shop not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
+                title: "Not Found"
                 error: "SHOP_NOT_FOUND"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops/search:
@@ -2072,7 +2144,7 @@ paths:
         '400':
           description: Bad request - invalid parameters or body
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
@@ -2080,40 +2152,45 @@ paths:
                   summary: Missing request body
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Body cannot be empty"
+                    detail: "Body cannot be empty"
                 invalid_json:
                   summary: Invalid JSON format
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_BODY_VALUE"
-                    message: "Invalid JSON format"
+                    detail: "Invalid JSON format"
                 invalid_sort_field:
                   summary: Invalid sort field
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "sort"
                       sourceType: "query"
-                    message: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
                 invalid_order:
                   summary: Invalid sort order
                   value:
                     status: 400
+                    title: "Bad Request"
                     error: "BAD_QUERY_PARAMETER_VALUE"
                     source:
                       field: "order"
                       sourceType: "query"
-                    message: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
         '500':
           description: Internal server error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 500
+                title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
 components:
@@ -2461,22 +2538,27 @@ components:
 
     ApiError:
       type: object
-      description: Standard error response format
+      description: Standard error response format (RFC 9457)
       required:
         - status
+        - title
         - error
       properties:
         status:
           type: integer
           description: HTTP status code
           example: 400
+        title:
+          type: string
+          description: HTTP status code in human-readable form
+          example: Bad Request
         error:
           type: string
           description: Error code identifier
           example: "BAD_PARAMETER"
         source:
           $ref: '#/components/schemas/ApiErrorSource'
-        message:
+        detail:
           type: string
           description: Human-readable error message
           example: "Expected any of: 'true' or 'false'. Got: 'invalid'"
