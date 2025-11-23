@@ -19,20 +19,20 @@ servers:
     description: Full Development-Server
 
 paths:
-  /api/v1/items/{shopId}/{shopsItemId}:
+  /api/v1/products/{shopId}/{shopsProductId}:
     get:
-      summary: Get a single item
+      summary: Get a single product
       description: |
-        Retrieves a single item by its shop ID and shop's item ID.
+        Retrieves a single product by its shop ID and shop's product ID.
         Returns localized content based on Accept-Language header and currency preferences.
-        Optionally includes item history when requested.
+        Optionally includes product history when requested.
         
         **Personalization**: When authenticated (via optional Authorization header), the response includes
-        user-specific state such as whether the item is on the user's watchlist and notification preferences.
-        Anonymous requests receive item data without user state.
-      operationId: getItem
+        user-specific state such as whether the product is on the user's watchlist and notification preferences.
+        Anonymous requests receive product data without user state.
+      operationId: getProduct
       tags:
-        - Items
+        - Products
       parameters:
         - name: shopId
           in: path
@@ -42,10 +42,10 @@ paths:
             type: string
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
-        - name: shopsItemId
+        - name: shopsProductId
           in: path
           required: true
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
           schema:
             type: string
             example: "6ba7b810"
@@ -59,7 +59,7 @@ paths:
         - name: history
           in: query
           required: false
-          description: Whether to include item history in the response
+          description: Whether to include product history in the response
           schema:
             type: boolean
             default: false
@@ -90,14 +90,14 @@ paths:
           description: |
             Optional Cognito JWT token for personalized response.
             When provided, response includes user-specific state (watchlist status, notifications).
-            When omitted, response contains only item data without user state.
+            When omitted, response contains only product data without user state.
           schema:
             type: string
             pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
         '200':
-          description: Item found and returned successfully
+          description: Product found and returned successfully
           headers:
             Content-Language:
               description: The language of the returned content
@@ -105,13 +105,13 @@ paths:
                 $ref: '#/components/schemas/LanguageData'
               example: "de"
             ETag:
-              description: The event ID of the item for caching
+              description: The event ID of the product for caching
               schema:
                 type: string
                 format: uuid
               example: "\"550e8400-e29b-41d4-a716-446655440001\""
             Last-Modified:
-              description: When the item was last updated
+              description: When the product was last updated
               schema:
                 type: string
                 format: http-date
@@ -124,16 +124,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PersonalizedGetItemData'
+                $ref: '#/components/schemas/PersonalizedGetProductData'
               examples:
                 authenticated:
                   summary: Authenticated user response with watchlist state
                   value:
                     item:
-                      itemId: "550e8400-e29b-41d4-a716-446655440000"
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
-                      shopsItemId: "6ba7b810"
+                      shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       title:
                         text: "Amazing Product"
@@ -159,10 +159,10 @@ paths:
                   summary: Anonymous user response without user state
                   value:
                     item:
-                      itemId: "550e8400-e29b-41d4-a716-446655440000"
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
-                      shopsItemId: "6ba7b810"
+                      shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       title:
                         text: "Amazing Product"
@@ -195,13 +195,13 @@ paths:
                     source:
                       field: "shopId"
                       sourceType: "path"
-                missing_shops_item_id:
-                  summary: Missing shop's item ID
+                missing_shops_product_id:
+                  summary: Missing shop's product ID
                   value:
                     status: 400
                     error: "BAD_PARAMETER"
                     source:
-                      field: "shopsItemId"
+                      field: "shopsProductId"
                       sourceType: "path"
                 invalid_history:
                   summary: Invalid history parameter
@@ -213,14 +213,14 @@ paths:
                       sourceType: "query"
                     message: "Expected any of: 'true' or 'false'. Got: 'invalid'"
         '404':
-          description: Item not found
+          description: Product not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
-                error: "ITEM_NOT_FOUND"
+                error: "PRODUCT_NOT_FOUND"
         '500':
           description: Internal server error
           content:
@@ -231,23 +231,23 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/items/{shopId}/{shopsItemId}/similar:
+  /api/v1/products/{shopId}/{shopsProductId}/similar:
     get:
-      summary: Get similar items
+      summary: Get similar products
       description: |
-        Retrieves items similar to the specified item using semantic search based on text embeddings.
+        Retrieves products similar to the specified product using semantic search based on text embeddings.
         Returns localized content based on Accept-Language header and currency preferences.
         
         **Personalization**: When authenticated (via optional Authorization header), the response includes
-        user-specific state for each similar item (watchlist status, notifications).
-        Anonymous requests receive item data without user state.
+        user-specific state for each similar product (watchlist status, notifications).
+        Anonymous requests receive product data without user state.
         
-        **Asynchronous Processing**: If the item's text embedding has not yet been computed (typically for 
-        items created less than 24 hours ago), the endpoint returns 202 Accepted with a Location header 
+        **Asynchronous Processing**: If the product's text embedding has not yet been computed (typically for 
+        products created less than 24 hours ago), the endpoint returns 202 Accepted with a Location header 
         to poll. The embedding generation runs nightly via batch processing.
-      operationId: getSimilarItems
+      operationId: getSimilarProducts
       tags:
-        - Items
+        - Products
       parameters:
         - name: shopId
           in: path
@@ -257,10 +257,10 @@ paths:
             type: string
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
-        - name: shopsItemId
+        - name: shopsProductId
           in: path
           required: true
-          description: Shop's unique identifier for the item
+          description: Shop's unique identifier for the product
           schema:
             type: string
             example: "6ba7b810"
@@ -293,31 +293,31 @@ paths:
           required: false
           description: |
             Optional Cognito JWT token for personalized response.
-            When provided, response includes user-specific state for each similar item.
-            When omitted, response contains only item data without user state.
+            When provided, response includes user-specific state for each similar product.
+            When omitted, response contains only product data without user state.
           schema:
             type: string
             pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
         '200':
-          description: Similar items found and returned successfully
+          description: Similar products found and returned successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PersonalizedGetItemData'
-                description: Array of similar items, each with optional user state
+                  $ref: '#/components/schemas/PersonalizedGetProductData'
+                description: Array of similar products, each with optional user state
               examples:
                 authenticated:
-                  summary: Authenticated user response with user state for each item
+                  summary: Authenticated user response with user state for each product
                   value:
                     - item:
-                        itemId: "660e8400-e29b-41d4-a716-446655440001"
+                        productId: "660e8400-e29b-41d4-a716-446655440001"
                         eventId: "660e8400-e29b-41d4-a716-446655440011"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
-                        shopsItemId: "6ba7b811"
+                        shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         title:
                           text: "Similar Product"
@@ -336,10 +336,10 @@ paths:
                           watching: true
                           notifications: false
                     - item:
-                        itemId: "770e8400-e29b-41d4-a716-446655440002"
+                        productId: "770e8400-e29b-41d4-a716-446655440002"
                         eventId: "770e8400-e29b-41d4-a716-446655440012"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
-                        shopsItemId: "6ba7b812"
+                        shopsProductId: "6ba7b812"
                         shopName: "My Shop"
                         title:
                           text: "Another Similar Item"
@@ -360,10 +360,10 @@ paths:
                   summary: Anonymous user response without user state
                   value:
                     - item:
-                        itemId: "660e8400-e29b-41d4-a716-446655440001"
+                        productId: "660e8400-e29b-41d4-a716-446655440001"
                         eventId: "660e8400-e29b-41d4-a716-446655440011"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
-                        shopsItemId: "6ba7b811"
+                        shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         title:
                           text: "Similar Product"
@@ -378,21 +378,21 @@ paths:
                         created: "2024-01-01T10:00:00Z"
                         updated: "2024-01-01T12:00:00Z"
                 empty:
-                  summary: No similar items found
+                  summary: No similar products found
                   value: []
         '202':
           description: |
-            Accepted - Item embedding not yet computed.
-            The text embedding for this item has not been generated yet (typically for items less than 24 hours old).
+            Accepted - Product embedding not yet computed.
+            The text embedding for this product has not been generated yet (typically for products less than 24 hours old).
             Embeddings are computed during nightly batch processing.
             Poll the endpoint again later using the Location header.
           headers:
             Location:
-              description: URL to poll for similar items once embeddings are computed
+              description: URL to poll for similar products once embeddings are computed
               schema:
                 type: string
                 format: uri
-              example: "https://api.aura-historia.com/api/v1/items/550e8400-e29b-41d4-a716-446655440000/6ba7b810/similar"
+              example: "https://api.aura-historia.com/api/v1/products/550e8400-e29b-41d4-a716-446655440000/6ba7b810/similar"
         '400':
           description: Bad request - invalid parameters
           content:
@@ -408,13 +408,13 @@ paths:
                     source:
                       field: "shopId"
                       sourceType: "path"
-                missing_shops_item_id:
-                  summary: Missing shop's item ID
+                missing_shops_product_id:
+                  summary: Missing shop's product ID
                   value:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopsItemId"
+                      field: "shopsProductId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid UUID format for shop ID
@@ -425,15 +425,15 @@ paths:
                       field: "shopId"
                       sourceType: "path"
         '404':
-          description: Item not found
+          description: Product not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               example:
                 status: 404
-                error: "ITEM_NOT_FOUND"
-                message: "Item with ShopId '550e8400-e29b-41d4-a716-446655440000' and ShopsItemId '6ba7b810' not found."
+                error: "PRODUCT_NOT_FOUND"
+                message: "Product with ShopId '550e8400-e29b-41d4-a716-446655440000' and ShopsProductId '6ba7b810' not found."
         '500':
           description: Internal server error
           content:
@@ -444,37 +444,37 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/items:
+  /api/v1/products:
     put:
-      summary: Bulk create or update items
+      summary: Bulk create or update products
       description: |
-        Creates or updates multiple items in a single batch request.
-        This endpoint accepts a collection of item data and processes them asynchronously.
+        Creates or updates multiple products in a single batch request.
+        This endpoint accepts a collection of product data and processes them asynchronously.
         
         **Shop Enrichment**: The shop information (shopId and shopName) is automatically 
-        enriched based on the item's URL. The URL must belong to a shop that is already 
-        registered in the system. If the shop is not found, the item will fail with 
+        enriched based on the product's URL. The URL must belong to a shop that is already 
+        registered in the system. If the shop is not found, the product will fail with 
         a SHOP_NOT_FOUND error.
         
         **Response Structure**:
-        - `skipped`: Number of items that had no changes and were skipped
-        - `unprocessed`: URLs of items that could not be processed due to temporary issues (can be retried)
-        - `failed`: Map of item URLs to error codes for items that permanently failed processing
+        - `skipped`: Number of products that had no changes and were skipped
+        - `unprocessed`: URLs of products that could not be processed due to temporary issues (can be retried)
+        - `failed`: Map of product URLs to error codes for products that permanently failed processing
         
-        Returns information about any items that could not be processed or failed during enrichment.
-      operationId: putItems
+        Returns information about any products that could not be processed or failed during enrichment.
+      operationId: putProducts
       tags:
-        - Items
+        - Products
       requestBody:
         required: true
-        description: Collection of items to create or update
+        description: Collection of products to create or update
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutItemsCollectionData'
+              $ref: '#/components/schemas/PutProductsCollectionData'
             example:
               items:
-                - shopsItemId: "6ba7b810"
+                - shopsProductId: "6ba7b810"
                   title:
                     text: "Smartphone Case Premium"
                     language: "en"
@@ -489,7 +489,7 @@ paths:
                   images:
                     - "https://tech-store.com/images/premium-case-1.jpg"
                     - "https://tech-store.com/images/premium-case-2.jpg"
-                - shopsItemId: "7cb8c920-9dad-11d1-80b4-00c04fd430c9"
+                - shopsProductId: "7cb8c920-9dad-11d1-80b4-00c04fd430c9"
                   title:
                     text: "Basic Phone Case"
                     language: "en"
@@ -498,7 +498,7 @@ paths:
                   images: [ ]
       responses:
         '200':
-          description: Items processed successfully
+          description: Products processed successfully
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -508,23 +508,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PutItemsResponse'
+                $ref: '#/components/schemas/PutProductsResponse'
               examples:
                 all_processed:
-                  summary: All items processed successfully
+                  summary: All products processed successfully
                   value:
                     unprocessed:
                     failed:
                     skipped: 0
                 partial_processing_with_failures:
-                  summary: Some items failed with errors
+                  summary: Some products failed with errors
                   value:
                     failed:
                       "https://unknown-shop.com/item": "SHOP_NOT_FOUND"
                       "https://tech-store.com/expensive-item": "MONETARY_AMOUNT_OVERFLOW"
                     skipped: 0
                 partial_processing_with_unprocessed:
-                  summary: Some items could not be processed (temporary issue)
+                  summary: Some products could not be processed (temporary issue)
                   value:
                     unprocessed:
                       - "https://tech-store.com/item-1"
@@ -560,28 +560,28 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/items/search:
+  /api/v1/products/search:
     post:
-      summary: Complex item search
+      summary: Complex product search
       description: |
-        Performs an advanced search for items using a comprehensive search filter.
-        This endpoint accepts a ItemSearchData object in the request body,
+        Performs an advanced search for products using a comprehensive search filter.
+        This endpoint accepts a ProductSearchData object in the request body,
         allowing for complex filtering by multiple criteria simultaneously.
-        Returns a paginated collection of items matching the search criteria.
+        Returns a paginated collection of products matching the search criteria.
         
         **Personalization**: When authenticated (via optional Authorization header), the response includes
-        user-specific state for each item such as whether it's on the user's watchlist and notification preferences.
-        Anonymous requests receive item data without user state.
-      operationId: complexSearchItems
+        user-specific state for each product such as whether it's on the user's watchlist and notification preferences.
+        Anonymous requests receive product data without user state.
+      operationId: complexSearchProducts
       tags:
-        - Items
+        - Products
       parameters:
         - name: sort
           in: query
           required: false
           description: Field to sort results by
           schema:
-            $ref: '#/components/schemas/SortItemFieldData'
+            $ref: '#/components/schemas/SortProductFieldData'
           example: price
         - name: order
           in: query
@@ -607,7 +607,7 @@ paths:
         - name: size
           in: query
           required: false
-          description: Number of items to return per page
+          description: Number of products to return per page
           schema:
             type: integer
             minimum: 1
@@ -619,8 +619,8 @@ paths:
           required: false
           description: |
             Optional Cognito JWT token for personalized response.
-            When provided, response includes user-specific state for each item (watchlist status, notifications).
-            When omitted, response contains only item data without user state.
+            When provided, response includes user-specific state for each product (watchlist status, notifications).
+            When omitted, response contains only product data without user state.
           schema:
             type: string
             pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
@@ -630,15 +630,15 @@ paths:
         description: |
           Search filter configuration with all filtering criteria.
           Unlike the simple text search, this allows filtering by multiple fields,
-          price ranges, item states, and date ranges.
+          price ranges, product states, and date ranges.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ItemSearchData'
+              $ref: '#/components/schemas/ProductSearchData'
             example:
               language: "en"
               currency: "USD"
-              itemQuery: "smartphone case"
+              productQuery: "smartphone case"
               shopNameQuery: "Tech Store"
               price:
                 min: 1000
@@ -659,17 +659,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PersonalizedItemSearchResultData'
+                $ref: '#/components/schemas/PersonalizedProductSearchResultData'
               examples:
                 authenticated:
-                  summary: Authenticated user response with user state for each item
+                  summary: Authenticated user response with user state for each product
                   value:
                     items:
                       - item:
-                          itemId: "550e8400-e29b-41d4-a716-446655440000"
+                          productId: "550e8400-e29b-41d4-a716-446655440000"
                           eventId: "550e8400-e29b-41d4-a716-446655440001"
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
-                          shopsItemId: "6ba7b810"
+                          shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           title:
                             text: "Premium Smartphone Case"
@@ -695,10 +695,10 @@ paths:
                   value:
                     items:
                       - item:
-                          itemId: "550e8400-e29b-41d4-a716-446655440000"
+                          productId: "550e8400-e29b-41d4-a716-446655440000"
                           eventId: "550e8400-e29b-41d4-a716-446655440001"
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
-                          shopsItemId: "6ba7b810"
+                          shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           title:
                             text: "Premium Smartphone Case"
@@ -734,12 +734,12 @@ paths:
                     status: 400
                     error: "BAD_BODY_VALUE"
                     message: "Invalid JSON format"
-                invalid_item_query:
-                  summary: Invalid item query length
+                invalid_product_query:
+                  summary: Invalid product query length
                   value:
                     status: 400
                     error: "BAD_BODY_VALUE"
-                    message: "itemQuery must be at least 3 characters long"
+                    message: "productQuery must be at least 3 characters long"
                 invalid_sort_field:
                   summary: Invalid sort field
                   value:
@@ -821,10 +821,10 @@ paths:
                   - userId: "550e8400-e29b-41d4-a716-446655440000"
                     userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     name: "My Tech Store Search"
-                    itemSearch:
+                    productSearch:
                       language: "en"
                       currency: "USD"
-                      itemQuery: "smartphone"
+                      productQuery: "smartphone"
                       shopNameQuery: "Tech Store"
                       price:
                         min: 1000
@@ -906,10 +906,10 @@ paths:
               $ref: '#/components/schemas/PostUserSearchFilterData'
             example:
               name: "My Tech Store Search"
-              itemSearch:
+              productSearch:
                 language: "en"
                 currency: "USD"
-                itemQuery: "smartphone"
+                productQuery: "smartphone"
                 shopNameQuery: "Tech Store"
                 price:
                   min: 1000
@@ -952,10 +952,10 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
-                itemSearch:
+                productSearch:
                   language: "en"
                   currency: "USD"
-                  itemQuery: "smartphone"
+                  productQuery: "smartphone"
                   shopNameQuery: "Tech Store"
                   price:
                     min: 1000
@@ -982,12 +982,12 @@ paths:
                     status: 400
                     error: "BAD_BODY_VALUE"
                     message: "Invalid JSON format"
-                invalid_item_query:
-                  summary: Invalid item query
+                invalid_product_query:
+                  summary: Invalid product query
                   value:
                     status: 400
                     error: "BAD_BODY_VALUE"
-                    message: "itemQuery must be at least 3 characters long"
+                    message: "productQuery must be at least 3 characters long"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
@@ -1062,10 +1062,10 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
-                itemSearch:
+                productSearch:
                   language: "en"
                   currency: "USD"
-                  itemQuery: "smartphone"
+                  productQuery: "smartphone"
                   shopNameQuery: "Tech Store"
                   price:
                     min: 1000
@@ -1251,7 +1251,7 @@ paths:
                 summary: Update specific fields
                 value:
                   name: "Updated Filter Name"
-                  itemSearch:
+                  productSearch:
                     shopNameQuery: "Updated Store"
                     price:
                       min: 2000
@@ -1263,7 +1263,7 @@ paths:
               update_filter_only:
                 summary: Update only the filter criteria
                 value:
-                  itemSearch:
+                  productSearch:
                     language: "de"
                     currency: "EUR"
               empty_update:
@@ -1297,10 +1297,10 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "Updated Filter Name"
-                itemSearch:
+                productSearch:
                   language: "en"
                   currency: "USD"
-                  itemQuery: "smartphone"
+                  productQuery: "smartphone"
                   shopNameQuery: "Updated Store"
                   price:
                     min: 2000
@@ -1338,12 +1338,12 @@ paths:
                     status: 400
                     error: "BAD_BODY_VALUE"
                     message: "Invalid JSON format"
-                invalid_item_query:
-                  summary: Invalid item query length
+                invalid_product_query:
+                  summary: Invalid product query length
                   value:
                     status: 400
                     error: "BAD_BODY_VALUE"
-                    message: "itemQuery must be at least 3 characters long"
+                    message: "productQuery must be at least 3 characters long"
         '401':
           description: Unauthorized - invalid or missing JWT token
           content:
@@ -1374,12 +1374,12 @@ paths:
 
   /api/v1/me/watchlist:
     get:
-      summary: List user's watchlist items
+      summary: List user's watchlist products
       description: |
-        Retrieves all items in the authenticated user's watchlist.
+        Retrieves all products in the authenticated user's watchlist.
         Results are paginated using search-after cursor-based pagination with timestamp.
         Requires valid Cognito JWT authentication.
-      operationId: getWatchlistItems
+      operationId: getWatchlistProducts
       tags:
         - Watchlist
       parameters:
@@ -1395,7 +1395,7 @@ paths:
           required: false
           description: Field to sort results by
           schema:
-            $ref: '#/components/schemas/SortWatchlistItemFieldData'
+            $ref: '#/components/schemas/SortWatchlistProductFieldData'
           example: created
         - name: order
           in: query
@@ -1410,7 +1410,7 @@ paths:
           required: false
           description: |
             RFC3339 timestamp for cursor-based pagination (search-after).
-            Depending on sort-order, returns watchlist-items created, either after this timestamp for asc (oldest first) or before this timestamp for desc (latest first).
+            Depending on sort-order, returns watchlist-products created, either after this timestamp for asc (oldest first) or before this timestamp for desc (latest first).
             In general you do not have to worry about determining this key. It's given with `searchAfter` in the preceding response if more entries are present.
           schema:
             type: string
@@ -1419,7 +1419,7 @@ paths:
         - name: size
           in: query
           required: false
-          description: Number of items to return per page
+          description: Number of products to return per page
           schema:
             type: integer
             minimum: 1
@@ -1456,7 +1456,7 @@ paths:
           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
         '200':
-          description: Watchlist items retrieved successfully
+          description: Watchlist products retrieved successfully
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -1470,10 +1470,10 @@ paths:
               example:
                 items:
                   - item:
-                      itemId: "550e8400-e29b-41d4-a716-446655440000"
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
-                      shopsItemId: "6ba7b810"
+                      shopsProductId: "6ba7b810"
                       shopName: "Tech Store"
                       title:
                         text: "Smartphone Case"
@@ -1543,13 +1543,13 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
     post:
-      summary: Add item to watchlist
+      summary: Add product to watchlist
       description: |
-        Adds an item to the authenticated user's watchlist.
-        The request body must contain the shop ID and shop's item ID.
+        Adds an product to the authenticated user's watchlist.
+        The request body must contain the shop ID and shop's product ID.
         Returns a 201 Created response with a Location header pointing to the created resource.
         Requires valid Cognito JWT authentication.
-      operationId: addWatchlistItem
+      operationId: addWatchlistProduct
       tags:
         - Watchlist
       parameters:
@@ -1563,20 +1563,20 @@ paths:
           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       requestBody:
         required: true
-        description: Item identifier to add to watchlist
+        description: Product identifier to add to watchlist
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ItemKeyData'
+              $ref: '#/components/schemas/ProductKeyData'
             example:
               shopId: "550e8400-e29b-41d4-a716-446655440000"
-              shopsItemId: "6ba7b810"
+              shopsProductId: "6ba7b810"
       responses:
         '201':
-          description: Item added to watchlist successfully
+          description: Product added to watchlist successfully
           headers:
             Location:
-              description: URL of the added watchlist item
+              description: URL of the added watchlist product
               schema:
                 type: string
                 format: uri
@@ -1589,11 +1589,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WatchlistItemPatchResponse'
+                $ref: '#/components/schemas/WatchlistProductPatchResponse'
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-                itemId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                shopsProductId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                productId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
                 notifications: false
                 created: "2024-01-15T08:00:00Z"
                 updated: "2024-01-15T08:00:00Z"
@@ -1635,14 +1635,14 @@ paths:
                 status: 500
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/me/watchlist/{shopId}/{shopsItemId}:
+  /api/v1/me/watchlist/{shopId}/{shopsProductId}:
     delete:
-      summary: Remove item from watchlist
+      summary: Remove product from watchlist
       description: |
-        Removes a specific item from the authenticated user's watchlist.
+        Removes a specific product from the authenticated user's watchlist.
         Returns a 204 No Content response on success.
         Requires valid Cognito JWT authentication.
-      operationId: deleteWatchlistItem
+      operationId: deleteWatchlistProduct
       tags:
         - Watchlist
       parameters:
@@ -1654,10 +1654,10 @@ paths:
             type: string
             format: uuid
           example: "550e8400-e29b-41d4-a716-446655440000"
-        - name: shopsItemId
+        - name: shopsProductId
           in: path
           required: true
-          description: Shop's unique identifier for the item
+          description: Shop's unique identifier for the product
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
@@ -1671,7 +1671,7 @@ paths:
           example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       responses:
         '204':
-          description: Item removed from watchlist successfully
+          description: Product removed from watchlist successfully
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -1693,13 +1693,13 @@ paths:
                     source:
                       field: "shopId"
                       sourceType: "path"
-                missing_shops_item_id:
-                  summary: Missing shop's item ID
+                missing_shops_product_id:
+                  summary: Missing shop's product ID
                   value:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopsItemId"
+                      field: "shopsProductId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid shop ID format
@@ -1739,12 +1739,12 @@ paths:
                 error: "INTERNAL_SERVER_ERROR"
 
     patch:
-      summary: Update watchlist item settings
+      summary: Update watchlist product settings
       description: |
-        Updates settings for a specific watchlist item (e.g., toggle notifications).
-        Returns the updated watchlist item data with core identifiers and settings.
+        Updates settings for a specific watchlist product (e.g., toggle notifications).
+        Returns the updated watchlist product data with core identifiers and settings.
         Requires valid Cognito JWT authentication.
-      operationId: patchWatchlistItem
+      operationId: patchWatchlistProduct
       tags:
         - Watchlist
       parameters:
@@ -1756,10 +1756,10 @@ paths:
             type: string
             format: uuid
           example: "550e8400-e29b-41d4-a716-446655440000"
-        - name: shopsItemId
+        - name: shopsProductId
           in: path
           required: true
-          description: Shop's unique identifier for the item
+          description: Shop's unique identifier for the product
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
@@ -1777,7 +1777,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WatchlistItemPatch'
+              $ref: '#/components/schemas/WatchlistProductPatch'
             examples:
               enable_notifications:
                 summary: Enable notifications
@@ -1789,7 +1789,7 @@ paths:
                   notifications: false
       responses:
         '200':
-          description: Watchlist item updated successfully
+          description: Watchlist product updated successfully
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -1797,7 +1797,7 @@ paths:
                 type: string
               example: "*"
             Last-Modified:
-              description: When the watchlist item was last updated
+              description: When the watchlist product was last updated
               schema:
                 type: string
                 format: date-time
@@ -1805,11 +1805,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WatchlistItemPatchResponse'
+                $ref: '#/components/schemas/WatchlistProductPatchResponse'
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsItemId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-                itemId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                shopsProductId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                productId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
                 notifications: true
                 created: "2024-01-15T08:00:00Z"
                 updated: "2024-01-15T08:30:00Z"
@@ -1828,13 +1828,13 @@ paths:
                     source:
                       field: "shopId"
                       sourceType: "path"
-                missing_shops_item_id:
-                  summary: Missing shop's item ID
+                missing_shops_product_id:
+                  summary: Missing shop's product ID
                   value:
                     status: 400
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopsItemId"
+                      field: "shopsProductId"
                       sourceType: "path"
                 invalid_uuid:
                   summary: Invalid shop ID format
@@ -2118,14 +2118,14 @@ paths:
 
 components:
   schemas:
-    GetItemData:
+    GetProductData:
       type: object
-      description: Complete item information including metadata and localized content
+      description: Complete product information including metadata and localized content
       required:
-        - itemId
+        - productId
         - eventId
         - shopId
-        - shopsItemId
+        - shopsProductId
         - shopName
         - title
         - state
@@ -2134,21 +2134,21 @@ components:
         - created
         - updated
       properties:
-        itemId:
+        productId:
           type: string
           format: uuid
-          description: Unique internal identifier for the item
+          description: Unique internal identifier for the product
         eventId:
           type: string
           format: uuid
-          description: Unique identifier for the current state/version of the item
+          description: Unique identifier for the current state/version of the product
         shopId:
           type: string
           format: uuid
           description: Unique identifier of the shop
-        shopsItemId:
+        shopsProductId:
           type: string
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
         shopName:
           type: string
           description: Display name of the shop
@@ -2158,62 +2158,62 @@ components:
           allOf:
             - $ref: '#/components/schemas/LocalizedTextData'
           nullable: true
-          description: Optional item description
+          description: Optional product description
         price:
           allOf:
             - $ref: '#/components/schemas/PriceData'
           nullable: true
-          description: Optional item price
+          description: Optional product price
         state:
-          $ref: '#/components/schemas/ItemStateData'
+          $ref: '#/components/schemas/ProductStateData'
         url:
           type: string
           format: uri
-          description: URL to the item on the shop's website
+          description: URL to the product on the shop's website
         images:
           type: array
           items:
             type: string
             format: uri
-          description: Array of image URLs for the item
+          description: Array of image URLs for the product
           default: [ ]
         created:
           type: string
           format: date-time
-          description: When the item was first created (RFC3339 format)
+          description: When the product was first created (RFC3339 format)
         updated:
           type: string
           format: date-time
-          description: When the item was last updated (RFC3339 format)
+          description: When the product was last updated (RFC3339 format)
         history:
           type: array
           items:
-            $ref: '#/components/schemas/GetItemEventData'
+            $ref: '#/components/schemas/GetProductEventData'
           nullable: true
-          description: Optional array of item history events
+          description: Optional array of product history events
 
-    PersonalizedGetItemData:
+    PersonalizedGetProductData:
       type: object
       description: |
-        Wrapper for item data with optional user-specific state.
+        Wrapper for product data with optional user-specific state.
         When user is authenticated, includes personalized information such as watchlist status.
-        When user is anonymous, only the item data is present.
+        When user is anonymous, only the product data is present.
       required:
         - item
       properties:
         item:
-          $ref: '#/components/schemas/GetItemData'
+          $ref: '#/components/schemas/GetProductData'
         userState:
           allOf:
-            - $ref: '#/components/schemas/ItemUserStateData'
+            - $ref: '#/components/schemas/ProductUserStateData'
           nullable: true
-          description: Optional user-specific state for this item (only present when authenticated)
+          description: Optional user-specific state for this product (only present when authenticated)
 
-    PersonalizedItemSearchResultData:
+    PersonalizedProductSearchResultData:
       type: object
       description: |
-        Paginated collection of personalized items using cursor-based pagination (search-after pattern).
-        Each item may include user-specific state when the request is authenticated.
+        Paginated collection of personalized productss using cursor-based pagination (search-after pattern).
+        Each product may include user-specific state when the request is authenticated.
       required:
         - items
         - size
@@ -2221,17 +2221,17 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/PersonalizedGetItemData'
-          description: Array of personalized items in the current page
+            $ref: '#/components/schemas/PersonalizedGetProductData'
+          description: Array of personalized products in the current page
         size:
           type: integer
           minimum: 0
-          description: Number of items returned in the current page
+          description: Number of products returned in the current page
           example: 21
         total:
           type: integer
           minimum: 0
-          description: Total number of items matching the query (optional, may not always be available)
+          description: Total number of products matching the query (optional, may not always be available)
           nullable: true
           example: 127
         searchAfter:
@@ -2244,9 +2244,9 @@ components:
           nullable: true
           example: "[2999, \"550e8400-e29b-41d4-a716-446655440000\"]"
 
-    ItemUserStateData:
+    ProductUserStateData:
       type: object
-      description: User-specific state information for an item
+      description: User-specific state information for a product
       required:
         - watchlist
       properties:
@@ -2255,18 +2255,18 @@ components:
 
     WatchlistUserStateData:
       type: object
-      description: Watchlist-specific user state for an item
+      description: Watchlist-specific user state for a product
       required:
         - watching
         - notifications
       properties:
         watching:
           type: boolean
-          description: Whether the item is on the user's watchlist
+          description: Whether the product is on the user's watchlist
           example: true
         notifications:
           type: boolean
-          description: Whether notifications are enabled for this watchlist item
+          description: Whether notifications are enabled for this watchlist product
           example: false
 
     LocalizedTextData:
@@ -2297,18 +2297,18 @@ components:
           minimum: 0
           example: 2999
 
-    ItemCreatedEventPayloadData:
+    ProductCreatedEventPayloadData:
       type: object
-      description: Minimal information about an item when it was created
+      description: Minimal information about an product when it was created
       required:
         - state
       properties:
         state:
-          $ref: '#/components/schemas/ItemStateData'
+          $ref: '#/components/schemas/ProductStateData'
         price:
           $ref: '#/components/schemas/PriceData'
 
-    ItemEventStateChangedPayloadData:
+    ProductEventStateChangedPayloadData:
       type: object
       description: Payload for state change events, containing both old and new state
       required:
@@ -2316,20 +2316,20 @@ components:
         - newState
       properties:
         oldState:
-          $ref: '#/components/schemas/ItemStateData'
+          $ref: '#/components/schemas/ProductStateData'
         newState:
-          $ref: '#/components/schemas/ItemStateData'
+          $ref: '#/components/schemas/ProductStateData'
 
-    ItemEventPriceDiscoveredPayloadData:
+    ProductEventPriceDiscoveredPayloadData:
       type: object
-      description: Payload for price discovered events when an item's price is first detected
+      description: Payload for price discovered events when a product's price is first detected
       required:
         - newPrice
       properties:
         newPrice:
           $ref: '#/components/schemas/PriceData'
 
-    ItemEventPriceChangedPayloadData:
+    ProductEventPriceChangedPayloadData:
       type: object
       description: Payload for price change events (dropped or increased), containing both old and new price
       required:
@@ -2341,33 +2341,33 @@ components:
         newPrice:
           $ref: '#/components/schemas/PriceData'
 
-    ItemEventPriceRemovedPayloadData:
+    ProductEventPriceRemovedPayloadData:
       type: object
-      description: Payload for price removed events when an item's price is removed
+      description: Payload for price removed events when a product's price is removed
       required:
         - oldPrice
       properties:
         oldPrice:
           $ref: '#/components/schemas/PriceData'
 
-    GetItemEventData:
+    GetProductEventData:
       type: object
-      description: Historical event for an item
+      description: Historical event for a product
       required:
         - eventType
-        - itemId
+        - productId
         - eventId
         - shopId
-        - shopsItemId
+        - shopsProductId
         - payload
         - timestamp
       properties:
         eventType:
-          $ref: '#/components/schemas/ItemEventTypeData'
-        itemId:
+          $ref: '#/components/schemas/ProductEventTypeData'
+        productId:
           type: string
           format: uuid
-          description: Unique internal identifier for the item
+          description: Unique internal identifier for the product
         eventId:
           type: string
           format: uuid
@@ -2376,12 +2376,12 @@ components:
           type: string
           format: uuid
           description: Unique identifier of the shop
-        shopsItemId:
+        shopsProductId:
           type: string
           format: uuid
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
         payload:
-          $ref: '#/components/schemas/ItemEventPayloadData'
+          $ref: '#/components/schemas/ProductEventPayloadData'
         timestamp:
           type: string
           format: date-time
@@ -2413,51 +2413,51 @@ components:
       default: EUR
       example: EUR
 
-    ItemStateData:
+    ProductStateData:
       type: string
       enum: [ LISTED, AVAILABLE, RESERVED, SOLD, REMOVED, UNKNOWN ]
       description: |
-        Current state of the item:
-        - LISTED: Item has been listed
-        - AVAILABLE: Item is available for purchase
-        - RESERVED: Item is reserved by a buyer
-        - SOLD: Item has been sold
-        - REMOVED: Item has been removed and can no longer be tracked
-        - UNKNOWN: Item has an unknown state
+        Current state of the product:
+        - LISTED: Product has been listed
+        - AVAILABLE: Product is available for purchase
+        - RESERVED: Product is reserved by a buyer
+        - SOLD: Product has been sold
+        - REMOVED: Product has been removed and can no longer be tracked
+        - UNKNOWN: Product has an unknown state
       example: AVAILABLE
 
-    SortItemFieldData:
+    SortProductFieldData:
       type: string
       enum: [ score, price, updated, created ]
       description: |
         Fields available for sorting:
         - score: Sort by relevance score (default, only available when searching with text query)
-        - price: Sort by item price
+        - price: Sort by product price
         - updated: Sort by last updated timestamp
         - created: Sort by creation timestamp
       default: score
       example: price
 
-    ItemEventTypeData:
+    ProductEventTypeData:
       type: string
       enum: [ CREATED, STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN, PRICE_DISCOVERED, PRICE_DROPPED, PRICE_INCREASED, PRICE_REMOVED ]
-      description: Types of events that can occur for an item
+      description: Types of events that can occur for a product
       example: STATE_AVAILABLE
 
-    ItemEventPayloadData:
+    ProductEventPayloadData:
       oneOf:
-        - $ref: '#/components/schemas/ItemCreatedEventPayloadData'
-        - $ref: '#/components/schemas/ItemEventStateChangedPayloadData'
-        - $ref: '#/components/schemas/ItemEventPriceDiscoveredPayloadData'
-        - $ref: '#/components/schemas/ItemEventPriceChangedPayloadData'
-        - $ref: '#/components/schemas/ItemEventPriceRemovedPayloadData'
+        - $ref: '#/components/schemas/ProductCreatedEventPayloadData'
+        - $ref: '#/components/schemas/ProductEventStateChangedPayloadData'
+        - $ref: '#/components/schemas/ProductEventPriceDiscoveredPayloadData'
+        - $ref: '#/components/schemas/ProductEventPriceChangedPayloadData'
+        - $ref: '#/components/schemas/ProductEventPriceRemovedPayloadData'
       description: |
         Event-specific payload data. The structure varies depending on the event type:
-        - CREATED: ItemCreatedEventPayloadData (initial item state and optional price)
-        - STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN: ItemEventStateChangedPayloadData (old and new state)
-        - PRICE_DISCOVERED: ItemEventPriceDiscoveredPayloadData (new price only, when price is first detected)
-        - PRICE_DROPPED, PRICE_INCREASED: ItemEventPriceChangedPayloadData (old and new price)
-        - PRICE_REMOVED: ItemEventPriceRemovedPayloadData (old price only, when price is removed)
+        - CREATED: ProductCreatedEventPayloadData (initial product state and optional price)
+        - STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN: ProductEventStateChangedPayloadData (old and new state)
+        - PRICE_DISCOVERED: ProductEventPriceDiscoveredPayloadData (new price only, when price is first detected)
+        - PRICE_DROPPED, PRICE_INCREASED: ProductEventPriceChangedPayloadData (old and new price)
+        - PRICE_REMOVED: ProductEventPriceRemovedPayloadData (old price only, when price is removed)
 
     ApiError:
       type: object
@@ -2498,21 +2498,21 @@ components:
           description: Type of parameter that caused the error
           example: "path"
 
-    ItemSearchData:
+    ProductSearchData:
       type: object
-      description: Item search configuration with query parameters and filtering options
+      description: Product search configuration with query parameters and filtering options
       required:
         - language
         - currency
-        - itemQuery
+        - productQuery
       properties:
         language:
           $ref: '#/components/schemas/LanguageData'
         currency:
           $ref: '#/components/schemas/CurrencyData'
-        itemQuery:
+        productQuery:
           type: string
-          description: Text query for searching items (minimum 3 characters)
+          description: Text query for searching products (minimum 3 characters)
           minLength: 3
           example: "smartphone case"
         shopNameQuery:
@@ -2529,8 +2529,8 @@ components:
         state:
           type: array
           items:
-            $ref: '#/components/schemas/ItemStateData'
-          description: Optional filter by item states
+            $ref: '#/components/schemas/ProductStateData'
+          description: Optional filter by product states
           uniqueItems: true
           default: [ ]
           nullable: true
@@ -2539,27 +2539,27 @@ components:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
-          description: Optional filter by item creation date range
+          description: Optional filter by product creation date range
         updated:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
-          description: Optional filter by item last updated date range
+          description: Optional filter by product last updated date range
 
     PostUserSearchFilterData:
       type: object
       description: Request body for creating a new search filter
       required:
         - name
-        - itemSearch
+        - productSearch
       properties:
         name:
           type: string
           description: User-defined name for the search filter (max 255 characters, will be truncated if longer)
           maxLength: 255
           example: "My Tech Store Search"
-        itemSearch:
-          $ref: '#/components/schemas/ItemSearchData'
+        productSearch:
+          $ref: '#/components/schemas/ProductSearchData'
 
     PatchUserSearchFilterData:
       type: object
@@ -2574,18 +2574,18 @@ components:
           maxLength: 255
           nullable: true
           example: "Updated Filter Name"
-        itemSearch:
+        productSearch:
           allOf:
-            - $ref: '#/components/schemas/PatchItemSearchData'
+            - $ref: '#/components/schemas/PatchProductSearchData'
           nullable: true
           description: Partial search filter criteria to update
 
-    PatchItemSearchData:
+    PatchProductSearchData:
       type: object
       description: |
         Partial search filter criteria update.
         All fields are optional and only provided fields will be updated.
-        Follows the same structure as ItemSearchData but with optional fields.
+        Follows the same structure as ProductSearchData but with optional fields.
       properties:
         language:
           allOf:
@@ -2597,9 +2597,9 @@ components:
             - $ref: '#/components/schemas/CurrencyData'
           nullable: true
           description: Currency for price display
-        itemQuery:
+        productQuery:
           type: string
-          description: Text query for searching items (minimum 3 characters when provided)
+          description: Text query for searching products (minimum 3 characters when provided)
           minLength: 3
           nullable: true
           example: "laptop bag"
@@ -2617,8 +2617,8 @@ components:
         state:
           type: array
           items:
-            $ref: '#/components/schemas/ItemStateData'
-          description: Optional filter by item states
+            $ref: '#/components/schemas/ProductStateData'
+          description: Optional filter by product states
           uniqueItems: true
           nullable: true
           example: [ "AVAILABLE", "LISTED" ]
@@ -2626,12 +2626,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
-          description: Optional filter by item creation date range
+          description: Optional filter by product creation date range
         updated:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
-          description: Optional filter by item last updated date range
+          description: Optional filter by product last updated date range
 
     UserSearchFilterData:
       type: object
@@ -2640,7 +2640,7 @@ components:
         - userId
         - userSearchFilterId
         - name
-        - itemSearch
+        - productSearch
         - created
         - updated
       properties:
@@ -2658,8 +2658,8 @@ components:
           type: string
           description: User-defined name for the search filter
           example: "My Tech Store Search"
-        itemSearch:
-          $ref: '#/components/schemas/ItemSearchData'
+        productSearch:
+          $ref: '#/components/schemas/ProductSearchData'
         created:
           type: string
           format: date-time
@@ -2725,48 +2725,48 @@ components:
         from:
           type: integer
           minimum: 0
-          description: Number of items skipped (offset)
+          description: Number of products skipped (offset)
           example: 0
         size:
           type: integer
           minimum: 0
-          description: Number of items in the current page
+          description: Number of products in the current page
           example: 21
         total:
           type: integer
           minimum: 0
-          description: Total number of items matching the query
+          description: Total number of products matching the query
           nullable: true
           example: 127
 
-    PutItemsCollectionData:
+    PutProductsCollectionData:
       type: object
-      description: Collection of items to create or update
+      description: Collection of products to create or update
       required:
         - items
       properties:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/PutItemData'
-          description: Array of items to process
+            $ref: '#/components/schemas/PutProductData'
+          description: Array of products to process
           minItems: 1
           maxItems: 1000
 
-    PutItemData:
+    PutProductData:
       type: object
       description: |
-        Data required to create or update an item.
-        Shop information (shopId and shopName) is automatically enriched based on the item's URL.
+        Data required to create or update a product.
+        Shop information (shopId and shopName) is automatically enriched based on the product's URL.
       required:
-        - shopsItemId
+        - shopsProductId
         - title
         - state
         - url
       properties:
-        shopsItemId:
+        shopsProductId:
           type: string
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
         title:
           $ref: '#/components/schemas/LocalizedTextData'
@@ -2774,35 +2774,35 @@ components:
           allOf:
             - $ref: '#/components/schemas/LocalizedTextData'
           nullable: true
-          description: Optional item description
+          description: Optional product description
         price:
           allOf:
             - $ref: '#/components/schemas/PriceData'
           nullable: true
-          description: Optional item price
+          description: Optional product price
         state:
-          $ref: '#/components/schemas/ItemStateData'
+          $ref: '#/components/schemas/ProductStateData'
         url:
           type: string
           format: uri
           description: |
-            URL to the item on the shop's website.
+            URL to the product on the shop's website.
             The shop will be automatically identified and enriched based on this URL.
-          example: "https://tech-store-premium.com/items/smartphone-case"
+          example: "https://tech-store-premium.com/products/smartphone-case"
         images:
           type: array
           items:
             type: string
             format: uri
-          description: Array of image URLs for the item
+          description: Array of image URLs for the product
           default: [ ]
           example:
             - "https://tech-store-premium.com/images/case-1.jpg"
             - "https://tech-store-premium.com/images/case-2.jpg"
 
-    PutItemsResponse:
+    PutProductsResponse:
       type: object
-      description: Response from bulk item creation/update operation with enrichment
+      description: Response from bulk product creation/update operation with enrichment
       required:
         - skipped
       properties:
@@ -2812,18 +2812,18 @@ components:
             type: string
             format: uri
           description: |
-            Item URLs that could not be processed due to temporary issues.
-            These items may succeed if retried.
+            Product URLs that could not be processed due to temporary issues.
+            These products may succeed if retried.
           default: [ ]
           example:
-            - "https://tech-store.com/items/temporary-issue"
+            - "https://tech-store.com/products/temporary-issue"
         failed:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/PutItemError'
+            $ref: '#/components/schemas/PutProductError'
           description: |
-            Map of item URLs to error codes for items that failed processing.
-            The key is the item URL, and the value is the error code explaining why it failed.
+            Map of product URLs to error codes for products that failed processing.
+            The key is the product URL, and the value is the error code explaining why it failed.
           default: { }
           example:
             "https://unknown-shop.com/item": "SHOP_NOT_FOUND"
@@ -2831,7 +2831,7 @@ components:
         skipped:
           type: integer
           minimum: 0
-          description: Number of items that were skipped during processing because they had no changes
+          description: Number of products that were skipped during processing because they had no changes
           example: 2
 
     GetShopData:
@@ -2926,7 +2926,7 @@ components:
         size:
           type: integer
           minimum: 0
-          description: Number of items in the current page
+          description: Number of products in the current page
           example: 21
         searchAfter:
           type: array
@@ -2941,30 +2941,30 @@ components:
         total:
           type: integer
           minimum: 0
-          description: Total number of items matching the query
+          description: Total number of products matching the query
           nullable: true
           example: 127
 
-    ItemKeyData:
+    ProductKeyData:
       type: object
-      description: Identifier for an item using shop ID and shop's item ID
+      description: Identifier for a product using shop ID and shop's product ID
       required:
         - shopId
-        - shopsItemId
+        - shopsProductId
       properties:
         shopId:
           type: string
           format: uuid
           description: Unique identifier of the shop
           example: "550e8400-e29b-41d4-a716-446655440000"
-        shopsItemId:
+        shopsProductId:
           type: string
-          description: Shop's unique identifier for the item. Can be any arbitrary string.
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
           example: "6ba7b810"
 
-    WatchlistItemData:
+    WatchlistProductData:
       type: object
-      description: Watchlist item containing the item data and when it was added to the watchlist
+      description: Watchlist product containing the product data and when it was added to the watchlist
       required:
         - item
         - notifications
@@ -2972,25 +2972,25 @@ components:
         - updated
       properties:
         item:
-          $ref: '#/components/schemas/GetItemData'
+          $ref: '#/components/schemas/GetProductData'
         notifications:
           type: boolean
-          description: Whether notifications are enabled for this watchlist item
+          description: Whether notifications are enabled for this watchlist product
           example: false
         created:
           type: string
           format: date-time
-          description: When the item was added to the watchlist (RFC3339 format)
+          description: When the product was added to the watchlist (RFC3339 format)
           example: "2024-01-15T08:00:00Z"
         updated:
           type: string
           format: date-time
-          description: When the watchlist item was last updated (RFC3339 format)
+          description: When the watchlist product was last updated (RFC3339 format)
           example: "2024-01-15T08:00:00Z"
 
     WatchlistCollectionData:
       type: object
-      description: Paginated collection of watchlist items using cursor-based pagination
+      description: Paginated collection of watchlist products using cursor-based pagination
       required:
         - items
         - size
@@ -2998,12 +2998,12 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/WatchlistItemData'
-          description: Array of watchlist items in the current page
+            $ref: '#/components/schemas/WatchlistProductData'
+          description: Array of watchlist products in the current page
         size:
           type: integer
           minimum: 0
-          description: Number of items in the current page
+          description: Number of products in the current page
           example: 21
         searchAfter:
           type: string
@@ -3014,26 +3014,26 @@ components:
         total:
           type: integer
           minimum: 0
-          description: Total number of items (optional, may not be available for cursor-based pagination)
+          description: Total number of products (optional, may not be available for cursor-based pagination)
           nullable: true
           example: 127
 
-    WatchlistItemPatch:
+    WatchlistProductPatch:
       type: object
-      description: Patch object for updating watchlist item settings
+      description: Patch object for updating watchlist product settings
       properties:
         notifications:
           type: boolean
-          description: Whether to enable or disable notifications for this watchlist item
+          description: Whether to enable or disable notifications for this watchlist product
           example: true
 
-    WatchlistItemPatchResponse:
+    WatchlistProductPatchResponse:
       type: object
-      description: Response after patching a watchlist item, containing core item identifiers and notification settings
+      description: Response after patching a watchlist product, containing core product identifiers and notification settings
       required:
         - shopId
-        - shopsItemId
-        - itemId
+        - shopsProductId
+        - productId
         - notifications
         - created
         - updated
@@ -3043,54 +3043,54 @@ components:
           format: uuid
           description: Unique identifier of the shop
           example: "550e8400-e29b-41d4-a716-446655440000"
-        shopsItemId:
+        shopsProductId:
           type: string
-          description: Shop's unique identifier for the item
+          description: Shop's unique identifier for the product
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        itemId:
+        productId:
           type: string
           format: uuid
-          description: Internal item identifier
+          description: Internal product identifier
           example: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
         notifications:
           type: boolean
-          description: Current notification setting for this watchlist item
+          description: Current notification setting for this watchlist product
           example: true
         created:
           type: string
           format: date-time
-          description: When the item was added to the watchlist (RFC3339 format)
+          description: When the product was added to the watchlist (RFC3339 format)
           example: "2024-01-15T08:00:00Z"
         updated:
           type: string
           format: date-time
-          description: When the watchlist item was last updated (RFC3339 format)
+          description: When the watchlist product was last updated (RFC3339 format)
           example: "2024-01-15T08:30:00Z"
 
-    SortWatchlistItemFieldData:
+    SortWatchlistProductFieldData:
       type: string
       enum: [ created ]
       description: |
-        Fields available for sorting watchlist items:
-        - created: Sort by when item was added to watchlist
+        Fields available for sorting watchlist products:
+        - created: Sort by when product was added to watchlist
       example: created
 
-    PutItemError:
+    PutProductError:
       type: string
-      enum: [ SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, ITEM_ENRICHMENT_FAILED ]
+      enum: [ SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, PRODUCT_ENRICHMENT_FAILED ]
       description: |
-        Error codes for items that failed during processing:
-        - SHOP_NOT_FOUND: The shop associated with the item's URL is not registered in the system
+        Error codes for products that failed during processing:
+        - SHOP_NOT_FOUND: The shop associated with the product's URL is not registered in the system
         - MONETARY_AMOUNT_OVERFLOW: The price amount exceeds the maximum supported value during currency conversion
-        - ITEM_ENRICHMENT_FAILED: Failed to enrich the item with additional shop and price information
+        - PRODUCT_ENRICHMENT_FAILED: Failed to enrich the product with additional shop and price information
       example: SHOP_NOT_FOUND
 
 tags:
-  - name: Items
-    description: Operations related to item retrieval and search
+  - name: Products
+    description: Operations related to product retrieval and search
   - name: Search Filters
     description: Operations for managing user search filters
   - name: Shops
     description: Operations related to shop retrieval and search
   - name: Watchlist
-    description: Operations for managing user's item watchlist
+    description: Operations for managing user's product watchlist
