@@ -2043,9 +2043,8 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        Cognito JWT token for personalized response.
-        When provided, response includes user-specific state (watchlist status, notifications).
-        When omitted, response contains only item data without user state.
+        Cognito JWT token.
+        The token is used for authenticating and authorizing users as well as personalizing responses.
   schemas:
     GetItemData:
       type: object
