@@ -84,17 +84,9 @@ paths:
             regional:
               value: "en-US"
               description: "US English"
-        - name: Authorization
-          in: header
-          required: false
-          description: |
-            Optional Cognito JWT token for personalized response.
-            When provided, response includes user-specific state (watchlist status, notifications).
-            When omitted, response contains only item data without user state.
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
+        - {}
       responses:
         '200':
           description: Item found and returned successfully
@@ -288,17 +280,9 @@ paths:
             multiple:
               value: "en;q=0.9,de;q=0.8"
               description: "English preferred, German as fallback"
-        - name: Authorization
-          in: header
-          required: false
-          description: |
-            Optional Cognito JWT token for personalized response.
-            When provided, response includes user-specific state for each similar item.
-            When omitted, response contains only item data without user state.
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
+        - {}
       responses:
         '200':
           description: Similar items found and returned successfully
@@ -614,17 +598,9 @@ paths:
             maximum: 100
             default: 21
           example: 21
-        - name: Authorization
-          in: header
-          required: false
-          description: |
-            Optional Cognito JWT token for personalized response.
-            When provided, response includes user-specific state for each item (watchlist status, notifications).
-            When omitted, response contains only item data without user state.
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
+        - {}
       requestBody:
         required: true
         description: |
@@ -795,14 +771,8 @@ paths:
             enum: [ asc, desc ]
             default: asc
           example: desc
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Search filters retrieved successfully
@@ -888,15 +858,8 @@ paths:
       operationId: createUserSearchFilter
       tags:
         - Search Filters
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         description: Search filter configuration with name and filter criteria
@@ -1026,14 +989,8 @@ paths:
             type: string
             format: uuid
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Search filter found and returned successfully
@@ -1142,14 +1099,8 @@ paths:
             type: string
             format: uuid
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         '204':
           description: Search filter deleted successfully
@@ -1229,14 +1180,8 @@ paths:
             type: string
             format: uuid
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       requestBody:
         required: false
         description: |
@@ -1446,14 +1391,8 @@ paths:
             regional:
               value: "en-US"
               description: "US English"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         '200':
           description: Watchlist items retrieved successfully
@@ -1552,15 +1491,8 @@ paths:
       operationId: addWatchlistItem
       tags:
         - Watchlist
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         description: Item identifier to add to watchlist
@@ -1661,14 +1593,8 @@ paths:
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       responses:
         '204':
           description: Item removed from watchlist successfully
@@ -1763,14 +1689,8 @@ paths:
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        - name: Authorization
-          in: header
-          required: true
-          description: Cognito JWT token for user authentication
-          schema:
-            type: string
-            pattern: '^Bearer [A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$'
-          example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         description: Patch object containing fields to update
@@ -2117,6 +2037,14 @@ paths:
                 error: "INTERNAL_SERVER_ERROR"
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Cognito JWT token.
+        The token is used for authenticating and authorizing users as well as personalizing responses.
   schemas:
     GetItemData:
       type: object
