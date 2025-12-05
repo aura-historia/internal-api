@@ -6,6 +6,15 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-11-23 - Item-Product-Renaming & ApiError problem+json
+
+### Changed
+
+- Renamed all item-related types to product-version
+- Adjusted all error-responses with response-payload `ApiError` to return `application/problem+json` (RFC 9457) instead of `application/json`
+  - Renamed field `message` to `detail` (human-readable for devs - not user-facing)
+  - Added field `title` (human-readable for devs - not user-facing)
+
 ## 2025-11-10 - Similar Items Endpoint with Semantic Search
 
 This update introduces a new endpoint for finding semantically similar items using k-nearest neighbors (k-NN) search on text embeddings. The endpoint leverages machine learning embeddings to provide relevant item recommendations based on content similarity.
