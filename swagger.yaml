@@ -1959,7 +1959,7 @@ paths:
                     status: 400
                     title: "Bad Request"
                     error: "SHOP_TOO_MANY_URLS"
-                    detail: "Shop can only have 100 URLs but was given more"
+                    detail: "Shop can only have 100 URLs but was given more: '142'"
         '409':
           description: Conflict - shop with this URL already exists
           content:
@@ -1970,7 +1970,7 @@ paths:
                 status: 409
                 title: "Conflict"
                 error: "SHOP_EXISTS_ALREADY"
-                detail: "Shop exists already - an URL for any domain of shop is already registered"
+                detail: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
         '500':
           description: Internal server error
           content:
@@ -2208,7 +2208,7 @@ paths:
                     status: 400
                     title: "Bad Request"
                     error: "SHOP_TOO_MANY_URLS"
-                    detail: "Shop can only have 100 URLs but was given more"
+                    detail: "Shop can only have 100 URLs but was given more: '142'"
         '404':
           description: Shop not found
           content:
