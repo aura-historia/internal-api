@@ -6,6 +6,297 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-12-06 - Shop Management Endpoints
+
+This update introduces comprehensive shop management capabilities, allowing creation and modification of shop entities in the system. Previously, shops could only be retrieved or searched - now they can be fully managed through the API.
+
+### Added
+
+#### POST /api/v1/shops
+
+Creates a new shop in the system with the provided details.
+
+**Endpoint Details**:
+- **Method**: POST
+- **Path**: `/api/v1/shops`
+- **Authentication**: None (public endpoint)
+
+**Request Body**: `PostShopData` (required)
+- `name` (string, required, max 255 characters): Display name of the shop
+- `urls` (array of strings, required, min 1, max 100): All URLs to the shop's website
+  - Each URL must be a valid URI
+  - At least one URL is required
+  - Maximum 100 URLs allowed per shop
+- `image` (string, URI, optional): URL to the shop's logo or image
+
+**Example Request**:
+```json
+{
+  "name": "Tech Store Premium",
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.de",
+    "https://apple.tech-store-premium.com"
+  ],
+  "image": "https://tech-store-premium.com/logo.svg"
+}
+```
+
+**Response: 201 Created**
+
+Returns the created shop with generated ID and timestamps.
+
+**Response Headers**:
+- `Location` (string, URI): URL of the created shop resource
+  - Example: `https://api.aura-historia.com/api/v1/shops/550e8400-e29b-41d4-a716-446655440000`
+- `Last-Modified` (string, HTTP date): When the shop was created
+  - Example: `Wed, 01 Jan 2024 12:00:00 GMT`
+
+**Response Body**: `GetShopData`
+
+**Example Response**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Tech Store Premium",
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.de",
+    "https://apple.tech-store-premium.com"
+  ],
+  "image": "https://tech-store-premium.com/logo.svg",
+  "created": "2024-01-01T12:00:00Z",
+  "updated": "2024-01-01T12:00:00Z"
+}
+```
+
+**Error Responses**:
+
+**400 Bad Request**:
+- `BAD_BODY_VALUE`: Missing or invalid request body
+  - Examples: Empty body, malformed JSON, missing required fields
+- `SHOP_TOO_MANY_URLS`: More than 100 URLs provided
+  - Example detail: "Shop can only have 100 URLs but was given more: '142'"
+
+**409 Conflict**:
+- `SHOP_EXISTS_ALREADY`: A shop with one of the provided URLs already exists
+  - Example detail: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
+
+**500 Internal Server Error**:
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
+
+**503 Service Unavailable**:
+- `UNPROCESSED_ITEMS`: Temporary database issue prevented completion
+  - Example detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
+
+#### PATCH /api/v1/shops/{shopId}
+
+Updates an existing shop's information by its unique identifier.
+
+**Endpoint Details**:
+- **Method**: PATCH
+- **Path**: `/api/v1/shops/{shopId}`
+- **Authentication**: None (public endpoint)
+- **Partial Updates**: All fields in request body are optional - only provided fields will be updated
+- **No-op Behavior**: If request body is empty or only contains null values, shop is returned unchanged
+
+**Path Parameters**:
+- `shopId` (string, UUID, required): Unique identifier of the shop to update
+
+**Request Body**: `PatchShopData` (required, but all fields optional)
+- `name` (string, optional, max 255 characters): New display name for the shop
+- `urls` (array of strings, optional, min 1, max 100): Complete new set of URLs
+  - **Important**: When updating URLs, the complete new set must be provided (not a diff)
+  - Old URLs not in the new set will be removed
+  - New URLs in the set will be added
+- `image` (string, URI, optional): New URL to the shop's logo or image
+
+**Example Requests**:
+
+Update only the name:
+```json
+{
+  "name": "Tech Store Premium Plus"
+}
+```
+
+Update URLs (complete replacement):
+```json
+{
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.eu"
+  ]
+}
+```
+
+Update multiple fields:
+```json
+{
+  "name": "Tech Store Premium Plus",
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.eu"
+  ],
+  "image": "https://tech-store-premium.com/new-logo.svg"
+}
+```
+
+**Response: 200 OK**
+
+Returns the updated shop with modified fields and new `updated` timestamp.
+
+**Response Headers**:
+- `Last-Modified` (string, HTTP date): When the shop was last updated
+  - Example: `Wed, 01 Jan 2024 12:30:00 GMT`
+
+**Response Body**: `GetShopData`
+
+**Example Response**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Tech Store Premium Plus",
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.eu"
+  ],
+  "image": "https://tech-store-premium.com/new-logo.svg",
+  "created": "2024-01-01T10:00:00Z",
+  "updated": "2024-01-01T12:30:00Z"
+}
+```
+
+**Error Responses**:
+
+**400 Bad Request**:
+- `BAD_PATH_PARAMETER_VALUE`: Missing shop ID in path
+- `INVALID_UUID`: Invalid UUID format for shop ID
+- `BAD_BODY_VALUE`: Missing or invalid request body
+- `SHOP_TOO_MANY_URLS`: More than 100 URLs provided
+
+**404 Not Found**:
+- `SHOP_NOT_FOUND`: Shop with the given ID does not exist
+
+**500 Internal Server Error**:
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
+
+**503 Service Unavailable**:
+- `UNPROCESSED_ITEMS`: Temporary database issue prevented completion
+
+#### New Data Types
+
+**PostShopData**
+- Request body schema for creating a new shop
+- All fields that will be stored for the shop except generated fields (shopId, created, updated)
+- Properties:
+  - `name` (string, required, max 255 characters): Shop display name
+  - `urls` (array of URI strings, required, min 1, max 100): All shop URLs
+  - `image` (string, URI, optional): Shop logo or image URL
+
+**PatchShopData**
+- Request body schema for updating an existing shop
+- All fields are optional - partial updates supported
+- Properties:
+  - `name` (string, optional, max 255 characters): New shop name
+  - `urls` (array of URI strings, optional, min 1, max 100): Complete new set of URLs
+  - `image` (string, URI, optional): New shop logo or image URL
+
+#### New Error Codes
+
+**SHOP_EXISTS_ALREADY** (409 Conflict)
+- Returned when attempting to create a shop with a URL that is already registered to another shop
+- Ensures URL uniqueness across all shops in the system
+- Error message includes the shop name that was attempted to be created
+- Example: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
+
+**SHOP_TOO_MANY_URLS** (400 Bad Request)
+- Returned when request contains more than 100 URLs
+- Applies to both POST (create) and PATCH (update) operations
+- Error message includes the actual number of URLs provided
+- Example: "Shop can only have 100 URLs but was given more: '142'"
+
+**UNPROCESSED_ITEMS** (503 Service Unavailable)
+- Returned when database batch operations cannot complete due to unprocessed items
+- Temporary error that may resolve on retry
+- Indicates the system is temporarily unable to process the request due to database limitations
+- Example detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
+
+### Changed
+
+#### GetShopData Schema
+
+The `urls` field has been enhanced with validation constraints:
+
+**Before**:
+```yaml
+urls:
+  type: array
+  items:
+    type: string
+    format: uri
+  description: All known URLs to the shop's website
+  default: []
+```
+
+**After**:
+```yaml
+urls:
+  type: array
+  items:
+    type: string
+    format: uri
+  description: All known URLs to the shop's website
+  minItems: 1
+  maxItems: 100
+```
+
+**Changes**:
+- **Removed** `default: []` - shops must always have at least one URL
+- **Added** `minItems: 1` - enforces that shops have at least one URL
+- **Added** `maxItems: 100` - enforces maximum of 100 URLs per shop
+
+**Migration Impact**:
+- No impact on existing API consumers - this is a documentation clarification of existing backend constraints
+- Frontend validation should ensure at least 1 URL and maximum 100 URLs when creating or updating shops
+
+The `name` field also received a constraint:
+- **Added** `maxLength: 255` - shop names are limited to 255 characters
+
+**Migration Impact**:
+- No impact on existing API consumers - this is a documentation clarification
+- Frontend validation should limit shop name input to 255 characters
+
+### Implementation Notes
+
+**Shop URL Management**:
+- Each shop URL creates a separate lookup record in DynamoDB
+- URLs are used for automatic shop identification during product ingestion
+- When updating URLs via PATCH, old URL records are deleted and new ones are created
+- All URL records for a shop maintain consistency with the shop's core data
+
+**Uniqueness Constraints**:
+- Shop URLs must be globally unique across all shops
+- A URL can only be associated with one shop at a time
+- Creating or updating a shop with a URL that exists for another shop returns `SHOP_EXISTS_ALREADY` error
+
+**Update Behavior**:
+- PATCH operations support partial updates - only provided fields are modified
+- Empty request body or all-null fields result in no changes (200 OK with unchanged shop)
+- URL updates replace the entire URL set (not a merge)
+- `created` timestamp never changes
+- `updated` timestamp is set to current time on any modification
+
+**Performance Characteristics**:
+- Shop creation performs existence check for all provided URLs before creating
+- Up to 101 DynamoDB operations (1 shop record + up to 100 URL records)
+- All operations are transactional - either all succeed or all fail
+- Update operations may delete old URL records and create new ones
+
+### Removed
+
+No endpoints or schemas were removed in this update.
+
 ## 2025-11-23 - Item-Product-Renaming & ApiError problem+json
 
 ### Changed
