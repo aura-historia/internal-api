@@ -1880,7 +1880,7 @@ paths:
       summary: Create a new shop
       description: |
         Creates a new shop in the system with the provided details.
-        The shop must include at least one URL and can have up to 100 URLs.
+        The shop must include at least one domain and can have up to 100 domains.
         Returns the created shop with generated ID and timestamps.
       operationId: createShop
       tags:
@@ -2000,7 +2000,7 @@ paths:
       summary: Get shop details
       description: |
         Retrieves detailed information about a specific shop by its unique identifier.
-        Returns complete shop metadata including name, URL, image, and timestamps.
+        Returns complete shop metadata including name, domains, image, and timestamps.
       operationId: getShop
       tags:
         - Shops
@@ -3077,7 +3077,7 @@ components:
           format: uri
           description: |
             URL to the product on the shop's website.
-            The shop will be automatically identified and enriched based on this URL.
+            The shop will be automatically identified and enriched based on the domain extracted from this URL.
           example: "https://tech-store-premium.com/products/smartphone-case"
         images:
           type: array
