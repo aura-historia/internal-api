@@ -2035,7 +2035,7 @@ paths:
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
                 name: "Tech Store Premium"
-                urls: [ "https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com" ]
+                domains: [ "tech-store-premium.com", "tech-store-premium.de", "apple.tech-store-premium.com" ]
                 image: "https://tech-store-premium.com/logo.svg"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
