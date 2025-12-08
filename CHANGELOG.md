@@ -6,6 +6,141 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-12-08 - Shop Domain Normalization
+
+This update changes how shop identifiers are handled in the API. Instead of storing and returning full URLs for shops, the system now uses normalized domains. This improves consistency, reduces storage overhead, and simplifies shop matching logic when enriching product data.
+
+### Changed
+
+#### Shop Data Structure - URLs Replaced with Domains
+
+All shop-related data types now use `domains` instead of `urls`. Domains are normalized strings (lowercase, no scheme, no www prefix, no path/query/fragment) extracted from URLs.
+
+**Affected Data Types**:
+- `GetShopData`
+- `PostShopData`
+- `PatchShopData`
+
+**Migration Guide**:
+
+**Before (using URLs)**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Tech Store Premium",
+  "urls": [
+    "https://tech-store-premium.com",
+    "https://tech-store-premium.de",
+    "https://apple.tech-store-premium.com"
+  ]
+}
+```
+
+**After (using domains)**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Tech Store Premium",
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.de",
+    "apple.tech-store-premium.com"
+  ]
+}
+```
+
+**Key Differences**:
+- Field name changed from `urls` to `domains`
+- Values are now plain domain strings, not full URLs
+- Domains are normalized: lowercase, no scheme (`https://`), no `www.` prefix
+- Paths, query parameters, and fragments are stripped
+- Port numbers are stripped (e.g., `:8080`)
+
+**Domain Normalization Examples**:
+- `https://Tech-Store.COM/products` → `tech-store.com`
+- `http://www.example.com/?ref=123` → `example.com`
+- `https://shop.example.com/path#anchor` → `shop.example.com`
+
+**Frontend Impact**:
+- When creating/updating shops: You can send either full URLs or domain strings - both will be normalized
+- When receiving shop data: Expect domain strings, not URLs
+- For display: Add `https://` prefix if you need to show or link to the shop
+- For comparison: Use exact string matching on normalized domains
+
+**API Endpoints Affected**:
+- `POST /api/v1/shops` - Request and response
+- `PATCH /api/v1/shops/{shopId}` - Request and response
+- `GET /api/v1/shops/{shopId}` - Response
+- All shop search endpoints - Response
+
+#### Error Code Changes
+
+**Renamed Error Code**: `SHOP_TOO_MANY_URLS` → `SHOP_TOO_MANY_DOMAINS`
+- **Endpoints**: `POST /api/v1/shops`, `PATCH /api/v1/shops/{shopId}`
+- **HTTP Status**: 400 Bad Request
+- **When**: More than 100 domains provided in request
+- **Example Detail**: "Shop can only have 100 domains but was given more: '142'"
+
+**Updated Error Messages**:
+- `SHOP_EXISTS_ALREADY` detail message updated to reference domains instead of URLs
+  - Old: "...an URL for any domain of shop is already registered"
+  - New: "...a domain of shop is already registered"
+
+### Added
+
+#### New Error Code for Product Enrichment
+
+**Error Code**: `NO_DOMAIN`
+- **Endpoint**: `PUT /api/v1/products`
+- **Type**: Product enrichment failure
+- **When**: Product URL does not contain a valid extractable domain
+- **Description**: The product URL could not be parsed to extract a domain for shop matching
+- **Examples of URLs that fail**:
+  - `https://localhost` (no TLD, just hostname)
+  - `https://127.0.0.1` (IP address without domain)
+  - `http://localhost:8080/product` (localhost with port)
+
+**Response Example**:
+```json
+{
+  "failed": {
+    "https://localhost:8080/item": "NO_DOMAIN"
+  },
+  "skipped": 0
+}
+```
+
+**Frontend Impact**:
+- Handle `NO_DOMAIN` as a new error type in product upload responses
+- These products cannot be processed and will need valid domain-based URLs
+- Display appropriate error message to users
+
+#### Enhanced Product Enrichment Documentation
+
+The `PUT /api/v1/products` endpoint description now explicitly documents:
+- Domain extraction from product URLs
+- Shop matching based on extracted domains
+- Two possible failures: `SHOP_NOT_FOUND` (domain not registered) and `NO_DOMAIN` (invalid URL)
+
+### Technical Details
+
+**Domain Extraction Logic**:
+1. Remove `http://` or `https://` scheme
+2. Remove `www.` prefix
+3. Extract hostname (everything before `:`, `/`, `?`, or `#`)
+4. Convert to lowercase
+5. Validate: must contain at least one `.` (TLD required)
+
+**Backend Type**: New `Domain` type in Rust
+- Serializes/deserializes as a plain string (not URL)
+- Implements validation and normalization on creation
+- Used in shop records and shop-product matching logic
+
+**Database Changes**:
+- DynamoDB partition keys updated from `shop#url#{url}` to `shop#domain#{domain}`
+- Shop records now indexed by normalized domain instead of full URL
+- Product enrichment queries shops by domain extracted from product URL
+
 ## 2025-12-06 - Shop Management Endpoints
 
 This update introduces comprehensive shop management capabilities, allowing creation and modification of shop entities in the system. Previously, shops could only be retrieved or searched - now they can be fully managed through the API.
@@ -23,20 +158,21 @@ Creates a new shop in the system with the provided details.
 
 **Request Body**: `PostShopData` (required)
 - `name` (string, required, max 255 characters): Display name of the shop
-- `urls` (array of strings, required, min 1, max 100): All URLs to the shop's website
-  - Each URL must be a valid URI
-  - At least one URL is required
-  - Maximum 100 URLs allowed per shop
+- `domains` (array of strings, required, min 1, max 100): All domains associated with the shop
+  - Can be provided as full URLs (will be normalized) or as domain strings
+  - Domains are normalized to lowercase without scheme, www prefix, or path/query/fragment
+  - At least one domain is required
+  - Maximum 100 domains allowed per shop
 - `image` (string, URI, optional): URL to the shop's logo or image
 
 **Example Request**:
 ```json
 {
   "name": "Tech Store Premium",
-  "urls": [
-    "https://tech-store-premium.com",
-    "https://tech-store-premium.de",
-    "https://apple.tech-store-premium.com"
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.de",
+    "apple.tech-store-premium.com"
   ],
   "image": "https://tech-store-premium.com/logo.svg"
 }
@@ -59,10 +195,10 @@ Returns the created shop with generated ID and timestamps.
 {
   "shopId": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Tech Store Premium",
-  "urls": [
-    "https://tech-store-premium.com",
-    "https://tech-store-premium.de",
-    "https://apple.tech-store-premium.com"
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.de",
+    "apple.tech-store-premium.com"
   ],
   "image": "https://tech-store-premium.com/logo.svg",
   "created": "2024-01-01T12:00:00Z",
@@ -75,12 +211,12 @@ Returns the created shop with generated ID and timestamps.
 **400 Bad Request**:
 - `BAD_BODY_VALUE`: Missing or invalid request body
   - Examples: Empty body, malformed JSON, missing required fields
-- `SHOP_TOO_MANY_URLS`: More than 100 URLs provided
-  - Example detail: "Shop can only have 100 URLs but was given more: '142'"
+- `SHOP_TOO_MANY_DOMAINS`: More than 100 domains provided
+  - Example detail: "Shop can only have 100 domains but was given more: '142'"
 
 **409 Conflict**:
-- `SHOP_EXISTS_ALREADY`: A shop with one of the provided URLs already exists
-  - Example detail: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
+- `SHOP_EXISTS_ALREADY`: A shop with one of the provided domains already exists
+  - Example detail: "Shop with name 'Tech Store Premium' exists already - a domain of shop is already registered"
 
 **500 Internal Server Error**:
 - `INTERNAL_SERVER_ERROR`: Unexpected server error
@@ -105,10 +241,11 @@ Updates an existing shop's information by its unique identifier.
 
 **Request Body**: `PatchShopData` (required, but all fields optional)
 - `name` (string, optional, max 255 characters): New display name for the shop
-- `urls` (array of strings, optional, min 1, max 100): Complete new set of URLs
-  - **Important**: When updating URLs, the complete new set must be provided (not a diff)
-  - Old URLs not in the new set will be removed
-  - New URLs in the set will be added
+- `domains` (array of strings, optional, min 1, max 100): Complete new set of domains
+  - Can be provided as full URLs (will be normalized) or as domain strings
+  - **Important**: When updating domains, the complete new set must be provided (not a diff)
+  - Old domains not in the new set will be removed
+  - New domains in the set will be added
 - `image` (string, URI, optional): New URL to the shop's logo or image
 
 **Example Requests**:
@@ -120,12 +257,12 @@ Update only the name:
 }
 ```
 
-Update URLs (complete replacement):
+Update domains (complete replacement):
 ```json
 {
-  "urls": [
-    "https://tech-store-premium.com",
-    "https://tech-store-premium.eu"
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.eu"
   ]
 }
 ```
@@ -134,9 +271,9 @@ Update multiple fields:
 ```json
 {
   "name": "Tech Store Premium Plus",
-  "urls": [
-    "https://tech-store-premium.com",
-    "https://tech-store-premium.eu"
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.eu"
   ],
   "image": "https://tech-store-premium.com/new-logo.svg"
 }
@@ -157,9 +294,9 @@ Returns the updated shop with modified fields and new `updated` timestamp.
 {
   "shopId": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Tech Store Premium Plus",
-  "urls": [
-    "https://tech-store-premium.com",
-    "https://tech-store-premium.eu"
+  "domains": [
+    "tech-store-premium.com",
+    "tech-store-premium.eu"
   ],
   "image": "https://tech-store-premium.com/new-logo.svg",
   "created": "2024-01-01T10:00:00Z",
@@ -173,7 +310,7 @@ Returns the updated shop with modified fields and new `updated` timestamp.
 - `BAD_PATH_PARAMETER_VALUE`: Missing shop ID in path
 - `INVALID_UUID`: Invalid UUID format for shop ID
 - `BAD_BODY_VALUE`: Missing or invalid request body
-- `SHOP_TOO_MANY_URLS`: More than 100 URLs provided
+- `SHOP_TOO_MANY_DOMAINS`: More than 100 domains provided
 
 **404 Not Found**:
 - `SHOP_NOT_FOUND`: Shop with the given ID does not exist
@@ -191,7 +328,7 @@ Returns the updated shop with modified fields and new `updated` timestamp.
 - All fields that will be stored for the shop except generated fields (shopId, created, updated)
 - Properties:
   - `name` (string, required, max 255 characters): Shop display name
-  - `urls` (array of URI strings, required, min 1, max 100): All shop URLs
+  - `domains` (array of strings, required, min 1, max 100): All shop domains (normalized)
   - `image` (string, URI, optional): Shop logo or image URL
 
 **PatchShopData**
@@ -199,22 +336,22 @@ Returns the updated shop with modified fields and new `updated` timestamp.
 - All fields are optional - partial updates supported
 - Properties:
   - `name` (string, optional, max 255 characters): New shop name
-  - `urls` (array of URI strings, optional, min 1, max 100): Complete new set of URLs
+  - `domains` (array of strings, optional, min 1, max 100): Complete new set of domains (normalized)
   - `image` (string, URI, optional): New shop logo or image URL
 
 #### New Error Codes
 
 **SHOP_EXISTS_ALREADY** (409 Conflict)
-- Returned when attempting to create a shop with a URL that is already registered to another shop
-- Ensures URL uniqueness across all shops in the system
+- Returned when attempting to create a shop with a domain that is already registered to another shop
+- Ensures domain uniqueness across all shops in the system
 - Error message includes the shop name that was attempted to be created
-- Example: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
+- Example: "Shop with name 'Tech Store Premium' exists already - a domain of shop is already registered"
 
-**SHOP_TOO_MANY_URLS** (400 Bad Request)
-- Returned when request contains more than 100 URLs
+**SHOP_TOO_MANY_DOMAINS** (400 Bad Request)
+- Returned when request contains more than 100 domains
 - Applies to both POST (create) and PATCH (update) operations
-- Error message includes the actual number of URLs provided
-- Example: "Shop can only have 100 URLs but was given more: '142'"
+- Error message includes the actual number of domains provided
+- Example: "Shop can only have 100 domains but was given more: '142'"
 
 **UNPROCESSED_ITEMS** (503 Service Unavailable)
 - Returned when database batch operations cannot complete due to unprocessed items

@@ -446,9 +446,10 @@ paths:
         This endpoint accepts a collection of product data and processes them asynchronously.
         
         **Shop Enrichment**: The shop information (shopId and shopName) is automatically 
-        enriched based on the product's URL. The URL must belong to a shop that is already 
-        registered in the system. If the shop is not found, the product will fail with 
-        a SHOP_NOT_FOUND error.
+        enriched based on the product's URL. The domain is extracted from the product URL 
+        and must match a shop that is already registered in the system. If the shop is not 
+        found, the product will fail with a SHOP_NOT_FOUND error. If the URL does not contain 
+        a valid extractable domain, the product will fail with a NO_DOMAIN error.
         
         **Response Structure**:
         - `skipped`: Number of products that had no changes and were skipped
@@ -516,6 +517,7 @@ paths:
                     failed:
                       "https://unknown-shop.com/item": "SHOP_NOT_FOUND"
                       "https://tech-store.com/expensive-item": "MONETARY_AMOUNT_OVERFLOW"
+                      "https://localhost:8080/item": "NO_DOMAIN"
                     skipped: 0
                 partial_processing_with_unprocessed:
                   summary: Some products could not be processed (temporary issue)
@@ -1892,10 +1894,10 @@ paths:
               $ref: '#/components/schemas/PostShopData'
             example:
               name: "Tech Store Premium"
-              urls:
-                - "https://tech-store-premium.com"
-                - "https://tech-store-premium.de"
-                - "https://apple.tech-store-premium.com"
+              domains:
+                - "tech-store-premium.com"
+                - "tech-store-premium.de"
+                - "apple.tech-store-premium.com"
               image: "https://tech-store-premium.com/logo.svg"
       responses:
         '201':
@@ -1925,10 +1927,10 @@ paths:
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
                 name: "Tech Store Premium"
-                urls:
-                  - "https://tech-store-premium.com"
-                  - "https://tech-store-premium.de"
-                  - "https://apple.tech-store-premium.com"
+                domains:
+                  - "tech-store-premium.com"
+                  - "tech-store-premium.de"
+                  - "apple.tech-store-premium.com"
                 image: "https://tech-store-premium.com/logo.svg"
                 created: "2024-01-01T12:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -1953,15 +1955,15 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Invalid JSON format"
-                too_many_urls:
-                  summary: Too many URLs provided
+                too_many_domains:
+                  summary: Too many domains provided
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "SHOP_TOO_MANY_URLS"
-                    detail: "Shop can only have 100 URLs but was given more: '142'"
+                    error: "SHOP_TOO_MANY_DOMAINS"
+                    detail: "Shop can only have 100 domains but was given more: '142'"
         '409':
-          description: Conflict - shop with this URL already exists
+          description: Conflict - shop with this domain already exists
           content:
             application/problem+json:
               schema:
@@ -1970,7 +1972,7 @@ paths:
                 status: 409
                 title: "Conflict"
                 error: "SHOP_EXISTS_ALREADY"
-                detail: "Shop with name 'Tech Store Premium' exists already - an URL for any domain of shop is already registered"
+                detail: "Shop with name 'Tech Store Premium' exists already - a domain of shop is already registered"
         '500':
           description: Internal server error
           content:
@@ -2116,12 +2118,12 @@ paths:
                 summary: Update only the name
                 value:
                   name: "Tech Store Premium Plus"
-              update_urls:
-                summary: Update URLs
+              update_domains:
+                summary: Update domains
                 value:
-                  urls:
-                    - "https://tech-store-premium.com"
-                    - "https://tech-store-premium.eu"
+                  domains:
+                    - "tech-store-premium.com"
+                    - "tech-store-premium.eu"
               update_image:
                 summary: Update image
                 value:
@@ -2130,9 +2132,9 @@ paths:
                 summary: Update all fields
                 value:
                   name: "Tech Store Premium Plus"
-                  urls:
-                    - "https://tech-store-premium.com"
-                    - "https://tech-store-premium.eu"
+                  domains:
+                    - "tech-store-premium.com"
+                    - "tech-store-premium.eu"
                   image: "https://tech-store-premium.com/new-logo.svg"
       responses:
         '200':
@@ -2156,9 +2158,9 @@ paths:
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
                 name: "Tech Store Premium Plus"
-                urls:
-                  - "https://tech-store-premium.com"
-                  - "https://tech-store-premium.eu"
+                domains:
+                  - "tech-store-premium.com"
+                  - "tech-store-premium.eu"
                 image: "https://tech-store-premium.com/new-logo.svg"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:30:00Z"
@@ -2202,13 +2204,13 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Invalid JSON format"
-                too_many_urls:
-                  summary: Too many URLs provided
+                too_many_domains:
+                  summary: Too many domains provided
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "SHOP_TOO_MANY_URLS"
-                    detail: "Shop can only have 100 URLs but was given more: '142'"
+                    error: "SHOP_TOO_MANY_DOMAINS"
+                    detail: "Shop can only have 100 domains but was given more: '142'"
         '404':
           description: Shop not found
           content:
@@ -3116,6 +3118,7 @@ components:
           example:
             "https://unknown-shop.com/item": "SHOP_NOT_FOUND"
             "https://tech-store.com/expensive-item": "MONETARY_AMOUNT_OVERFLOW"
+            "https://localhost:8080/item": "NO_DOMAIN"
         skipped:
           type: integer
           minimum: 0
@@ -3128,7 +3131,7 @@ components:
       required:
         - shopId
         - name
-        - urls
+        - domains
         - created
         - updated
       properties:
@@ -3142,15 +3145,16 @@ components:
           description: Display name of the shop
           maxLength: 255
           example: "Tech Store Premium"
-        urls:
+        domains:
           type: array
           items:
             type: string
-            format: uri
-          description: All known URLs to the shop's website
+          description: |
+            All known domains associated with the shop.
+            Domains are normalized (lowercase, no scheme, no www prefix, no path/query/fragment).
           minItems: 1
           maxItems: 100
-          example: [ "https://tech-store-premium.com", "https://tech-store-premium.de", "https://apple.tech-store-premium.com" ]
+          example: [ "tech-store-premium.com", "tech-store-premium.de", "apple.tech-store-premium.com" ]
 
         image:
           type: string
@@ -3174,26 +3178,27 @@ components:
       description: Data required to create a new shop
       required:
         - name
-        - urls
+        - domains
       properties:
         name:
           type: string
           description: Display name of the shop
           maxLength: 255
           example: "Tech Store Premium"
-        urls:
+        domains:
           type: array
           items:
             type: string
-            format: uri
           description: |
-            All URLs to the shop's website.
-            At least one URL is required, maximum 100 URLs allowed.
+            All domains associated with the shop.
+            Can be provided as full URLs (will be normalized) or as domain strings.
+            Domains are normalized to lowercase without scheme, www prefix, or path/query/fragment.
+            At least one domain is required, maximum 100 domains allowed.
           minItems: 1
           maxItems: 100
           example:
-            - "https://tech-store-premium.com"
-            - "https://tech-store-premium.de"
+            - "tech-store-premium.com"
+            - "tech-store-premium.de"
         image:
           type: string
           format: uri
@@ -3214,21 +3219,22 @@ components:
           description: New display name for the shop
           maxLength: 255
           example: "Tech Store Premium Plus"
-        urls:
+        domains:
           type: array
           items:
             type: string
-            format: uri
           nullable: true
           description: |
-            Complete new set of URLs for the shop.
-            When updating URLs, the complete new set must be provided (not a diff).
-            Minimum 1 URL, maximum 100 URLs.
+            Complete new set of domains for the shop.
+            Can be provided as full URLs (will be normalized) or as domain strings.
+            When updating domains, the complete new set must be provided (not a diff).
+            Domains are normalized to lowercase without scheme, www prefix, or path/query/fragment.
+            Minimum 1 domain, maximum 100 domains.
           minItems: 1
           maxItems: 100
           example:
-            - "https://tech-store-premium.com"
-            - "https://tech-store-premium.eu"
+            - "tech-store-premium.com"
+            - "tech-store-premium.eu"
         image:
           type: string
           format: uri
@@ -3434,12 +3440,13 @@ components:
 
     PutProductError:
       type: string
-      enum: [ SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, PRODUCT_ENRICHMENT_FAILED ]
+      enum: [ SHOP_NOT_FOUND, MONETARY_AMOUNT_OVERFLOW, PRODUCT_ENRICHMENT_FAILED, NO_DOMAIN ]
       description: |
         Error codes for products that failed during processing:
-        - SHOP_NOT_FOUND: The shop associated with the product's URL is not registered in the system
+        - SHOP_NOT_FOUND: The shop associated with the product's domain is not registered in the system
         - MONETARY_AMOUNT_OVERFLOW: The price amount exceeds the maximum supported value during currency conversion
         - PRODUCT_ENRICHMENT_FAILED: Failed to enrich the product with additional shop and price information
+        - NO_DOMAIN: The product URL does not contain a valid domain that can be extracted
       example: SHOP_NOT_FOUND
 
 tags:
