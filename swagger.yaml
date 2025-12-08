@@ -2329,13 +2329,13 @@ paths:
                 items:
                   - shopId: "550e8400-e29b-41d4-a716-446655440000"
                     name: "Tech Store Premium"
-                    url: "https://tech-store-premium.com"
+                    domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
                     created: "2024-01-15T10:00:00Z"
                     updated: "2024-06-15T12:00:00Z"
                   - shopId: "660f9500-f39c-42e5-b827-556766550001"
                     name: "Tech Store Basic"
-                    url: "https://tech-store-basic.com"
+                    url: ["tech-store-basic.com"]
                     created: "2024-02-01T08:30:00Z"
                     updated: "2024-07-01T14:20:00Z"
                 size: 2
