@@ -1623,6 +1623,195 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/account:
+    get:
+      summary: Get user account data
+      description: |
+        Retrieves the authenticated user's account information including email, name, language, and currency preferences.
+        Requires valid Cognito JWT authentication.
+      operationId: getUserAccount
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User account data retrieved successfully
+          headers:
+            Last-Modified:
+              description: When the user account was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserAccountData'
+              example:
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+                email: "user@example.com"
+                firstName: "John"
+                lastName: "Doe"
+                language: "en"
+                currency: "EUR"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        '401':
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        '404':
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update user account data
+      description: |
+        Updates the authenticated user's account information.
+        All fields in the request body are optional - only provided fields will be updated.
+        Returns the updated user account data.
+        Requires valid Cognito JWT authentication.
+      operationId: updateUserAccount
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          Partial user account update data.
+          All fields are optional - only provided fields will be updated.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchUserAccountData'
+            examples:
+              update_all:
+                summary: Update all fields
+                value:
+                  email: "newemail@example.com"
+                  firstName: "Jane"
+                  lastName: "Smith"
+                  language: "de"
+                  currency: "USD"
+              update_name_only:
+                summary: Update name only
+                value:
+                  firstName: "Jane"
+                  lastName: "Smith"
+              update_preferences_only:
+                summary: Update language and currency only
+                value:
+                  language: "fr"
+                  currency: "GBP"
+      responses:
+        '200':
+          description: User account updated successfully
+          headers:
+            Last-Modified:
+              description: When the user account was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:30:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserAccountData'
+              example:
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+                email: "newemail@example.com"
+                firstName: "Jane"
+                lastName: "Smith"
+                language: "de"
+                currency: "USD"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:30:00Z"
+        '400':
+          description: Bad request - invalid request body
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_json:
+                  summary: Invalid JSON format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Invalid JSON format"
+        '401':
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        '404':
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me/watchlist/{shopId}/{shopsProductId}:
     delete:
       summary: Remove product from watchlist
@@ -3449,6 +3638,93 @@ components:
         - NO_DOMAIN: The product URL does not contain a valid domain that can be extracted
       example: SHOP_NOT_FOUND
 
+    GetUserAccountData:
+      type: object
+      description: Complete user account information
+      required:
+        - userId
+        - email
+        - created
+        - updated
+      properties:
+        userId:
+          type: string
+          format: uuid
+          description: Unique identifier for the user
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@example.com"
+        firstName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: User's first name (optional, max 64 characters)
+          example: "John"
+        lastName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: User's last name (optional, max 64 characters)
+          example: "Doe"
+        language:
+          allOf:
+            - $ref: '#/components/schemas/LanguageData'
+          nullable: true
+          description: User's preferred language (optional)
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/CurrencyData'
+          nullable: true
+          description: User's preferred currency (optional)
+        created:
+          type: string
+          format: date-time
+          description: When the user account was created (RFC3339 format)
+          example: "2024-01-01T10:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the user account was last updated (RFC3339 format)
+          example: "2024-01-01T12:00:00Z"
+
+    PatchUserAccountData:
+      type: object
+      description: |
+        Partial user account update data.
+        All fields are optional - only provided fields will be updated.
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: New email address
+          example: "newemail@example.com"
+        firstName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: New first name (max 64 characters)
+          example: "Jane"
+        lastName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: New last name (max 64 characters)
+          example: "Smith"
+        language:
+          allOf:
+            - $ref: '#/components/schemas/LanguageData'
+          nullable: true
+          description: New preferred language
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/CurrencyData'
+          nullable: true
+          description: New preferred currency
+
 tags:
   - name: Products
     description: Operations related to product retrieval and search
@@ -3456,5 +3732,7 @@ tags:
     description: Operations for managing user search filters
   - name: Shops
     description: Operations related to shop retrieval and search
+  - name: User Account
+    description: Operations for managing user account information
   - name: Watchlist
     description: Operations for managing user's product watchlist

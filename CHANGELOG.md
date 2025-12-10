@@ -6,6 +6,278 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-12-10 - User Account Management
+
+This update introduces comprehensive user account management capabilities, allowing authenticated users to view and update their account information including personal details, language preferences, and currency preferences.
+
+### Added
+
+#### GET /api/v1/me/account
+
+Retrieves the authenticated user's account information.
+
+**Endpoint Details**:
+- **Method**: GET
+- **Path**: `/api/v1/me/account`
+- **Authentication**: Required (Cognito JWT)
+
+**Response: 200 OK**
+
+Returns complete user account data.
+
+**Response Headers**:
+- `Last-Modified` (string, HTTP date): When the user account was last updated
+  - Example: `Wed, 01 Jan 2024 12:00:00 GMT`
+- `Access-Control-Allow-Origin` (string): CORS header
+  - Example: `*`
+
+**Response Body**: `GetUserAccountData`
+
+**Example Response**:
+```json
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "language": "en",
+  "currency": "EUR",
+  "created": "2024-01-01T10:00:00Z",
+  "updated": "2024-01-01T12:00:00Z"
+}
+```
+
+**Error Responses**:
+
+**401 Unauthorized**:
+- `UNAUTHORIZED`: Missing or invalid JWT token
+
+**404 Not Found**:
+- `USER_NOT_FOUND`: User account does not exist
+
+**500 Internal Server Error**:
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
+
+#### PATCH /api/v1/me/account
+
+Updates the authenticated user's account information.
+
+**Endpoint Details**:
+- **Method**: PATCH
+- **Path**: `/api/v1/me/account`
+- **Authentication**: Required (Cognito JWT)
+- **Partial Updates**: All fields in request body are optional - only provided fields will be updated
+
+**Request Body**: `PatchUserAccountData` (required, but all fields optional)
+- `email` (string, email, optional): New email address
+- `firstName` (string, optional, max 64 characters): New first name
+- `lastName` (string, optional, max 64 characters): New last name
+- `language` (LanguageData, optional): New preferred language
+- `currency` (CurrencyData, optional): New preferred currency
+
+**Example Requests**:
+
+Update all fields:
+```json
+{
+  "email": "newemail@example.com",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "language": "de",
+  "currency": "USD"
+}
+```
+
+Update name only:
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Smith"
+}
+```
+
+Update preferences only:
+```json
+{
+  "language": "fr",
+  "currency": "GBP"
+}
+```
+
+**Response: 200 OK**
+
+Returns the updated user account data.
+
+**Response Headers**:
+- `Last-Modified` (string, HTTP date): When the user account was last updated
+  - Example: `Wed, 01 Jan 2024 12:30:00 GMT`
+- `Access-Control-Allow-Origin` (string): CORS header
+  - Example: `*`
+
+**Response Body**: `GetUserAccountData`
+
+**Example Response**:
+```json
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "newemail@example.com",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "language": "de",
+  "currency": "USD",
+  "created": "2024-01-01T10:00:00Z",
+  "updated": "2024-01-01T12:30:00Z"
+}
+```
+
+**Error Responses**:
+
+**400 Bad Request**:
+- `BAD_BODY_VALUE`: Missing or invalid request body
+  - Examples: Empty body, malformed JSON
+
+**401 Unauthorized**:
+- `UNAUTHORIZED`: Missing or invalid JWT token
+
+**404 Not Found**:
+- `USER_NOT_FOUND`: User account does not exist
+
+**500 Internal Server Error**:
+- `INTERNAL_SERVER_ERROR`: Unexpected server error
+
+#### New Data Types
+
+**GetUserAccountData**
+- Complete user account information
+- Properties:
+  - `userId` (string, UUID, required): Unique identifier for the user
+  - `email` (string, email, required): User's email address
+  - `firstName` (string, optional, max 64 characters): User's first name
+  - `lastName` (string, optional, max 64 characters): User's last name
+  - `language` (LanguageData, optional): User's preferred language (de, en, fr, es)
+  - `currency` (CurrencyData, optional): User's preferred currency (EUR, GBP, USD, AUD, CAD, NZD)
+  - `created` (string, date-time, required): When the user account was created (RFC3339)
+  - `updated` (string, date-time, required): When the user account was last updated (RFC3339)
+
+**PatchUserAccountData**
+- Request body schema for updating user account
+- All fields are optional - partial updates supported
+- Properties:
+  - `email` (string, email, optional): New email address
+  - `firstName` (string, optional, max 64 characters): New first name
+  - `lastName` (string, optional, max 64 characters): New last name
+  - `language` (LanguageData, optional): New preferred language
+  - `currency` (CurrencyData, optional): New preferred currency
+
+#### New Error Codes
+
+**USER_EXISTS_ALREADY** (409 Conflict)
+- Returned when attempting to create a user that already exists
+- Indicates the user ID is already in use in the system
+
+**USER_NOT_FOUND** (404 Not Found)
+- Returned when attempting to retrieve or update a user account that does not exist
+- Applies to both GET and PATCH operations on `/api/v1/me/account`
+
+### Implementation Notes
+
+**User Account Structure**:
+- User accounts are stored in DynamoDB with partition key format: `user#{userId}`
+- The `userId` is derived from Cognito's JWT token `sub` claim
+- All fields except `userId`, `email`, `created`, and `updated` are optional
+- Field truncation: `firstName` and `lastName` are automatically truncated to 64 characters if longer
+- Default values: When a user is created via Cognito sign-up, optional fields start as null
+
+**Update Behavior**:
+- PATCH operations support partial updates - only provided fields are modified
+- Empty request body returns 400 error
+- The `userId`, `created`, and `email` (when not provided in update) remain unchanged
+- `updated` timestamp is set to current time on any modification
+- Updates are performed using DynamoDB UpdateItem for atomicity
+
+**Authentication**:
+- Both endpoints require Cognito JWT authentication via `Authorization: Bearer <token>` header
+- The `userId` is extracted from the JWT token's `sub` claim
+- Invalid or missing tokens return 401 Unauthorized
+
+**Field Constraints**:
+- Email: Must be valid email format
+- First Name: Optional, max 64 characters, auto-truncated if longer
+- Last Name: Optional, max 64 characters, auto-truncated if longer
+- Language: Must be one of: de, en, fr, es
+- Currency: Must be one of: EUR, GBP, USD, AUD, CAD, NZD
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **Retrieve User Account**:
+   ```typescript
+   const getUserAccount = async (accessToken: string): Promise<GetUserAccountData> => {
+     const response = await fetch('https://api.aura-historia.com/api/v1/me/account', {
+       method: 'GET',
+       headers: {
+         'Authorization': `Bearer ${accessToken}`,
+       },
+     });
+     
+     if (!response.ok) {
+       throw new Error(`Failed to get user account: ${response.status}`);
+     }
+     
+     return response.json();
+   };
+   ```
+
+2. **Update User Account**:
+   ```typescript
+   const updateUserAccount = async (
+     accessToken: string,
+     updates: PatchUserAccountData
+   ): Promise<GetUserAccountData> => {
+     const response = await fetch('https://api.aura-historia.com/api/v1/me/account', {
+       method: 'PATCH',
+       headers: {
+         'Authorization': `Bearer ${accessToken}`,
+         'Content-Type': 'application/json',
+       },
+       body: JSON.stringify(updates),
+     });
+     
+     if (!response.ok) {
+       throw new Error(`Failed to update user account: ${response.status}`);
+     }
+     
+     return response.json();
+   };
+   ```
+
+3. **Handle Optional Fields**:
+   ```typescript
+   // Check if optional fields are present
+   const displayName = (user: GetUserAccountData): string => {
+     if (user.firstName && user.lastName) {
+       return `${user.firstName} ${user.lastName}`;
+     }
+     if (user.firstName) {
+       return user.firstName;
+     }
+     if (user.lastName) {
+       return user.lastName;
+     }
+     return user.email;
+   };
+   ```
+
+4. **Error Handling**:
+   - Handle 401 errors by redirecting to login
+   - Handle 404 errors by creating/initializing user profile
+   - Handle 400 errors by validating input before sending
+
+### Removed
+
+No endpoints or schemas were removed in this update.
+
 ## 2025-12-08 - Shop Domain Normalization
 
 This update changes how shop identifiers are handled in the API. Instead of storing and returning full URLs for shops, the system now uses normalized domains. This improves consistency, reduces storage overhead, and simplifies shop matching logic when enriching product data.
