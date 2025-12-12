@@ -2870,8 +2870,8 @@ components:
         - en: English (includes en-US, en-GB, en-AU, en-CA, en-NZ, en-IE)
         - fr: French (includes fr-FR, fr-CA, fr-BE, fr-CH, fr-LU)
         - es: Spanish (includes es-ES, es-MX, es-AR, es-CO, es-CL, es-PE, es-VE)
-      default: de
-      example: en
+      default: en
+      example: de
 
     CurrencyData:
       type: string
