@@ -3523,7 +3523,7 @@ components:
         - created
         - updated
       properties:
-        item:
+        product:
           $ref: '#/components/schemas/GetProductData'
         notifications:
           type: boolean
