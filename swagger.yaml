@@ -1717,7 +1717,6 @@ paths:
               update_all:
                 summary: Update all fields
                 value:
-                  email: "newemail@example.com"
                   firstName: "Jane"
                   lastName: "Smith"
                   language: "de"
@@ -1753,7 +1752,7 @@ paths:
                 $ref: '#/components/schemas/GetUserAccountData'
               example:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
-                email: "newemail@example.com"
+                email: "jane.smith@example.com"
                 firstName: "Jane"
                 lastName: "Smith"
                 language: "de"
@@ -3696,12 +3695,6 @@ components:
         Partial user account update data.
         All fields are optional - only provided fields will be updated.
       properties:
-        email:
-          type: string
-          format: email
-          nullable: true
-          description: New email address
-          example: "newemail@example.com"
         firstName:
           type: string
           maxLength: 64
