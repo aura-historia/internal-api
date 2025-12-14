@@ -3517,7 +3517,7 @@ components:
       type: object
       description: Watchlist product containing the product data and when it was added to the watchlist
       required:
-        - item
+        - product
         - notifications
         - created
         - updated
