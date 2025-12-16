@@ -2183,24 +2183,33 @@ paths:
                 error: "UNPROCESSED_ITEMS"
                 detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
 
-  /api/v1/shops/{shopId}:
+  /api/v1/shops/{shopIdentifier}:
     get:
       summary: Get shop details
       description: |
-        Retrieves detailed information about a specific shop by its unique identifier.
+        Retrieves detailed information about a specific shop by its identifier.
+        The identifier can be either a shop ID (UUID) or a domain associated with the shop.
         Returns complete shop metadata including name, domains, image, and timestamps.
       operationId: getShop
       tags:
         - Shops
       parameters:
-        - name: shopId
+        - name: shopIdentifier
           in: path
           required: true
-          description: Unique identifier of the shop
+          description: |
+            Identifier of the shop. Can be either:
+            - A shop ID (UUID format)
+            - A domain associated with the shop (e.g., "tech-store.com", "shop.example.com")
           schema:
             type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
+          examples:
+            uuid:
+              value: "550e8400-e29b-41d4-a716-446655440000"
+              summary: "Shop ID (UUID)"
+            domain:
+              value: "tech-store-premium.com"
+              summary: "Shop domain"
       responses:
         '200':
           description: Shop found and returned successfully
@@ -2228,31 +2237,32 @@ paths:
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         '400':
-          description: Bad request - invalid shop ID
+          description: Bad request - invalid or missing shop identifier
           content:
             application/problem+json:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
-                missing_shop_id:
-                  summary: Missing shop ID
+                missing_shop_identifier:
+                  summary: Missing shop identifier
                   value:
                     status: 400
                     title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopId"
+                      field: "shopIdentifier"
                       sourceType: "path"
-                invalid_uuid:
-                  summary: Invalid shop ID format
+                    detail: "Missing field 'shopIdentifier'."
+                invalid_shop_identifier:
+                  summary: Invalid shop identifier format
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "INVALID_UUID"
+                    error: "INVALID_SHOP_IDENTIFIER"
                     source:
-                      field: "shopId"
+                      field: "shopIdentifier"
                       sourceType: "path"
-                    detail: "Invalid UUID format"
+                    detail: "Invalid shop identifier format"
         '404':
           description: Shop not found
           content:
@@ -2276,22 +2286,31 @@ paths:
     patch:
       summary: Update shop details
       description: |
-        Updates an existing shop's information by its unique identifier.
+        Updates an existing shop's information by its identifier.
+        The identifier can be either a shop ID (UUID) or a domain associated with the shop.
         All fields in the request body are optional - only provided fields will be updated.
         If the request body is empty or only contains null values, the shop is returned unchanged.
-        When updating URLs, the complete new set of URLs must be provided.
+        When updating domains, the complete new set of domains must be provided.
       operationId: updateShop
       tags:
         - Shops
       parameters:
-        - name: shopId
+        - name: shopIdentifier
           in: path
           required: true
-          description: Unique identifier of the shop to update
+          description: |
+            Identifier of the shop to update. Can be either:
+            - A shop ID (UUID format)
+            - A domain associated with the shop (e.g., "tech-store.com", "shop.example.com")
           schema:
             type: string
-            format: uuid
-          example: "550e8400-e29b-41d4-a716-446655440000"
+          examples:
+            uuid:
+              value: "550e8400-e29b-41d4-a716-446655440000"
+              summary: "Shop ID (UUID)"
+            domain:
+              value: "tech-store-premium.com"
+              summary: "Shop domain"
       requestBody:
         required: true
         description: |
@@ -2359,25 +2378,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
               examples:
-                missing_shop_id:
-                  summary: Missing shop ID
+                missing_shop_identifier:
+                  summary: Missing shop identifier
                   value:
                     status: 400
                     title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopId"
+                      field: "shopIdentifier"
                       sourceType: "path"
-                invalid_uuid:
-                  summary: Invalid shop ID format
+                    detail: "Missing field 'shopIdentifier'."
+                invalid_shop_identifier:
+                  summary: Invalid shop identifier format
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "INVALID_UUID"
+                    error: "INVALID_SHOP_IDENTIFIER"
                     source:
-                      field: "shopId"
+                      field: "shopIdentifier"
                       sourceType: "path"
-                    detail: "Invalid UUID format"
+                    detail: "Invalid shop identifier format"
                 missing_body:
                   summary: Missing request body
                   value:

@@ -6,6 +6,301 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-12-16 - Shop API Identifier Flexibility
+
+This update enhances the shop API endpoints to accept both shop IDs (UUIDs) and shop domains as identifiers, providing more flexible ways to retrieve and update shop information. This change allows clients to reference shops using either their unique UUID or any of their registered domains.
+
+### Changed
+
+#### GET /api/v1/shops/{shopIdentifier}
+
+The endpoint path parameter has been changed from `{shopId}` to `{shopIdentifier}` to support multiple identifier formats.
+
+**Path Changes**:
+- **Before**: `/api/v1/shops/{shopId}`
+- **After**: `/api/v1/shops/{shopIdentifier}`
+
+**Parameter Changes**:
+
+Before (UUID only):
+```
+Parameter: shopId (required)
+Type: string (UUID format)
+Example: "550e8400-e29b-41d4-a716-446655440000"
+```
+
+After (UUID or domain):
+```
+Parameter: shopIdentifier (required)
+Type: string
+Accepts:
+  - Shop ID (UUID format): "550e8400-e29b-41d4-a716-446655440000"
+  - Shop domain: "tech-store-premium.com", "shop.example.com"
+```
+
+**Description Updated**:
+The endpoint now explicitly documents that it accepts both:
+1. **Shop ID (UUID)**: The unique identifier assigned to the shop when created
+2. **Shop Domain**: Any domain registered to the shop (e.g., "tech-store.com", "example.shop.com")
+
+**Examples**:
+
+Using shop ID:
+```http
+GET /api/v1/shops/550e8400-e29b-41d4-a716-446655440000
+```
+
+Using shop domain:
+```http
+GET /api/v1/shops/tech-store-premium.com
+```
+
+**Error Response Changes**:
+
+**400 Bad Request** error examples updated:
+
+Before:
+- `BAD_PATH_PARAMETER_VALUE`: "Missing field 'shopId'"
+- `INVALID_UUID`: "Invalid UUID format" (for field "shopId")
+
+After:
+- `BAD_PATH_PARAMETER_VALUE`: "Missing field 'shopIdentifier'"
+- `INVALID_SHOP_IDENTIFIER`: "Invalid shop identifier format" (for field "shopIdentifier")
+
+**Migration Impact**:
+- Frontend must update API calls from `/api/v1/shops/{shopId}` to `/api/v1/shops/{shopIdentifier}`
+- Both UUID and domain string formats are now accepted
+- Domain format provides a more intuitive way to reference shops
+- Existing UUID-based calls continue to work with the new parameter name
+
+#### PATCH /api/v1/shops/{shopIdentifier}
+
+The endpoint path parameter has been changed from `{shopId}` to `{shopIdentifier}` to support multiple identifier formats.
+
+**Path Changes**:
+- **Before**: `/api/v1/shops/{shopId}`
+- **After**: `/api/v1/shops/{shopIdentifier}`
+
+**Parameter Changes**:
+
+Before (UUID only):
+```
+Parameter: shopId (required)
+Type: string (UUID format)
+Example: "550e8400-e29b-41d4-a716-446655440000"
+```
+
+After (UUID or domain):
+```
+Parameter: shopIdentifier (required)
+Type: string
+Accepts:
+  - Shop ID (UUID format): "550e8400-e29b-41d4-a716-446655440000"
+  - Shop domain: "tech-store-premium.com", "shop.example.com"
+```
+
+**Description Updated**:
+The endpoint now explicitly documents that it accepts both shop ID (UUID) and shop domain as the identifier.
+
+**Examples**:
+
+Using shop ID:
+```http
+PATCH /api/v1/shops/550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+
+{
+  "name": "Updated Shop Name"
+}
+```
+
+Using shop domain:
+```http
+PATCH /api/v1/shops/tech-store-premium.com
+Content-Type: application/json
+
+{
+  "name": "Updated Shop Name"
+}
+```
+
+**Error Response Changes**:
+
+**400 Bad Request** error examples updated:
+
+Before:
+- `BAD_PATH_PARAMETER_VALUE`: "Missing field 'shopId'"
+- `INVALID_UUID`: "Invalid UUID format" (for field "shopId")
+
+After:
+- `BAD_PATH_PARAMETER_VALUE`: "Missing field 'shopIdentifier'"
+- `INVALID_SHOP_IDENTIFIER`: "Invalid shop identifier format" (for field "shopIdentifier")
+
+**Migration Impact**:
+- Frontend must update API calls from `/api/v1/shops/{shopId}` to `/api/v1/shops/{shopIdentifier}`
+- Both UUID and domain string formats are now accepted
+- Domain format allows updating a shop using any of its registered domains
+- Request and response body structures remain unchanged
+
+### Added
+
+#### New Error Code: INVALID_SHOP_IDENTIFIER
+
+**Error Code**: `INVALID_SHOP_IDENTIFIER`
+- **HTTP Status**: 400 Bad Request
+- **Endpoints**: `GET /api/v1/shops/{shopIdentifier}`, `PATCH /api/v1/shops/{shopIdentifier}`
+- **When**: Provided shop identifier is neither a valid UUID nor a valid domain format
+- **Description**: The shop identifier could not be parsed as either a UUID or a domain
+
+**Error Response Example**:
+```json
+{
+  "status": 400,
+  "title": "Bad Request",
+  "error": "INVALID_SHOP_IDENTIFIER",
+  "source": {
+    "field": "shopIdentifier",
+    "sourceType": "path"
+  },
+  "detail": "Invalid shop identifier format"
+}
+```
+
+**Examples of Invalid Shop Identifiers**:
+- Empty string: `""`
+- Invalid UUID: `"not-a-uuid"`
+- Invalid domain: `"localhost"` (no TLD)
+- Special characters: `"shop@example"`
+- Malformed: `"..shop.com"`
+
+**Frontend Impact**:
+- Handle `INVALID_SHOP_IDENTIFIER` as a new 400 error type for shop endpoints
+- Display appropriate error message when shop identifier is malformed
+- Validate shop identifier format client-side before making requests
+
+### Implementation Notes
+
+**Shop Identifier Format**:
+The `shopIdentifier` parameter accepts two formats:
+
+1. **UUID Format** (Shop ID):
+   - Standard UUID v4 format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+   - Example: `"550e8400-e29b-41d4-a716-446655440000"`
+   - Case-insensitive
+   
+2. **Domain Format**:
+   - Valid internet domain name
+   - Must contain at least one dot (TLD required)
+   - Examples: 
+     - `"tech-store.com"`
+     - `"shop.example.com"`
+     - `"subdomain.shop.co.uk"`
+   - Domain matching is case-insensitive
+   - Must be a domain registered to the shop
+
+**Backend Type**: New `ShopIdentifierData` enum in Rust
+- Serializes/deserializes as a plain string (untagged enum)
+- Automatically determines whether input is UUID or domain
+- Converted to internal `ShopIdentifier` type for service layer
+
+**Lookup Behavior**:
+- **For UUID**: Direct lookup by shop ID (primary key)
+- **For domain**: Lookup via domain index to find shop ID, then retrieve shop
+- Both methods return the same complete shop data
+- Domain lookup may return `SHOP_NOT_FOUND` if domain is not registered
+
+**API Gateway Route Changes**:
+- Route updated in CloudFormation: `GET /api/v1/shops/{shopIdentifier}`
+- Route updated in CloudFormation: `PATCH /api/v1/shops/{shopIdentifier}`
+- Path parameter name changed from `shopId` to `shopIdentifier` in API Gateway configuration
+
+### Migration Guide
+
+For frontend developers integrating these changes:
+
+1. **Update API Endpoint URLs**:
+   ```typescript
+   // Before
+   const getShopUrl = (shopId: string) => 
+     `https://api.aura-historia.com/api/v1/shops/${shopId}`;
+   
+   // After
+   const getShopUrl = (shopIdentifier: string) => 
+     `https://api.aura-historia.com/api/v1/shops/${shopIdentifier}`;
+   ```
+
+2. **Flexible Shop Identification**:
+   ```typescript
+   // Can now use either UUID or domain
+   await getShop("550e8400-e29b-41d4-a716-446655440000"); // UUID
+   await getShop("tech-store-premium.com");              // Domain
+   ```
+
+3. **Update Error Handling**:
+   ```typescript
+   try {
+     const shop = await getShop(identifier);
+   } catch (error) {
+     if (error.code === 'INVALID_SHOP_IDENTIFIER') {
+       // Handle invalid shop identifier format
+       showError('Invalid shop identifier. Please provide a valid UUID or domain.');
+     } else if (error.code === 'SHOP_NOT_FOUND') {
+       // Shop doesn't exist or domain not registered
+       showError('Shop not found.');
+     }
+   }
+   ```
+
+4. **Parameter Validation**:
+   ```typescript
+   const isValidShopIdentifier = (identifier: string): boolean => {
+     // Check if it's a UUID
+     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+     if (uuidRegex.test(identifier)) return true;
+     
+     // Check if it's a valid domain (contains at least one dot)
+     const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i;
+     return domainRegex.test(identifier);
+   };
+   ```
+
+5. **Update API Client Types**:
+   ```typescript
+   // Before
+   interface GetShopParams {
+     shopId: string; // UUID
+   }
+   
+   // After
+   interface GetShopParams {
+     shopIdentifier: string; // UUID or domain
+   }
+   ```
+
+### Benefits
+
+**For Frontend Developers**:
+- More intuitive shop references using human-readable domains
+- Flexibility to use whichever identifier is available
+- Simplifies deep linking and URL construction
+- No need to store/retrieve shop UUID when domain is known
+
+**For API Consumers**:
+- Single endpoint supports multiple identification methods
+- Backward compatible (UUIDs still work)
+- Reduces need for separate domain-to-ID lookup calls
+- More RESTful and user-friendly API design
+
+**Use Cases**:
+- **UUID**: Internal system references, database relations, unique identification
+- **Domain**: User-facing features, shop discovery, URL construction, external integrations
+
+### Removed
+
+No endpoints, parameters, or functionality have been removed. This is a backward-compatible enhancement that adds domain-based identification while preserving UUID-based identification.
+
+The error code `INVALID_UUID` is no longer returned for shop identifier validation failures. It has been replaced by the more general `INVALID_SHOP_IDENTIFIER` error code.
+
 ## 2025-12-10 - User Account Management
 
 This update introduces comprehensive user account management capabilities, allowing authenticated users to view and update their account information including personal details, language preferences, and currency preferences.
