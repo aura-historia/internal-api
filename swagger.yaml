@@ -141,6 +141,11 @@ paths:
                       images:
                         - "https://my-shop.com/images/product-1.jpg"
                         - "https://my-shop.com/images/product-2.jpg"
+                      originYear: 1837
+                      authenticity: "ORIGINAL"
+                      condition: "EXCELLENT"
+                      provenance: "PARTIAL"
+                      restoration: "MINOR"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -170,6 +175,12 @@ paths:
                       images:
                         - "https://my-shop.com/images/product-1.jpg"
                         - "https://my-shop.com/images/product-2.jpg"
+                      originYearMin: 1900
+                      originYearMax: 1950
+                      authenticity: "QUESTIONABLE"
+                      condition: "GOOD"
+                      provenance: "CLAIMED"
+                      restoration: "MAJOR"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
         '400':
@@ -318,6 +329,11 @@ paths:
                         url: "https://my-shop.com/products/similar-product"
                         images:
                           - "https://my-shop.com/images/similar-1.jpg"
+                        originYear: 1845
+                        authenticity: "ORIGINAL"
+                        condition: "GREAT"
+                        provenance: "COMPLETE"
+                        restoration: "NONE"
                         created: "2024-01-01T10:00:00Z"
                         updated: "2024-01-01T12:00:00Z"
                       userState:
@@ -339,6 +355,9 @@ paths:
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/another-item"
                         images: []
+                        originYearMin: 1820
+                        originYearMax: 1840
+                        condition: "FAIR"
                         created: "2024-01-01T11:00:00Z"
                         updated: "2024-01-01T13:00:00Z"
                       userState:
@@ -364,6 +383,11 @@ paths:
                         url: "https://my-shop.com/products/similar-product"
                         images:
                           - "https://my-shop.com/images/similar-1.jpg"
+                        originYear: 1845
+                        authenticity: "ORIGINAL"
+                        condition: "GREAT"
+                        provenance: "COMPLETE"
+                        restoration: "NONE"
                         created: "2024-01-01T10:00:00Z"
                         updated: "2024-01-01T12:00:00Z"
                 empty:
@@ -2670,6 +2694,53 @@ components:
             format: uri
           description: Array of image URLs for the product
           default: [ ]
+        originYearMin:
+          type: integer
+          nullable: true
+          description: |
+            Lower end of the year range when the antique is estimated to have originated.
+            Only present when the origin year is expressed as a range (originYear will be null).
+          minimum: -10000
+          maximum: 3000
+          example: 1900
+        originYear:
+          type: integer
+          nullable: true
+          description: |
+            Exact year the antique is estimated to have originated.
+            When this value is present, both originYearMin and originYearMax will be null.
+          minimum: -10000
+          maximum: 3000
+          example: 1837
+        originYearMax:
+          type: integer
+          nullable: true
+          description: |
+            Upper end of the year range when the antique is estimated to have originated.
+            Only present when the origin year is expressed as a range (originYear will be null).
+          minimum: -10000
+          maximum: 3000
+          example: 1950
+        authenticity:
+          allOf:
+            - $ref: '#/components/schemas/AuthenticityData'
+          nullable: true
+          description: Authenticity classification of the antique product
+        condition:
+          allOf:
+            - $ref: '#/components/schemas/ConditionData'
+          nullable: true
+          description: Physical condition assessment of the antique product
+        provenance:
+          allOf:
+            - $ref: '#/components/schemas/ProvenanceData'
+          nullable: true
+          description: Documentation trail and ownership history of the antique product
+        restoration:
+          allOf:
+            - $ref: '#/components/schemas/RestorationData'
+          nullable: true
+          description: Level of restoration work performed on the antique product
         created:
           type: string
           format: date-time
@@ -2918,6 +2989,58 @@ components:
         - REMOVED: Product has been removed and can no longer be tracked
         - UNKNOWN: Product has an unknown state
       example: AVAILABLE
+
+    AuthenticityData:
+      type: string
+      enum: [ ORIGINAL, LATER_COPY, REPRODUCTION, QUESTIONABLE, UNKNOWN ]
+      description: |
+        Authenticity classification of the antique product:
+        - ORIGINAL: Verified original antique from the stated period
+        - LATER_COPY: Antique copy made at a later time but still historical
+        - REPRODUCTION: Modern reproduction or replica
+        - QUESTIONABLE: Authenticity is disputed or uncertain
+        - UNKNOWN: Authenticity has not been determined
+      default: UNKNOWN
+      example: ORIGINAL
+
+    ConditionData:
+      type: string
+      enum: [ EXCELLENT, GREAT, GOOD, FAIR, POOR, UNKNOWN ]
+      description: |
+        Physical condition assessment of the antique product:
+        - EXCELLENT: Near-perfect condition with minimal wear
+        - GREAT: Very good condition with minor signs of age
+        - GOOD: Good condition with moderate wear consistent with age
+        - FAIR: Fair condition with significant wear but structurally sound
+        - POOR: Poor condition with major damage or deterioration
+        - UNKNOWN: Condition has not been assessed
+      default: UNKNOWN
+      example: EXCELLENT
+
+    ProvenanceData:
+      type: string
+      enum: [ COMPLETE, PARTIAL, CLAIMED, NONE, UNKNOWN ]
+      description: |
+        Documentation trail and ownership history of the antique product:
+        - COMPLETE: Full documented history from origin to present
+        - PARTIAL: Some documentation exists but history has gaps
+        - CLAIMED: Provenance is claimed by seller but lacks documentation
+        - NONE: No provenance documentation available
+        - UNKNOWN: Provenance status has not been determined
+      default: UNKNOWN
+      example: PARTIAL
+
+    RestorationData:
+      type: string
+      enum: [ NONE, MINOR, MAJOR, UNKNOWN ]
+      description: |
+        Level of restoration work performed on the antique product:
+        - NONE: No restoration, original condition preserved
+        - MINOR: Minor restoration or conservation work (cleaning, small repairs)
+        - MAJOR: Significant restoration or reconstruction work
+        - UNKNOWN: Restoration history has not been determined
+      default: UNKNOWN
+      example: NONE
 
     SortProductFieldData:
       type: string
