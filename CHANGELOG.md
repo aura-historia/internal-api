@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 2026-01-01 - Product Attribute Enrichment
 
-This update introduces comprehensive attribute enrichment for antique products, adding fields for origin year, authenticity, condition, provenance, and restoration status. These attributes are automatically extracted from product titles and descriptions using AI-powered machine learning models during the product pipeline enrichment process.
+This update introduces comprehensive attribute enrichment for antique products, adding fields for origin year, authenticity, condition, provenance, and restoration status.
 
 ### Added
 
@@ -26,7 +26,7 @@ All endpoints that return `GetProductData` now include the following optional fi
    **Rules**:
    - When `originYear` is present, both `originYearMin` and `originYearMax` will be `null`
    - When the year is expressed as a range, `originYear` will be `null` and min/max will contain the range bounds
-   - All year fields accept values from -10000 to 3000 (covering ancient artifacts to modern items)
+   - Either min or max can be present alone to indicate "after this year" or "before this year"
    - All year fields are nullable and optional
 
    **Examples**:
@@ -43,6 +43,20 @@ All endpoints that return `GetProductData` now include the following optional fi
      "originYear": null,
      "originYearMin": 1900,
      "originYearMax": 1950
+   }
+   
+   // Only upper bound known (before this year)
+   {
+     "originYear": null,
+     "originYearMin": null,
+     "originYearMax": 1800
+   }
+   
+   // Only lower bound known (after this year)
+   {
+     "originYear": null,
+     "originYearMin": 1700,
+     "originYearMax": null
    }
    
    // No origin year information
@@ -123,50 +137,18 @@ All endpoints returning `GetProductData` (either directly or wrapped in `Persona
 
 1. **GET /api/v1/products/{shopId}/{shopsProductId}**
    - Response body now includes origin year and attribute fields
-   - Fields are populated during product pipeline enrichment
    - All new fields are optional and may be `null`
 
 2. **GET /api/v1/products/{shopId}/{shopsProductId}/similar**
    - Each similar product in the response array includes the new attribute fields
-   - Allows filtering and comparison based on attributes
 
 3. **POST /api/v1/products/search**
    - Search results now include attribute information for each product
-   - Future updates may add filtering capabilities based on these attributes
 
 4. **GET /api/v1/me/watchlist**
    - Watchlist products now display enriched attribute information
-   - Helps users track and compare antiques they're watching
 
-### Implementation Details
-
-**Attribute Extraction Pipeline**:
-- Attributes are extracted automatically during the product enrichment pipeline
-- A new pipeline stage `product-pipeline-extract-attribute` has been added between text embedding and completion
-- Uses AI/ML model (Qwen3-8B) to analyze product titles and descriptions
-- Extraction runs on GPU instances (g5/g6 family) for performance
-- Attributes are stored in both DynamoDB (product records) and OpenSearch (search documents)
-
-**Pipeline Flow**:
-1. Product created/updated → `product-pipeline-init`
-2. Translation → `product-pipeline-translate`
-3. Text embedding → `product-pipeline-embed-text`
-4. **NEW: Attribute extraction** → `product-pipeline-extract-attribute`
-5. Completion and storage → `product-pipeline-complete`
-
-**Data Storage**:
-- **DynamoDB**: New optional fields in `ProductRecord` and `ProductRecordUpdate`
-- **OpenSearch**: New optional fields in `ProductDocument` and `ProductUpdateDocument`
-- All fields use optional/nullable types to maintain backward compatibility
-
-**Extraction Logic**:
-- Combines title and description text (English and German preferred)
-- Uses structured JSON schema for extraction
-- Extracts all five attribute types in a single pass
-- Defaults to `UNKNOWN` values when extraction fails or information is unavailable
-- Validation ensures only valid enum values are stored
-
-### Example Product Response
+### Example Product Responses
 
 **Complete Example with All New Fields**:
 ```json
@@ -232,6 +214,24 @@ All endpoints returning `GetProductData` (either directly or wrapped in `Persona
 }
 ```
 
+**Example with Only Upper Bound**:
+```json
+{
+  "productId": "880e8400-e29b-41d4-a716-446655440003",
+  "shopName": "Ancient Artifacts Museum",
+  "title": {
+    "text": "Roman Bronze Lamp",
+    "language": "en"
+  },
+  "originYear": null,
+  "originYearMin": null,
+  "originYearMax": 300,
+  "authenticity": "ORIGINAL",
+  "condition": "FAIR",
+  "provenance": "PARTIAL"
+}
+```
+
 **Example with Minimal Attributes**:
 ```json
 {
@@ -248,167 +248,6 @@ All endpoints returning `GetProductData` (either directly or wrapped in `Persona
   "restoration": "NONE"
 }
 ```
-
-### Migration Guide
-
-For frontend developers integrating these changes:
-
-1. **Update TypeScript/JavaScript Types**:
-   ```typescript
-   // Add new enums
-   enum Authenticity {
-     ORIGINAL = 'ORIGINAL',
-     LATER_COPY = 'LATER_COPY',
-     REPRODUCTION = 'REPRODUCTION',
-     QUESTIONABLE = 'QUESTIONABLE',
-     UNKNOWN = 'UNKNOWN'
-   }
-   
-   enum Condition {
-     EXCELLENT = 'EXCELLENT',
-     GREAT = 'GREAT',
-     GOOD = 'GOOD',
-     FAIR = 'FAIR',
-     POOR = 'POOR',
-     UNKNOWN = 'UNKNOWN'
-   }
-   
-   enum Provenance {
-     COMPLETE = 'COMPLETE',
-     PARTIAL = 'PARTIAL',
-     CLAIMED = 'CLAIMED',
-     NONE = 'NONE',
-     UNKNOWN = 'UNKNOWN'
-   }
-   
-   enum Restoration {
-     NONE = 'NONE',
-     MINOR = 'MINOR',
-     MAJOR = 'MAJOR',
-     UNKNOWN = 'UNKNOWN'
-   }
-   
-   // Update GetProductData interface
-   interface GetProductData {
-     productId: string;
-     eventId: string;
-     shopId: string;
-     shopsProductId: string;
-     shopName: string;
-     title: LocalizedText;
-     description?: LocalizedText;
-     price?: Price;
-     state: ProductState;
-     url: string;
-     images: string[];
-     // New fields
-     originYearMin?: number | null;
-     originYear?: number | null;
-     originYearMax?: number | null;
-     authenticity?: Authenticity | null;
-     condition?: Condition | null;
-     provenance?: Provenance | null;
-     restoration?: Restoration | null;
-     created: string;
-     updated: string;
-     history?: ProductEvent[];
-   }
-   ```
-
-2. **Display Attributes in UI**:
-   ```typescript
-   // Format origin year for display
-   function formatOriginYear(product: GetProductData): string {
-     if (product.originYear) {
-       return `${product.originYear}`;
-     }
-     if (product.originYearMin && product.originYearMax) {
-       return `${product.originYearMin}-${product.originYearMax}`;
-     }
-     if (product.originYearMin) {
-       return `After ${product.originYearMin}`;
-     }
-     if (product.originYearMax) {
-       return `Before ${product.originYearMax}`;
-     }
-     return 'Unknown';
-   }
-   
-   // Display user-friendly labels
-   const authenticityLabels = {
-     ORIGINAL: 'Original',
-     LATER_COPY: 'Historic Copy',
-     REPRODUCTION: 'Reproduction',
-     QUESTIONABLE: 'Authenticity Uncertain',
-     UNKNOWN: 'Not Assessed'
-   };
-   
-   const conditionLabels = {
-     EXCELLENT: 'Excellent',
-     GREAT: 'Great',
-     GOOD: 'Good',
-     FAIR: 'Fair',
-     POOR: 'Poor',
-     UNKNOWN: 'Not Assessed'
-   };
-   ```
-
-3. **Handle Null/Optional Values**:
-   ```typescript
-   // All attribute fields are optional/nullable
-   function displayAttributes(product: GetProductData) {
-     return {
-       originYear: formatOriginYear(product),
-       authenticity: product.authenticity 
-         ? authenticityLabels[product.authenticity]
-         : 'Not specified',
-       condition: product.condition
-         ? conditionLabels[product.condition]
-         : 'Not specified',
-       provenance: product.provenance
-         ? provenanceLabels[product.provenance]
-         : 'Not specified',
-       restoration: product.restoration
-         ? restorationLabels[product.restoration]
-         : 'Not specified'
-     };
-   }
-   ```
-
-4. **Filter Products by Attributes** (when filtering becomes available):
-   ```typescript
-   // Future filtering capability (not yet implemented in search)
-   const searchWithAttributes = {
-     productQuery: "antique violin",
-     originYearMin: 1700,
-     originYearMax: 1900,
-     authenticity: ["ORIGINAL", "QUESTIONABLE"],
-     condition: ["EXCELLENT", "GREAT", "GOOD"],
-     provenance: ["COMPLETE", "PARTIAL"]
-   };
-   ```
-
-### Backend Technical Details
-
-**New Rust Types**:
-- `common::year::Year` - Wrapper type for year values
-- `common::year::YearRange` - Struct containing min/max year bounds
-- `product::core::origin_year::OriginYear` - Enum (ExactYear | EstimatedRange)
-- `product::core::authenticity::Authenticity` - Enum for authenticity values
-- `product::core::condition::Condition` - Enum for condition values
-- `product::core::provenance::Provenance` - Enum for provenance values
-- `product::core::restoration::Restoration` - Enum for restoration values
-
-**Database Schema Changes**:
-- **DynamoDB**: Optional fields added to product table
-- **OpenSearch**: Optional fields added to products index with keyword/integer types
-- Backward compatible - existing products have null values for new fields
-
-**Extraction Model**:
-- Model: Qwen/Qwen3-8B (8 billion parameter language model)
-- Running on: AWS EC2 G5/G6 instances with GPU acceleration
-- Batch processing: Up to 8 products per batch for efficiency
-- Fallback: Defaults to `UNKNOWN` values on extraction failure
 
 ### Removed
 

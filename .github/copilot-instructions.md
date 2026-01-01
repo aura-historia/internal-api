@@ -78,6 +78,14 @@ For each API change, document:
 - Examples of request/response payloads
 - The merge date and feature name for tracking
 
+**What NOT to Include:**
+- Implementation details (pipeline architecture, database schemas, internal services)
+- Backend code examples (Rust types, internal type names, service layers)
+- Frontend code examples (TypeScript interfaces, React components, UI logic)
+- Infrastructure details (AWS service names, instance types, deployment specifics)
+
+Keep the changelog focused on REST API level documentation only. The changelog is for communicating API contract changes, not implementation or usage patterns.
+
 **Purpose:**
 The changelog serves as a communication tool, not a version control mechanism. It helps:
 - Frontend developers discover and integrate new features

@@ -175,7 +175,6 @@ paths:
                       images:
                         - "https://my-shop.com/images/product-1.jpg"
                         - "https://my-shop.com/images/product-2.jpg"
-                      originYearMin: 1900
                       originYearMax: 1950
                       authenticity: "QUESTIONABLE"
                       condition: "GOOD"
@@ -2700,8 +2699,7 @@ components:
           description: |
             Lower end of the year range when the antique is estimated to have originated.
             Only present when the origin year is expressed as a range (originYear will be null).
-          minimum: -10000
-          maximum: 3000
+            Can be present alone (without originYearMax) to indicate "after this year".
           example: 1900
         originYear:
           type: integer
@@ -2709,8 +2707,6 @@ components:
           description: |
             Exact year the antique is estimated to have originated.
             When this value is present, both originYearMin and originYearMax will be null.
-          minimum: -10000
-          maximum: 3000
           example: 1837
         originYearMax:
           type: integer
@@ -2718,8 +2714,7 @@ components:
           description: |
             Upper end of the year range when the antique is estimated to have originated.
             Only present when the origin year is expressed as a range (originYear will be null).
-          minimum: -10000
-          maximum: 3000
+            Can be present alone (without originYearMin) to indicate "before this year".
           example: 1950
         authenticity:
           allOf:
