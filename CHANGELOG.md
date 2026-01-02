@@ -6,6 +6,253 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-01 - Product Attribute Enrichment
+
+This update introduces comprehensive attribute enrichment for antique products, adding fields for origin year, authenticity, condition, provenance, and restoration status.
+
+### Added
+
+#### New Product Attribute Fields
+
+All endpoints that return `GetProductData` now include the following optional fields with detailed antique product attributes:
+
+**New Fields in `GetProductData`**:
+
+1. **Origin Year Fields** - Temporal information about when the antique was created:
+   - `originYearMin` (integer, optional): Lower bound of estimated origin year range
+   - `originYear` (integer, optional): Exact year of origin (when known precisely)
+   - `originYearMax` (integer, optional): Upper bound of estimated origin year range
+   
+   **Rules**:
+   - When `originYear` is present, both `originYearMin` and `originYearMax` will be `null`
+   - When the year is expressed as a range, `originYear` will be `null` and min/max will contain the range bounds
+   - Either min or max can be present alone to indicate "after this year" or "before this year"
+   - All year fields are nullable and optional
+
+   **Examples**:
+   ```json
+   // Exact year known
+   {
+     "originYear": 1837,
+     "originYearMin": null,
+     "originYearMax": null
+   }
+   
+   // Year range estimated
+   {
+     "originYear": null,
+     "originYearMin": 1900,
+     "originYearMax": 1950
+   }
+   
+   // Only upper bound known (before this year)
+   {
+     "originYear": null,
+     "originYearMin": null,
+     "originYearMax": 1800
+   }
+   
+   // Only lower bound known (after this year)
+   {
+     "originYear": null,
+     "originYearMin": 1700,
+     "originYearMax": null
+   }
+   
+   // No origin year information
+   {
+     "originYear": null,
+     "originYearMin": null,
+     "originYearMax": null
+   }
+   ```
+
+2. **authenticity** (AuthenticityData, optional): Authenticity classification
+   - Type: Enum string
+   - Values: `ORIGINAL`, `LATER_COPY`, `REPRODUCTION`, `QUESTIONABLE`, `UNKNOWN`
+   - Default: `UNKNOWN`
+   - Nullable: Yes
+
+3. **condition** (ConditionData, optional): Physical condition assessment
+   - Type: Enum string
+   - Values: `EXCELLENT`, `GREAT`, `GOOD`, `FAIR`, `POOR`, `UNKNOWN`
+   - Default: `UNKNOWN`
+   - Nullable: Yes
+
+4. **provenance** (ProvenanceData, optional): Documentation trail and ownership history
+   - Type: Enum string
+   - Values: `COMPLETE`, `PARTIAL`, `CLAIMED`, `NONE`, `UNKNOWN`
+   - Default: `UNKNOWN`
+   - Nullable: Yes
+
+5. **restoration** (RestorationData, optional): Level of restoration work performed
+   - Type: Enum string
+   - Values: `NONE`, `MINOR`, `MAJOR`, `UNKNOWN`
+   - Default: `UNKNOWN`
+   - Nullable: Yes
+
+#### New Data Type Enums
+
+**AuthenticityData**
+- Authenticity classification of antique products
+- Values and meanings:
+  - `ORIGINAL`: Verified original antique from the stated period
+  - `LATER_COPY`: Antique copy made at a later time but still historical
+  - `REPRODUCTION`: Modern reproduction or replica
+  - `QUESTIONABLE`: Authenticity is disputed or uncertain
+  - `UNKNOWN`: Authenticity has not been determined (default)
+
+**ConditionData**
+- Physical condition assessment of antique products
+- Values and meanings:
+  - `EXCELLENT`: Near-perfect condition with minimal wear
+  - `GREAT`: Very good condition with minor signs of age
+  - `GOOD`: Good condition with moderate wear consistent with age
+  - `FAIR`: Fair condition with significant wear but structurally sound
+  - `POOR`: Poor condition with major damage or deterioration
+  - `UNKNOWN`: Condition has not been assessed (default)
+
+**ProvenanceData**
+- Documentation trail and ownership history
+- Values and meanings:
+  - `COMPLETE`: Full documented history from origin to present
+  - `PARTIAL`: Some documentation exists but history has gaps
+  - `CLAIMED`: Provenance is claimed by seller but lacks documentation
+  - `NONE`: No provenance documentation available
+  - `UNKNOWN`: Provenance status has not been determined (default)
+
+**RestorationData**
+- Level of restoration work performed
+- Values and meanings:
+  - `NONE`: No restoration, original condition preserved
+  - `MINOR`: Minor restoration or conservation work (cleaning, small repairs)
+  - `MAJOR`: Significant restoration or reconstruction work
+  - `UNKNOWN`: Restoration history has not been determined (default)
+
+### Changed
+
+#### Affected Endpoints
+
+All endpoints returning `GetProductData` (either directly or wrapped in `PersonalizedGetProductData`) now include these new optional fields:
+
+1. **GET /api/v1/products/{shopId}/{shopsProductId}**
+   - Response body now includes origin year and attribute fields
+   - All new fields are optional and may be `null`
+
+2. **GET /api/v1/products/{shopId}/{shopsProductId}/similar**
+   - Each similar product in the response array includes the new attribute fields
+
+3. **POST /api/v1/products/search**
+   - Search results now include attribute information for each product
+
+4. **GET /api/v1/me/watchlist**
+   - Watchlist products now display enriched attribute information
+
+### Example Product Responses
+
+**Complete Example with All New Fields**:
+```json
+{
+  "item": {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "550e8400-e29b-41d4-a716-446655440001",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsProductId": "chopin-etudes-1833",
+    "shopName": "Historic Manuscripts Ltd",
+    "title": {
+      "text": "Frédéric Chopin - Études Op. 10 - First Edition 1833",
+      "language": "en"
+    },
+    "description": {
+      "text": "Rare first edition of Chopin's groundbreaking Études Op. 10...",
+      "language": "en"
+    },
+    "price": {
+      "currency": "EUR",
+      "amount": 450000
+    },
+    "state": "AVAILABLE",
+    "url": "https://historic-manuscripts.com/chopin-etudes-op10-1833",
+    "images": [
+      "https://historic-manuscripts.com/images/chopin-1.jpg"
+    ],
+    "originYear": 1833,
+    "originYearMin": null,
+    "originYearMax": null,
+    "authenticity": "ORIGINAL",
+    "condition": "EXCELLENT",
+    "provenance": "COMPLETE",
+    "restoration": "MINOR",
+    "created": "2024-01-01T10:00:00Z",
+    "updated": "2024-01-01T12:00:00Z"
+  },
+  "userState": {
+    "watchlist": {
+      "watching": true,
+      "notifications": true
+    }
+  }
+}
+```
+
+**Example with Year Range**:
+```json
+{
+  "productId": "660e8400-e29b-41d4-a716-446655440001",
+  "shopName": "Antique Furniture Gallery",
+  "title": {
+    "text": "Victorian Mahogany Writing Desk",
+    "language": "en"
+  },
+  "originYear": null,
+  "originYearMin": 1837,
+  "originYearMax": 1901,
+  "authenticity": "QUESTIONABLE",
+  "condition": "GOOD",
+  "provenance": "PARTIAL",
+  "restoration": "MAJOR"
+}
+```
+
+**Example with Only Upper Bound**:
+```json
+{
+  "productId": "880e8400-e29b-41d4-a716-446655440003",
+  "shopName": "Ancient Artifacts Museum",
+  "title": {
+    "text": "Roman Bronze Lamp",
+    "language": "en"
+  },
+  "originYear": null,
+  "originYearMin": null,
+  "originYearMax": 300,
+  "authenticity": "ORIGINAL",
+  "condition": "FAIR",
+  "provenance": "PARTIAL"
+}
+```
+
+**Example with Minimal Attributes**:
+```json
+{
+  "productId": "770e8400-e29b-41d4-a716-446655440002",
+  "shopName": "Modern Reproductions Inc",
+  "title": {
+    "text": "Replica Louis XVI Chair",
+    "language": "en"
+  },
+  "originYear": 2020,
+  "authenticity": "REPRODUCTION",
+  "condition": "EXCELLENT",
+  "provenance": "NONE",
+  "restoration": "NONE"
+}
+```
+
+### Removed
+
+No endpoints, fields, or functionality have been removed in this update. All changes are additive and backward compatible.
+
 ## 2025-12-16 - Shop API Identifier Flexibility
 
 This update enhances the shop API endpoints to accept both shop IDs (UUIDs) and shop domains as identifiers, providing more flexible ways to retrieve and update shop information. This change allows clients to reference shops using either their unique UUID or any of their registered domains.
