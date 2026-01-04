@@ -6,6 +6,159 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-04 - Product Search Filter Enhancement
+
+This update extends the product search filtering capabilities by adding new filter options for origin year and product attributes (authenticity, condition, provenance, restoration).
+
+### Added
+
+#### New Search Filter Fields
+
+The `ProductSearchData` and `PatchProductSearchData` objects now support filtering by additional product attributes:
+
+**New Fields in `ProductSearchData`**:
+
+1. **originYear** (RangeQueryInt32, optional): Filter products by origin year range
+   - Type: Object with optional `min` and `max` integer fields
+   - Description: Filter products whose origin year falls within the specified range
+   - Both `min` and `max` are optional and inclusive
+   - Nullable: Yes
+   
+   **Example**:
+   ```json
+   {
+     "originYear": {
+       "min": 1742,
+       "max": 1953
+     }
+   }
+   ```
+
+2. **authenticity** (Array of AuthenticityData, optional): Filter by authenticity classifications
+   - Type: Array of enum strings
+   - Values: `ORIGINAL`, `LATER_COPY`, `REPRODUCTION`, `QUESTIONABLE`, `UNKNOWN`
+   - Default: Empty array `[]`
+   - Nullable: Yes
+   - Unique items: Yes
+   
+   **Example**:
+   ```json
+   {
+     "authenticity": ["ORIGINAL", "LATER_COPY"]
+   }
+   ```
+
+3. **condition** (Array of ConditionData, optional): Filter by product condition assessments
+   - Type: Array of enum strings
+   - Values: `EXCELLENT`, `GREAT`, `GOOD`, `FAIR`, `POOR`, `UNKNOWN`
+   - Default: Empty array `[]`
+   - Nullable: Yes
+   - Unique items: Yes
+   
+   **Example**:
+   ```json
+   {
+     "condition": ["EXCELLENT", "GREAT"]
+   }
+   ```
+
+4. **provenance** (Array of ProvenanceData, optional): Filter by provenance documentation levels
+   - Type: Array of enum strings
+   - Values: `COMPLETE`, `PARTIAL`, `CLAIMED`, `NONE`, `UNKNOWN`
+   - Default: Empty array `[]`
+   - Nullable: Yes
+   - Unique items: Yes
+   
+   **Example**:
+   ```json
+   {
+     "provenance": ["PARTIAL", "COMPLETE"]
+   }
+   ```
+
+5. **restoration** (Array of RestorationData, optional): Filter by restoration work levels
+   - Type: Array of enum strings
+   - Values: `NONE`, `MINOR`, `MAJOR`, `UNKNOWN`
+   - Default: Empty array `[]`
+   - Nullable: Yes
+   - Unique items: Yes
+   
+   **Example**:
+   ```json
+   {
+     "restoration": ["NONE", "MINOR"]
+   }
+   ```
+
+#### New Sort Field
+
+**SortProductFieldData** enum now includes:
+
+- **originYear**: Sort products by their origin year (ascending or descending)
+  - Can be used with the `sort` query parameter on search endpoints
+  - Supports both `asc` and `desc` ordering via the `order` parameter
+
+**Updated Enum Values**: `score`, `price`, `originYear`, `updated`, `created`
+
+#### New Schema Type
+
+**RangeQueryInt32**:
+- Type: Object for integer range queries
+- Properties:
+  - `min` (integer, optional): Minimum value (inclusive)
+  - `max` (integer, optional): Maximum value (inclusive)
+- Used for filtering by origin year ranges
+
+### Changed
+
+#### Affected Endpoints
+
+All endpoints that accept `ProductSearchData` now support the new filter fields:
+
+1. **POST /api/v1/products/search**
+   - Request body `ProductSearchData` now accepts `originYear`, `authenticity`, `condition`, `provenance`, and `restoration` fields
+   - Can now sort results by `originYear` using the `sort` query parameter
+   - All new filter fields are optional
+
+2. **POST /api/v1/me/search-filters**
+   - Request body `PostUserSearchFilterData.productSearch` now accepts the new filter fields
+   - Users can save search filters with these additional criteria
+
+3. **PATCH /api/v1/me/search-filters/{userSearchFilterId}**
+   - Request body `PatchUserSearchFilterData.productSearch` now accepts the new filter fields
+   - Users can update existing search filters to include these criteria
+
+#### Search Behavior
+
+- All new filter fields work as conjunctive (AND) filters when specified
+- When array filter fields (authenticity, condition, provenance, restoration) contain multiple values, products matching ANY of the specified values will be returned (disjunctive OR within each field)
+- Empty arrays or null values for these fields will not apply any filtering for that criterion
+- The `originYear` range filter includes products whose origin year falls within the specified min/max bounds (inclusive)
+
+**Example Request**:
+```json
+POST /api/v1/products/search
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "antique vase",
+  "originYear": {
+    "min": 1800,
+    "max": 1900
+  },
+  "authenticity": ["ORIGINAL"],
+  "condition": ["EXCELLENT", "GREAT"],
+  "provenance": ["COMPLETE", "PARTIAL"]
+}
+```
+
+This request will search for:
+- Products matching "antique vase"
+- With origin year between 1800-1900
+- That are verified ORIGINAL
+- In EXCELLENT or GREAT condition
+- With COMPLETE or PARTIAL provenance
+
 ## 2026-01-01 - Product Attribute Enrichment
 
 This update introduces comprehensive attribute enrichment for antique products, adding fields for origin year, authenticity, condition, provenance, and restoration status.

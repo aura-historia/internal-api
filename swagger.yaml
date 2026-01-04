@@ -658,6 +658,13 @@ paths:
                 min: 1000
                 max: 5000
               state: [ "AVAILABLE" ]
+              originYear:
+                min: 1742
+                max: 1953
+              authenticity: [ "ORIGINAL" ]
+              condition: [ "EXCELLENT" ]
+              provenance: [ "PARTIAL" ]
+              restoration: [ "UNKNOWN" ]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -3039,11 +3046,12 @@ components:
 
     SortProductFieldData:
       type: string
-      enum: [ score, price, updated, created ]
+      enum: [ score, price, originYear, updated, created ]
       description: |
         Fields available for sorting:
         - score: Sort by relevance score (default, only available when searching with text query)
         - price: Sort by product price
+        - originYear: Sort by product origin year
         - updated: Sort by last updated timestamp
         - created: Sort by creation timestamp
       default: score
@@ -3151,6 +3159,47 @@ components:
           default: [ ]
           nullable: true
           example: [ "AVAILABLE" ]
+        originYear:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryInt32'
+          nullable: true
+          description: Optional filter by product origin year range
+        authenticity:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthenticityData'
+          description: Optional filter by authenticity classifications
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "ORIGINAL" ]
+        condition:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionData'
+          description: Optional filter by product condition assessments
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "EXCELLENT" ]
+        provenance:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvenanceData'
+          description: Optional filter by provenance documentation levels
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "PARTIAL" ]
+        restoration:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestorationData'
+          description: Optional filter by restoration work levels
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "UNKNOWN" ]
         created:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
@@ -3238,6 +3287,43 @@ components:
           uniqueItems: true
           nullable: true
           example: [ "AVAILABLE", "LISTED" ]
+        originYear:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryInt32'
+          nullable: true
+          description: Optional filter by product origin year range
+        authenticity:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthenticityData'
+          description: Optional filter by authenticity classifications
+          uniqueItems: true
+          nullable: true
+          example: [ "ORIGINAL", "LATER_COPY" ]
+        condition:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionData'
+          description: Optional filter by product condition assessments
+          uniqueItems: true
+          nullable: true
+          example: [ "EXCELLENT", "GREAT" ]
+        provenance:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvenanceData'
+          description: Optional filter by provenance documentation levels
+          uniqueItems: true
+          nullable: true
+          example: [ "PARTIAL", "COMPLETE" ]
+        restoration:
+          type: array
+          items:
+            $ref: '#/components/schemas/RestorationData'
+          description: Optional filter by restoration work levels
+          uniqueItems: true
+          nullable: true
+          example: [ "NONE", "MINOR" ]
         created:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
@@ -3316,6 +3402,21 @@ components:
           format: date-time
           description: Maximum date and time (inclusive, RFC3339 format)
           example: "2024-12-31T23:59:59Z"
+
+    RangeQueryInt32:
+      type: object
+      description: Range query for integer values (e.g., years)
+      properties:
+        min:
+          type: integer
+          format: int32
+          description: Minimum value (inclusive)
+          example: 1742
+        max:
+          type: integer
+          format: int32
+          description: Maximum value (inclusive)
+          example: 1953
 
     SortUserSearchFilterFieldData:
       type: string
