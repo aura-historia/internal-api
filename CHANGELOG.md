@@ -6,6 +6,70 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-06 - Watchlist Quota Restriction
+
+This update implements a quota limit on the number of products a user can add to their watchlist, preventing unlimited watchlist growth and ensuring fair resource usage.
+
+### Added
+
+#### New Error Code
+
+**WATCHLIST_QUOTA_EXCEEDED**:
+- Error code returned when a user attempts to add a product to their watchlist after reaching the maximum quota
+- Used in the watchlist product creation endpoint
+
+#### New Error Response for POST /api/v1/me/watchlist
+
+**422 Unprocessable Entity** - Watchlist quota exceeded:
+
+When a user attempts to add a product to their watchlist but already has the maximum number of products (5), the API now returns:
+
+- **Status Code**: 422 Unprocessable Entity
+- **Response Body**:
+  ```json
+  {
+    "status": 422,
+    "title": "Unprocessable Content",
+    "error": "WATCHLIST_QUOTA_EXCEEDED",
+    "detail": "Exceeded the maximum amount of watchlist entries. There are already 5/5 watchlist entries occupied."
+  }
+  ```
+
+### Changed
+
+#### POST /api/v1/me/watchlist
+
+**Behavior Change**: The endpoint now enforces a quota limit of 5 watchlist products per user.
+
+- **Endpoint**: `POST /api/v1/me/watchlist`
+- **Maximum Quota**: 5 watchlist products per user
+- **Validation**: Before creating a new watchlist entry, the system checks if the user already has 5 or more products in their watchlist
+- **New Response**: Returns HTTP 422 with error code `WATCHLIST_QUOTA_EXCEEDED` when quota is exceeded
+
+**Updated Description**: The endpoint description now includes information about the 5-product quota limit:
+> "Each user is limited to a maximum of 5 watchlist products. If the user already has 5 products in their watchlist, adding another will result in a 422 Unprocessable Entity error."
+
+**Request**: No changes to request format
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopsProductId": "6ba7b810"
+}
+```
+
+**Updated Responses**:
+- **201 Created**: Product successfully added to watchlist (when quota not exceeded)
+- **400 Bad Request**: Invalid request body
+- **401 Unauthorized**: Invalid or missing JWT token
+- **422 Unprocessable Entity**: Watchlist quota exceeded (NEW)
+- **500 Internal Server Error**: Internal server error
+
+**Frontend Impact**:
+- Frontend applications should handle the new 422 error response
+- Display appropriate user feedback when the watchlist quota is reached
+- Consider showing the user's current watchlist count (e.g., "5/5 products in watchlist")
+- Provide options to remove existing products before adding new ones
+
 ## 2026-01-04 - Product Search Filter Enhancement
 
 This update extends the product search filtering capabilities by adding new filter options for origin year and product attributes (authenticity, condition, provenance, restoration).

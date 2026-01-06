@@ -1566,8 +1566,10 @@ paths:
     post:
       summary: Add product to watchlist
       description: |
-        Adds an product to the authenticated user's watchlist.
+        Adds a product to the authenticated user's watchlist.
         The request body must contain the shop ID and shop's product ID.
+        Each user is limited to a maximum of 5 watchlist products. If the user already has 5 products
+        in their watchlist, adding another will result in a 422 Unprocessable Entity error.
         Returns a 201 Created response with a Location header pointing to the created resource.
         Requires valid Cognito JWT authentication.
       operationId: addWatchlistProduct
@@ -1642,6 +1644,17 @@ paths:
                 status: 401
                 title: "Unauthorized"
                 error: "UNAUTHORIZED"
+        '422':
+          description: Unprocessable Entity - watchlist quota exceeded
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                status: 422
+                title: "Unprocessable Content"
+                error: "WATCHLIST_QUOTA_EXCEEDED"
+                detail: "Exceeded the maximum amount of watchlist entries. There are already 5/5 watchlist entries occupied."
         '500':
           description: Internal server error
           content:
