@@ -139,8 +139,10 @@ paths:
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
-                        - "https://my-shop.com/images/product-1.jpg"
-                        - "https://my-shop.com/images/product-2.jpg"
+                        - url: "https://my-shop.com/images/product-1.jpg"
+                          prohibitedContent: "NONE"
+                        - url: "https://my-shop.com/images/product-2.jpg"
+                          prohibitedContent: "NONE"
                       originYear: 1837
                       authenticity: "ORIGINAL"
                       condition: "EXCELLENT"
@@ -173,8 +175,10 @@ paths:
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
-                        - "https://my-shop.com/images/product-1.jpg"
-                        - "https://my-shop.com/images/product-2.jpg"
+                        - url: "https://my-shop.com/images/product-1.jpg"
+                          prohibitedContent: "NONE"
+                        - url: "https://my-shop.com/images/product-2.jpg"
+                          prohibitedContent: "NONE"
                       originYearMax: 1950
                       authenticity: "QUESTIONABLE"
                       condition: "GOOD"
@@ -327,7 +331,8 @@ paths:
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
-                          - "https://my-shop.com/images/similar-1.jpg"
+                          - url: "https://my-shop.com/images/similar-1.jpg"
+                            prohibitedContent: "NONE"
                         originYear: 1845
                         authenticity: "ORIGINAL"
                         condition: "GREAT"
@@ -381,7 +386,8 @@ paths:
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
-                          - "https://my-shop.com/images/similar-1.jpg"
+                          - url: "https://my-shop.com/images/similar-1.jpg"
+                            prohibitedContent: "NONE"
                         originYear: 1845
                         authenticity: "ORIGINAL"
                         condition: "GREAT"
@@ -505,8 +511,10 @@ paths:
                   state: "AVAILABLE"
                   url: "https://tech-store.com/premium-case"
                   images:
-                    - "https://tech-store.com/images/premium-case-1.jpg"
-                    - "https://tech-store.com/images/premium-case-2.jpg"
+                    - url: "https://tech-store.com/images/premium-case-1.jpg"
+                      prohibitedContent: "NONE"
+                    - url: "https://tech-store.com/images/premium-case-2.jpg"
+                      prohibitedContent: "NONE"
                 - shopsProductId: "7cb8c920-9dad-11d1-80b4-00c04fd430c9"
                   title:
                     text: "Basic Phone Case"
@@ -701,7 +709,8 @@ paths:
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
-                            - "https://tech-store.com/images/premium-case-1.jpg"
+                            - url: "https://tech-store.com/images/premium-case-1.jpg"
+                              prohibitedContent: "NONE"
                           created: "2024-01-15T10:00:00Z"
                           updated: "2024-01-15T12:00:00Z"
                         userState:
@@ -730,7 +739,8 @@ paths:
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
-                            - "https://tech-store.com/images/premium-case-1.jpg"
+                            - url: "https://tech-store.com/images/premium-case-1.jpg"
+                              prohibitedContent: "NONE"
                           created: "2024-01-15T10:00:00Z"
                           updated: "2024-01-15T12:00:00Z"
                     size: 21
@@ -1500,7 +1510,8 @@ paths:
                       state: "AVAILABLE"
                       url: "https://tech-store.com/smartphone-case"
                       images:
-                        - "https://tech-store.com/images/case-1.jpg"
+                        - url: "https://tech-store.com/images/case-1.jpg"
+                          prohibitedContent: "NONE"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     created: "2024-01-15T08:00:00Z"
@@ -2709,9 +2720,8 @@ components:
         images:
           type: array
           items:
-            type: string
-            format: uri
-          description: Array of image URLs for the product
+            $ref: '#/components/schemas/ProductImageData'
+          description: Array of product images with prohibited content classification
           default: [ ]
         originYearMin:
           type: integer
@@ -3056,6 +3066,32 @@ components:
         - UNKNOWN: Restoration history has not been determined
       default: UNKNOWN
       example: NONE
+
+    ProhibitedContentData:
+      type: string
+      enum: [ UNKNOWN, NONE, NAZI_GERMANY ]
+      description: |
+        Classification of prohibited or sensitive content that may be present in product images:
+        - UNKNOWN: Content classification has not been determined
+        - NONE: No prohibited content detected in the image
+        - NAZI_GERMANY: Image contains Nazi Germany symbols, insignia, or related content
+      default: UNKNOWN
+      example: NONE
+
+    ProductImageData:
+      type: object
+      description: Product image with prohibited content classification
+      required:
+        - url
+        - prohibitedContent
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL to the product image
+          example: "https://my-shop.com/images/product-1.jpg"
+        prohibitedContent:
+          $ref: '#/components/schemas/ProhibitedContentData'
 
     SortProductFieldData:
       type: string

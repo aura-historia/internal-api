@@ -6,6 +6,89 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-11 - Product Image Prohibited Content Classification
+
+This update enhances product images with prohibited content classification to identify and flag images containing sensitive or prohibited content such as Nazi Germany symbols and insignia.
+
+### Added
+
+#### New Data Types
+
+**ProhibitedContentData** (enum):
+- Classification of prohibited or sensitive content that may be present in product images
+- Possible values:
+  - `UNKNOWN`: Content classification has not been determined
+  - `NONE`: No prohibited content detected in the image
+  - `NAZI_GERMANY`: Image contains Nazi Germany symbols, insignia, or related content
+- Default value: `UNKNOWN`
+
+**ProductImageData** (object):
+- Product image with prohibited content classification
+- Properties:
+  - `url` (string, required): URL to the product image
+  - `prohibitedContent` (ProhibitedContentData, required): Prohibited content classification for this image
+- Example:
+  ```json
+  {
+    "url": "https://my-shop.com/images/product-1.jpg",
+    "prohibitedContent": "NONE"
+  }
+  ```
+
+### Changed
+
+#### GET /api/v1/products/{shopId}/{shopsProductId}
+
+**Response Structure Change**: The `images` field in the product response has been enhanced from a simple array of URL strings to an array of `ProductImageData` objects that include prohibited content classification.
+
+**Endpoint**: `GET /api/v1/products/{shopId}/{shopsProductId}`
+
+**Old Response Structure**:
+```json
+{
+  "item": {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "images": [
+      "https://my-shop.com/images/product-1.jpg",
+      "https://my-shop.com/images/product-2.jpg"
+    ]
+  }
+}
+```
+
+**New Response Structure**:
+```json
+{
+  "item": {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "images": [
+      {
+        "url": "https://my-shop.com/images/product-1.jpg",
+        "prohibitedContent": "NONE"
+      },
+      {
+        "url": "https://my-shop.com/images/product-2.jpg",
+        "prohibitedContent": "NAZI_GERMANY"
+      }
+    ]
+  }
+}
+```
+
+**Impact on Other Endpoints**:
+This change affects all endpoints that return product data with images:
+- `GET /api/v1/products/search` - Product search results
+- `GET /api/v1/products/similar/{shopId}/{shopsProductId}` - Similar products
+- `GET /api/v1/me/watchlist` - Watchlist products
+
+**Frontend Impact**:
+- Frontend applications must update their code to access image URLs via `image.url` instead of using the URL string directly
+- Display appropriate warnings or content filters based on the `prohibitedContent` classification
+- Handle the `NAZI_GERMANY` classification according to regional legal requirements (e.g., Germany's restrictions on Nazi symbols)
+- The `prohibitedContent` field may be `UNKNOWN` during a transition period while existing images are being classified
+
+**Note**: This is a breaking change to the API response structure. Frontend applications must be updated to handle the new image object structure.
+
 ## 2026-01-06 - Watchlist Quota Restriction
 
 This update implements a quota limit on the number of products a user can add to their watchlist, preventing unlimited watchlist growth and ensuring fair resource usage.
