@@ -2674,6 +2674,7 @@ components:
         - shopId
         - shopsProductId
         - shopName
+        - shopType
         - title
         - state
         - url
@@ -2699,6 +2700,8 @@ components:
         shopName:
           type: string
           description: Display name of the shop
+        shopType:
+          $ref: '#/components/schemas/ShopTypeData'
         title:
           $ref: '#/components/schemas/LocalizedTextData'
         description:
@@ -3078,6 +3081,16 @@ components:
       default: UNKNOWN
       example: NONE
 
+    ShopTypeData:
+      type: string
+      enum: [ AUCTION_HOUSE, COMMERCIAL_DEALER, MARKETPLACE ]
+      description: |
+        Type of vendor or shop:
+        - AUCTION_HOUSE: Auction house selling items through auctions
+        - COMMERCIAL_DEALER: Commercial dealer or shop selling items directly
+        - MARKETPLACE: Marketplace platform connecting buyers and sellers
+      example: COMMERCIAL_DEALER
+
     ProductImageData:
       type: object
       description: Product image with prohibited content classification
@@ -3194,6 +3207,15 @@ components:
           minLength: 3
           nullable: true
           example: "Tech Store"
+        shopType:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShopTypeData'
+          description: Optional filter by shop types
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "COMMERCIAL_DEALER" ]
         price:
           allOf:
             - $ref: '#/components/schemas/RangeQueryUInt64'
@@ -3323,6 +3345,14 @@ components:
           minLength: 3
           nullable: true
           example: "Electronics Store"
+        shopType:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShopTypeData'
+          description: Optional filter by shop types
+          uniqueItems: true
+          nullable: true
+          example: [ "MARKETPLACE" ]
         price:
           allOf:
             - $ref: '#/components/schemas/RangeQueryUInt64'
@@ -3607,6 +3637,7 @@ components:
       required:
         - shopId
         - name
+        - shopType
         - domains
         - created
         - updated
@@ -3621,6 +3652,8 @@ components:
           description: Display name of the shop
           maxLength: 255
           example: "Tech Store Premium"
+        shopType:
+          $ref: '#/components/schemas/ShopTypeData'
         domains:
           type: array
           items:
@@ -3654,6 +3687,7 @@ components:
       description: Data required to create a new shop
       required:
         - name
+        - shopType
         - domains
       properties:
         name:
@@ -3661,6 +3695,8 @@ components:
           description: Display name of the shop
           maxLength: 255
           example: "Tech Store Premium"
+        shopType:
+          $ref: '#/components/schemas/ShopTypeData'
         domains:
           type: array
           items:
@@ -3695,6 +3731,11 @@ components:
           description: New display name for the shop
           maxLength: 255
           example: "Tech Store Premium Plus"
+        shopType:
+          allOf:
+            - $ref: '#/components/schemas/ShopTypeData'
+          nullable: true
+          description: New shop type classification
         domains:
           type: array
           items:
@@ -3727,6 +3768,15 @@ components:
           description: Optional text query for searching shops by name (minimum 3 characters)
           minLength: 3
           example: "tech store"
+        shopType:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShopTypeData'
+          description: Optional filter by shop types
+          uniqueItems: true
+          default: [ ]
+          nullable: true
+          example: [ "AUCTION_HOUSE" ]
         created:
           allOf:
             - $ref: '#/components/schemas/RangeQueryDateTime'
