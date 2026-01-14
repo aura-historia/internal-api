@@ -6,6 +6,236 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-14 - Shop Type Classification
+
+This update introduces shop type classification to distinguish between different types of vendors (auction houses, commercial dealers, and marketplaces), enabling users to filter products and shops by vendor type.
+
+### Added
+
+#### New Data Types
+
+**ShopTypeData** (enum):
+- Classification of shop/vendor type
+- Possible values:
+  - `AUCTION_HOUSE`: Auction house selling items through auctions
+  - `COMMERCIAL_DEALER`: Commercial dealer or shop selling items directly
+  - `MARKETPLACE`: Marketplace platform connecting buyers and sellers
+- No default value (field is mandatory)
+- Example: `"COMMERCIAL_DEALER"`
+
+#### New Filter Fields
+
+**ProductSearchData and PatchProductSearchData**:
+- **shopType** (array of ShopTypeData, optional): Filter products by shop type
+  - Type: Array of enum strings
+  - Values: `AUCTION_HOUSE`, `COMMERCIAL_DEALER`, `MARKETPLACE`
+  - Default: Empty array `[]`
+  - Nullable: Yes
+  - Unique items: Yes
+  
+  **Example**:
+  ```json
+  {
+    "shopType": ["COMMERCIAL_DEALER", "AUCTION_HOUSE"]
+  }
+  ```
+
+**ShopSearchData**:
+- **shopType** (array of ShopTypeData, optional): Filter shops by shop type
+  - Type: Array of enum strings
+  - Values: `AUCTION_HOUSE`, `COMMERCIAL_DEALER`, `MARKETPLACE`
+  - Default: Empty array `[]`
+  - Nullable: Yes
+  - Unique items: Yes
+  
+  **Example**:
+  ```json
+  {
+    "shopType": ["MARKETPLACE"]
+  }
+  ```
+
+### Changed
+
+#### Shop Data Types
+
+All shop-related data types now include the mandatory `shopType` field:
+
+**GetShopData**:
+- **Added field**: `shopType` (ShopTypeData, required): Type classification of the shop
+- This field is now required in all shop responses
+
+**Example**:
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "Tech Store Premium",
+  "shopType": "COMMERCIAL_DEALER",
+  "domains": ["tech-store-premium.com"],
+  "created": "2024-01-01T10:00:00Z",
+  "updated": "2024-01-01T12:00:00Z"
+}
+```
+
+**PostShopData**:
+- **Added field**: `shopType` (ShopTypeData, required): Type classification of the shop
+- This field is now mandatory when creating a new shop
+
+**Example**:
+```json
+{
+  "name": "Tech Store Premium",
+  "shopType": "COMMERCIAL_DEALER",
+  "domains": ["tech-store-premium.com"]
+}
+```
+
+**PatchShopData**:
+- **Added field**: `shopType` (ShopTypeData, optional): New type classification for the shop
+- This field is optional and can be updated independently
+
+**Example**:
+```json
+{
+  "shopType": "AUCTION_HOUSE"
+}
+```
+
+#### Product Data Types
+
+**GetProductData**:
+- **Added field**: `shopType` (ShopTypeData, required): Type of the shop selling this product
+- This field is now included in all product responses, providing shop type information at the product level
+
+**Example**:
+```json
+{
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopId": "660e8400-e29b-41d4-a716-446655440001",
+  "shopName": "Antique Auctions Ltd",
+  "shopType": "AUCTION_HOUSE",
+  "title": {
+    "text": "Victorian Writing Desk",
+    "language": "en"
+  }
+}
+```
+
+#### Affected Endpoints
+
+All endpoints returning shop or product data now include the `shopType` field:
+
+**Shop Endpoints**:
+- `POST /api/v1/shops` - Now requires `shopType` in request body
+- `GET /api/v1/shops/{shopIdentifier}` - Returns `shopType` in response
+- `PATCH /api/v1/shops/{shopIdentifier}` - Accepts optional `shopType` in request body, returns `shopType` in response
+- `POST /api/v1/shops/search` - Returns `shopType` for each shop, accepts `shopType` filter in request body
+
+**Product Endpoints**:
+- `GET /api/v1/products/{shopId}/{shopsProductId}` - Returns `shopType` in product data
+- `POST /api/v1/products/search` - Returns `shopType` for each product, accepts `shopType` filter in request body
+- `GET /api/v1/products/{shopId}/{shopsProductId}/similar` - Returns `shopType` for each similar product
+- `GET /api/v1/me/watchlist` - Returns `shopType` for each watchlist product
+
+**Search Filter Endpoints**:
+- `POST /api/v1/me/search-filters` - Accepts `shopType` in `productSearch` criteria
+- `GET /api/v1/me/search-filters` - Returns `shopType` in saved filter criteria
+- `GET /api/v1/me/search-filters/{userSearchFilterId}` - Returns `shopType` in filter criteria
+- `PATCH /api/v1/me/search-filters/{userSearchFilterId}` - Accepts `shopType` in partial `productSearch` update
+
+#### Search Behavior
+
+- The `shopType` filter works as a disjunctive (OR) filter: products/shops matching ANY of the specified types will be returned
+- Empty arrays or null values for the `shopType` filter will not apply any filtering for this criterion
+- The filter combines with other search criteria using AND logic
+
+**Example Product Search Request**:
+```json
+POST /api/v1/products/search
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "antique furniture",
+  "shopType": ["AUCTION_HOUSE", "COMMERCIAL_DEALER"]
+}
+```
+
+This request will return products from shops that are either auction houses OR commercial dealers, matching the search query "antique furniture".
+
+**Example Shop Search Request**:
+```json
+POST /api/v1/shops/search
+{
+  "shopNameQuery": "antique",
+  "shopType": ["AUCTION_HOUSE"]
+}
+```
+
+This request will return shops that match "antique" in their name AND are auction houses.
+
+### Frontend Impact
+
+**Breaking Changes**:
+1. **Shop Creation**: Frontend must now provide `shopType` when creating shops via `POST /api/v1/shops`
+2. **Data Models**: Update TypeScript/data models to include the mandatory `shopType` field in:
+   - `GetShopData`
+   - `PostShopData`
+   - `GetProductData`
+3. **Optional Fields**: Update models to include optional `shopType` field in:
+   - `PatchShopData`
+   - `ProductSearchData`
+   - `PatchProductSearchData`
+   - `ShopSearchData`
+
+**New Features**:
+1. **Shop Type Display**: Display shop type badges or indicators in:
+   - Shop listings and search results
+   - Product details (showing the type of shop selling the product)
+   - Shop detail pages
+2. **Filtering**: Implement UI controls to filter by shop type in:
+   - Product search interfaces
+   - Shop search interfaces
+   - Saved search filter creation/editing
+3. **Shop Management**: Add shop type selection in shop creation and editing forms
+
+**Example TypeScript Updates**:
+```typescript
+// Before
+interface GetShopData {
+  shopId: string;
+  name: string;
+  domains: string[];
+  image?: string;
+  created: string;
+  updated: string;
+}
+
+// After
+interface GetShopData {
+  shopId: string;
+  name: string;
+  shopType: 'AUCTION_HOUSE' | 'COMMERCIAL_DEALER' | 'MARKETPLACE';
+  domains: string[];
+  image?: string;
+  created: string;
+  updated: string;
+}
+
+// Product search filter
+interface ProductSearchData {
+  language: string;
+  currency: string;
+  productQuery: string;
+  shopNameQuery?: string;
+  shopType?: ('AUCTION_HOUSE' | 'COMMERCIAL_DEALER' | 'MARKETPLACE')[];
+  // ... other fields
+}
+```
+
+### Removed
+
+No endpoints, fields, or functionality have been removed in this update. All changes are additive, though the `shopType` field is mandatory in certain contexts.
+
 ## 2026-01-11 - Product Image Prohibited Content Classification
 
 This update enhances product images with prohibited content classification to identify and flag images containing sensitive or prohibited content such as Nazi Germany symbols and insignia.
