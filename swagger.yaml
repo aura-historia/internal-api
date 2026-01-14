@@ -2769,6 +2769,24 @@ components:
             - $ref: '#/components/schemas/RestorationData'
           nullable: true
           description: Level of restoration work performed on the antique product
+        auctionStart:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Start datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction times.
+            Used to indicate when bidding begins or when the item will be auctioned.
+          example: "2026-02-15T10:00:00Z"
+        auctionEnd:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            End datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction times.
+            Used to indicate when bidding ends or when the auction session concludes.
+          example: "2026-02-15T14:00:00Z"
         created:
           type: string
           format: date-time
@@ -3281,6 +3299,22 @@ components:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
           description: Optional filter by product last updated date range
+        auctionStart:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryDateTime'
+          nullable: true
+          description: |
+            Optional filter by auction start datetime range.
+            Filters products by when their auction windows begin.
+            Only matches products that have auction start times set.
+        auctionEnd:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryDateTime'
+          nullable: true
+          description: |
+            Optional filter by auction end datetime range.
+            Filters products by when their auction windows end.
+            Only matches products that have auction end times set.
 
     PostUserSearchFilterData:
       type: object
@@ -3413,6 +3447,22 @@ components:
             - $ref: '#/components/schemas/RangeQueryDateTime'
           nullable: true
           description: Optional filter by product last updated date range
+        auctionStart:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryDateTime'
+          nullable: true
+          description: |
+            Optional filter by auction start datetime range.
+            Filters products by when their auction windows begin.
+            Only matches products that have auction start times set.
+        auctionEnd:
+          allOf:
+            - $ref: '#/components/schemas/RangeQueryDateTime'
+          nullable: true
+          description: |
+            Optional filter by auction end datetime range.
+            Filters products by when their auction windows end.
+            Only matches products that have auction end times set.
 
     UserSearchFilterData:
       type: object
@@ -3595,6 +3645,24 @@ components:
           example:
             - "https://tech-store-premium.com/images/case-1.jpg"
             - "https://tech-store-premium.com/images/case-2.jpg"
+        auctionStart:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Start datetime of the auction window for this product (RFC3339 format).
+            Only applicable for products from auction houses with scheduled auction times.
+            Used to indicate when bidding begins or when the item will be auctioned.
+          example: "2026-02-15T10:00:00Z"
+        auctionEnd:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            End datetime of the auction window for this product (RFC3339 format).
+            Only applicable for products from auction houses with scheduled auction times.
+            Used to indicate when bidding ends or when the auction session concludes.
+          example: "2026-02-15T14:00:00Z"
 
     PutProductsResponse:
       type: object

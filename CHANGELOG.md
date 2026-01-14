@@ -6,6 +6,192 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-14 - Auction DateTime Fields
+
+This update adds auction timing information for products, enabling users to see when items will be auctioned and filter searches by auction timing. Auction houses typically list time windows for when items will be sold, and this feature makes that information available through the API.
+
+### Added
+
+#### Product Fields
+
+**GetProductData** (extended):
+- **auctionStart** (string, date-time, optional): Start datetime of the auction window
+  - Type: ISO8601/RFC3339 datetime string
+  - Format: `date-time` (e.g., `"2026-02-15T10:00:00Z"`)
+  - Nullable: Yes
+  - Only present for products from auction houses with scheduled auction times
+  - Indicates when bidding begins or when the item will be auctioned
+  
+  **Example**:
+  ```json
+  {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "auctionStart": "2026-02-15T10:00:00Z",
+    "auctionEnd": "2026-02-15T14:00:00Z"
+  }
+  ```
+
+- **auctionEnd** (string, date-time, optional): End datetime of the auction window
+  - Type: ISO8601/RFC3339 datetime string
+  - Format: `date-time` (e.g., `"2026-02-15T14:00:00Z"`)
+  - Nullable: Yes
+  - Only present for products from auction houses with scheduled auction times
+  - Indicates when bidding ends or when the auction session concludes
+
+**PutProductData** (extended):
+- **auctionStart** (string, date-time, optional): Start datetime of the auction window
+  - Type: ISO8601/RFC3339 datetime string
+  - Format: `date-time`
+  - Nullable: Yes
+  - Optional field for creating or updating products
+  - Only applicable for products from auction houses
+  
+  **Example**:
+  ```json
+  {
+    "shopsProductId": "auction-item-123",
+    "title": {
+      "text": "Antique Vase",
+      "language": "en"
+    },
+    "state": "LISTED",
+    "url": "https://auction-house.com/item/123",
+    "auctionStart": "2026-02-15T10:00:00Z",
+    "auctionEnd": "2026-02-15T14:00:00Z"
+  }
+  ```
+
+- **auctionEnd** (string, date-time, optional): End datetime of the auction window
+  - Type: ISO8601/RFC3339 datetime string
+  - Format: `date-time`
+  - Nullable: Yes
+  - Optional field for creating or updating products
+  - Only applicable for products from auction houses
+
+#### Search Filter Fields
+
+**ProductSearchData** (extended):
+- **auctionStart** (RangeQueryDateTime, optional): Filter by auction start datetime range
+  - Type: Object with `min` and/or `max` ISO8601/RFC3339 datetime strings
+  - Nullable: Yes
+  - Filters products by when their auction windows begin
+  - Only matches products that have auction start times set
+  - Both `min` and `max` are optional within the range
+  
+  **Example**:
+  ```json
+  {
+    "language": "de",
+    "currency": "EUR",
+    "productQuery": "antique furniture",
+    "auctionStart": {
+      "min": "2026-01-01T00:00:00Z",
+      "max": "2026-03-31T23:59:59Z"
+    }
+  }
+  ```
+
+- **auctionEnd** (RangeQueryDateTime, optional): Filter by auction end datetime range
+  - Type: Object with `min` and/or `max` ISO8601/RFC3339 datetime strings
+  - Nullable: Yes
+  - Filters products by when their auction windows end
+  - Only matches products that have auction end times set
+  - Both `min` and `max` are optional within the range
+  
+  **Example**:
+  ```json
+  {
+    "language": "en",
+    "currency": "USD",
+    "productQuery": "vintage watch",
+    "auctionEnd": {
+      "max": "2026-02-28T23:59:59Z"
+    }
+  }
+  ```
+
+**PatchProductSearchData** (extended):
+- **auctionStart** (RangeQueryDateTime, optional): Filter by auction start datetime range
+  - Type: Object with `min` and/or `max` ISO8601/RFC3339 datetime strings
+  - Nullable: Yes
+  - Can be updated independently when patching a search filter
+  - Filters products by when their auction windows begin
+  - Only matches products that have auction start times set
+
+- **auctionEnd** (RangeQueryDateTime, optional): Filter by auction end datetime range
+  - Type: Object with `min` and/or `max` ISO8601/RFC3339 datetime strings
+  - Nullable: Yes
+  - Can be updated independently when patching a search filter
+  - Filters products by when their auction windows end
+  - Only matches products that have auction end times set
+
+#### API Endpoints Affected
+
+**GET /api/v1/products/{shopId}/{shopsProductId}**:
+- Response now includes `auctionStart` and `auctionEnd` fields when present
+
+**PUT /api/v1/products**:
+- Request body can now include `auctionStart` and `auctionEnd` fields
+
+**POST /api/v1/products/search**:
+- Request body can now include `auctionStart` and `auctionEnd` query filters
+
+**POST /api/v1/users/{userId}/search-filters**:
+- Can create search filters with `auctionStart` and `auctionEnd` query filters
+
+**PATCH /api/v1/users/{userId}/search-filters/{searchFilterId}**:
+- Can update search filters with `auctionStart` and `auctionEnd` query filters
+
+**GET /api/v1/users/{userId}/search-filters**:
+- Returns search filters that may include `auctionStart` and `auctionEnd` query filters
+
+**GET /api/v1/users/{userId}/search-filters/{searchFilterId}**:
+- Returns search filter that may include `auctionStart` and `auctionEnd` query filters
+
+### Usage Examples
+
+#### Filtering products by auction timing
+
+Find products being auctioned in February 2026:
+```json
+POST /api/v1/products/search
+{
+  "language": "de",
+  "currency": "EUR",
+  "productQuery": "antique",
+  "auctionStart": {
+    "min": "2026-02-01T00:00:00Z",
+    "max": "2026-02-28T23:59:59Z"
+  }
+}
+```
+
+Find products with auctions ending before a specific date:
+```json
+POST /api/v1/products/search
+{
+  "language": "en",
+  "currency": "GBP",
+  "productQuery": "vintage",
+  "auctionEnd": {
+    "max": "2026-01-31T23:59:59Z"
+  }
+}
+```
+
+Find products with auctions starting after a specific date:
+```json
+POST /api/v1/products/search
+{
+  "language": "fr",
+  "currency": "EUR",
+  "productQuery": "furniture",
+  "auctionStart": {
+    "min": "2026-03-01T00:00:00Z"
+  }
+}
+```
+
 ## 2026-01-14 - Shop Type Classification
 
 This update introduces shop type classification to distinguish between different types of vendors (auction houses, commercial dealers, and marketplaces), enabling users to filter products and shops by vendor type.
