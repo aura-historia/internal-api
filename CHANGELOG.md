@@ -118,10 +118,9 @@ This update adds price estimate fields to products, allowing antique dealers and
 ### Usage Examples
 
 #### Product with price estimates
-```json
 GET /api/v1/products/{shopId}/{shopsProductId}
+```json
 
-Response:
 {
   "item": {
     "productId": "550e8400-e29b-41d4-a716-446655440000",
@@ -148,10 +147,8 @@ Response:
 ```
 
 #### Creating a product with price estimates
-```json
 PUT /api/v1/products
-
-Request:
+```json
 {
   "items": [
     {
