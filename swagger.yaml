@@ -136,6 +136,12 @@ paths:
                       price:
                         currency: "EUR"
                         amount: 2999
+                      priceEstimateMin:
+                        currency: "EUR"
+                        amount: 2500
+                      priceEstimateMax:
+                        currency: "EUR"
+                        amount: 3500
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
@@ -172,6 +178,12 @@ paths:
                       price:
                         currency: "EUR"
                         amount: 2999
+                      priceEstimateMin:
+                        currency: "EUR"
+                        amount: 2800
+                      priceEstimateMax:
+                        currency: "EUR"
+                        amount: 3200
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
@@ -328,6 +340,12 @@ paths:
                         price:
                           currency: "EUR"
                           amount: 2899
+                        priceEstimateMin:
+                          currency: "EUR"
+                          amount: 2700
+                        priceEstimateMax:
+                          currency: "EUR"
+                          amount: 3100
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
@@ -383,6 +401,12 @@ paths:
                         price:
                           currency: "EUR"
                           amount: 2899
+                        priceEstimateMin:
+                          currency: "EUR"
+                          amount: 2700
+                        priceEstimateMax:
+                          currency: "EUR"
+                          amount: 3100
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
@@ -508,6 +532,12 @@ paths:
                   price:
                     currency: "EUR"
                     amount: 2999
+                  priceEstimateMin:
+                    currency: "EUR"
+                    amount: 2500
+                  priceEstimateMax:
+                    currency: "EUR"
+                    amount: 3500
                   state: "AVAILABLE"
                   url: "https://tech-store.com/premium-case"
                   images:
@@ -706,6 +736,12 @@ paths:
                           price:
                             currency: "USD"
                             amount: 2999
+                          priceEstimateMin:
+                            currency: "USD"
+                            amount: 2800
+                          priceEstimateMax:
+                            currency: "USD"
+                            amount: 3200
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
@@ -736,6 +772,12 @@ paths:
                           price:
                             currency: "USD"
                             amount: 2999
+                          priceEstimateMin:
+                            currency: "USD"
+                            amount: 2800
+                          priceEstimateMax:
+                            currency: "USD"
+                            amount: 3200
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
@@ -1507,6 +1549,12 @@ paths:
                       price:
                         currency: "EUR"
                         amount: 2999
+                      priceEstimateMin:
+                        currency: "EUR"
+                        amount: 2700
+                      priceEstimateMax:
+                        currency: "EUR"
+                        amount: 3300
                       state: "AVAILABLE"
                       url: "https://tech-store.com/smartphone-case"
                       images:
@@ -2714,6 +2762,16 @@ components:
             - $ref: '#/components/schemas/PriceData'
           nullable: true
           description: Optional product price
+        priceEstimateMin:
+          allOf:
+            - $ref: '#/components/schemas/PriceData'
+          nullable: true
+          description: Optional minimum estimated price for the product
+        priceEstimateMax:
+          allOf:
+            - $ref: '#/components/schemas/PriceData'
+          nullable: true
+          description: Optional maximum estimated price for the product
         state:
           $ref: '#/components/schemas/ProductStateData'
         url:
@@ -2916,6 +2974,10 @@ components:
         state:
           $ref: '#/components/schemas/ProductStateData'
         price:
+          $ref: '#/components/schemas/PriceData'
+        priceEstimateMin:
+          $ref: '#/components/schemas/PriceData'
+        priceEstimateMax:
           $ref: '#/components/schemas/PriceData'
 
     ProductEventStateChangedPayloadData:
@@ -3626,6 +3688,16 @@ components:
             - $ref: '#/components/schemas/PriceData'
           nullable: true
           description: Optional product price
+        priceEstimateMin:
+          allOf:
+            - $ref: '#/components/schemas/PriceData'
+          nullable: true
+          description: Optional minimum estimated price for the product
+        priceEstimateMax:
+          allOf:
+            - $ref: '#/components/schemas/PriceData'
+          nullable: true
+          description: Optional maximum estimated price for the product
         state:
           $ref: '#/components/schemas/ProductStateData'
         url:
