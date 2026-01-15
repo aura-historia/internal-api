@@ -6,6 +6,202 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-15 - Product Price Estimates
+
+This update adds price estimate fields to products, allowing antique dealers and auction houses to display estimated price ranges alongside actual selling prices. This is particularly useful for auction items where the final price may differ from the estimated value.
+
+### Added
+
+#### Product Price Estimate Fields
+
+**GetProductData** (extended):
+- **priceEstimateMin** (PriceData, optional): Minimum estimated price for the product
+  - Type: PriceData object with currency and amount in minor units
+  - Format: Same as the `price` field (e.g., `{"currency": "EUR", "amount": 2500}`)
+  - Nullable: Yes
+  - Only present when the seller provides an estimated minimum price
+  - Common for auction items and antiques where valuation ranges are typical
+  
+  **Example**:
+  ```json
+  {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "price": {
+      "currency": "EUR",
+      "amount": 3000
+    },
+    "priceEstimateMin": {
+      "currency": "EUR",
+      "amount": 2500
+    },
+    "priceEstimateMax": {
+      "currency": "EUR",
+      "amount": 3500
+    }
+  }
+  ```
+
+- **priceEstimateMax** (PriceData, optional): Maximum estimated price for the product
+  - Type: PriceData object with currency and amount in minor units
+  - Format: Same as the `price` field (e.g., `{"currency": "EUR", "amount": 3500}`)
+  - Nullable: Yes
+  - Only present when the seller provides an estimated maximum price
+  - Typically used together with `priceEstimateMin` to indicate a value range
+
+**PutProductData** (extended):
+- **priceEstimateMin** (PriceData, optional): Minimum estimated price for creating/updating products
+  - Type: PriceData object with currency and amount in minor units
+  - Format: `{"currency": "EUR", "amount": 2500}`
+  - Nullable: Yes
+  - Optional field for creating or updating products
+  - Sellers can provide price estimate ranges when listing items
+  
+  **Example**:
+  ```json
+  {
+    "shopsProductId": "antique-vase-123",
+    "title": {
+      "text": "Victorian Vase",
+      "language": "en"
+    },
+    "state": "AVAILABLE",
+    "url": "https://antique-shop.com/item/123",
+    "price": {
+      "currency": "EUR",
+      "amount": 1200
+    },
+    "priceEstimateMin": {
+      "currency": "EUR",
+      "amount": 1000
+    },
+    "priceEstimateMax": {
+      "currency": "EUR",
+      "amount": 1500
+    }
+  }
+  ```
+
+- **priceEstimateMax** (PriceData, optional): Maximum estimated price for creating/updating products
+  - Type: PriceData object with currency and amount in minor units
+  - Format: `{"currency": "EUR", "amount": 3500}`
+  - Nullable: Yes
+  - Optional field for creating or updating products
+  - Used to specify the upper bound of the estimated value range
+
+#### API Endpoints Affected
+
+**GET /api/v1/products/{shopId}/{shopsProductId}**:
+- Response now includes `priceEstimateMin` and `priceEstimateMax` fields when present
+- Both fields are optional and may be null if no estimates are provided
+
+**GET /api/v1/products/{shopId}/{shopsProductId}/similar**:
+- Similar products now include `priceEstimateMin` and `priceEstimateMax` fields when available
+
+**PUT /api/v1/products**:
+- Request body can now include `priceEstimateMin` and `priceEstimateMax` fields
+- Both fields are optional for each product in the items array
+
+**POST /api/v1/products/search**:
+- Search results now include `priceEstimateMin` and `priceEstimateMax` for each product when available
+
+**GET /api/v1/me/watchlist**:
+- Watchlist products now display `priceEstimateMin` and `priceEstimateMax` when present
+
+### Usage Examples
+
+#### Product with price estimates
+```json
+GET /api/v1/products/{shopId}/{shopsProductId}
+
+Response:
+{
+  "item": {
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopName": "Antique Auctions Ltd",
+    "title": {
+      "text": "18th Century Mahogany Desk",
+      "language": "en"
+    },
+    "price": {
+      "currency": "GBP",
+      "amount": 450000
+    },
+    "priceEstimateMin": {
+      "currency": "GBP",
+      "amount": 400000
+    },
+    "priceEstimateMax": {
+      "currency": "GBP",
+      "amount": 550000
+    },
+    "state": "AVAILABLE"
+  }
+}
+```
+
+#### Creating a product with price estimates
+```json
+PUT /api/v1/products
+
+Request:
+{
+  "items": [
+    {
+      "shopsProductId": "auction-item-456",
+      "title": {
+        "text": "Rare Ming Dynasty Vase",
+        "language": "en"
+      },
+      "state": "LISTED",
+      "url": "https://auction-house.com/item/456",
+      "priceEstimateMin": {
+        "currency": "USD",
+        "amount": 500000
+      },
+      "priceEstimateMax": {
+        "currency": "USD",
+        "amount": 800000
+      }
+    }
+  }
+}
+```
+
+### Implementation Notes
+
+**Price Estimate Behavior**:
+- Both `priceEstimateMin` and `priceEstimateMax` are completely independent from the actual `price` field
+- Estimates can be present even when `price` is null (e.g., for auction items without a fixed price)
+- The actual `price` may fall outside the estimate range (e.g., if a sold price exceeded expectations)
+- Both estimate fields are optional and can be present independently
+- Currency conversion is handled automatically by the enrichment service, same as for the `price` field
+
+**Common Use Cases**:
+1. **Auction Houses**: Display estimated value ranges before bidding
+2. **Antique Dealers**: Show professional appraisal values alongside asking prices
+3. **Collectibles**: Indicate market value estimates for rare items
+4. **Insurance Purposes**: Provide valuation ranges for high-value antiques
+
+**Frontend Impact**:
+- Frontend applications should display price estimates when available
+- Consider showing estimates differently from actual prices (e.g., "Estimated: £4,000 - £5,500" vs "Price: £4,750")
+- For auction items without a fixed price, estimates are the primary pricing information
+- Estimates are optional - handle cases where they are null or absent
+
+**Backend Type**: The Rust backend uses:
+- `native_price_estimate_min: Option<Price>` - Native currency minimum estimate
+- `native_price_estimate_max: Option<Price>` - Native currency maximum estimate
+- `other_price_estimate_min: HashMap<Currency, MonetaryAmount>` - Converted estimates for other currencies
+- `other_price_estimate_max: HashMap<Currency, MonetaryAmount>` - Converted estimates for other currencies
+
+### Changed
+
+No existing fields or endpoints were modified. This is a purely additive change.
+
+### Removed
+
+No endpoints, fields, or functionality have been removed in this update.
+
 ## 2026-01-14 - Auction DateTime Fields
 
 This update adds auction timing information for products, enabling users to see when items will be auctioned and filter searches by auction timing. Auction houses typically list time windows for when items will be sold, and this feature makes that information available through the API.
