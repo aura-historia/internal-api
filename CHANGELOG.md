@@ -107,6 +107,14 @@ This update adds price estimate fields to products, allowing antique dealers and
 **GET /api/v1/me/watchlist**:
 - Watchlist products now display `priceEstimateMin` and `priceEstimateMax` when present
 
+#### Product History Events
+
+**ProductCreatedEventPayloadData** (extended):
+- Now includes `priceEstimateMin` and `priceEstimateMax` fields in the CREATED event payload
+- These fields capture the initial price estimates when a product is first created
+- Both fields are optional and use the PriceData type
+- Helps track the complete initial state of a product including estimated values
+
 ### Usage Examples
 
 #### Product with price estimates

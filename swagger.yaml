@@ -2975,6 +2975,10 @@ components:
           $ref: '#/components/schemas/ProductStateData'
         price:
           $ref: '#/components/schemas/PriceData'
+        priceEstimateMin:
+          $ref: '#/components/schemas/PriceData'
+        priceEstimateMax:
+          $ref: '#/components/schemas/PriceData'
 
     ProductEventStateChangedPayloadData:
       type: object
