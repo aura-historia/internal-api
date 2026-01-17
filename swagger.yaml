@@ -3292,6 +3292,18 @@ components:
           uniqueItems: true
           default: []
           example: ["Sotheby's", "Christie's"]
+        excludeShopName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter to exclude products from specific shop names (keyword matching).
+            Products from shops with names exactly matching one of the provided values will be excluded from results.
+            This is an exact match filter, not a fuzzy text search.
+            Empty array means no shops are excluded.
+          uniqueItems: true
+          default: []
+          example: ["Heritage Auctions", "Christie's"]
         shopType:
           type: array
           items:
@@ -3451,6 +3463,17 @@ components:
           uniqueItems: true
           nullable: true
           example: ["Heritage Auctions", "Sotheby's"]
+        excludeShopName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter to exclude products from specific shop names (keyword matching).
+            Products from shops with names exactly matching one of the provided values will be excluded from results.
+            This is an exact match filter, not a fuzzy text search.
+          uniqueItems: true
+          nullable: true
+          example: ["Christie's", "Bonhams"]
         shopType:
           type: array
           items:
