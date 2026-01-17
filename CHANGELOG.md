@@ -6,6 +6,169 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-17 - Shop Name Filter: Text Search to Keyword Filter
+
+This update changes the shop name filter from a fuzzy text search to an exact keyword match filter. The filter now accepts an array of exact shop names instead of a single text query string, enabling filtering by multiple specific shop names simultaneously.
+
+### Changed
+
+#### ProductSearchData Schema
+
+The `shopNameQuery` field has been replaced with `shopName`:
+
+**Before**:
+```json
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "vintage watch",
+  "shopNameQuery": "Christie"
+}
+```
+
+**After**:
+```json
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "vintage watch",
+  "shopName": ["Christie's", "Sotheby's"]
+}
+```
+
+**Field Changes**:
+- **Field name**: `shopNameQuery` → `shopName`
+- **Type**: `string` (optional, nullable) → `array of strings` (default: empty array)
+- **Behavior**: Fuzzy text search with AUTO fuzziness → Exact keyword match (case-sensitive)
+- **Multiple values**: Not supported → Supported (filters products from any of the specified shops)
+- **Constraints**: Minimum 3 characters → No minimum length (accepts any valid shop name)
+
+**Technical Details**:
+- The underlying OpenSearch mapping for `shopName` changed from `text` type (analyzed, fuzzy-searchable) to `keyword` type (exact match)
+- Empty array `[]` means no shop name filtering (matches all shops)
+- Non-empty array filters to products whose shop name exactly matches one of the provided values
+- Shop names are matched as complete strings, not partial matches
+
+#### PatchProductSearchData Schema
+
+The same change applies to the PATCH endpoint for updating search filters:
+
+**Before**:
+```json
+{
+  "shopNameQuery": "Updated Store"
+}
+```
+
+**After**:
+```json
+{
+  "shopName": ["Updated Store Name", "Another Store"]
+}
+```
+
+**Field Changes**:
+- **Field name**: `shopNameQuery` → `shopName`
+- **Type**: `string` (optional, nullable) → `array of strings` (optional, nullable)
+- **Behavior**: Fuzzy text search → Exact keyword match
+- **When updating**: Providing `shopName` array replaces the entire filter; omitting it leaves existing filter unchanged
+
+#### API Endpoints Affected
+
+**POST /api/v1/products/search**:
+- Request body field changed from `shopNameQuery` to `shopName`
+- Now accepts array of exact shop names instead of fuzzy search string
+- Example request:
+  ```json
+  {
+    "language": "de",
+    "currency": "EUR",
+    "productQuery": "classical music",
+    "shopName": ["Heritage Auctions", "Sotheby's", "Christie's"],
+    "price": {
+      "min": 1000,
+      "max": 50000
+    }
+  }
+  ```
+
+**POST /api/v1/search-filters**:
+- Request body's `productSearch` object uses new `shopName` field
+- Shop name filter now accepts exact shop names as array
+
+**PATCH /api/v1/search-filters/{userSearchFilterId}**:
+- Request body's `productSearch` object uses new `shopName` field
+- Update filter by providing array of exact shop names
+
+**GET /api/v1/search-filters** and **GET /api/v1/search-filters/{userSearchFilterId}**:
+- Response's `productSearch` object now contains `shopName` array instead of `shopNameQuery` string
+
+### Migration Guide
+
+**For Frontend Developers**:
+
+1. **Update request payloads**: Change `shopNameQuery` to `shopName` and use array format:
+   ```javascript
+   // Before
+   const searchRequest = {
+     language: "en",
+     currency: "USD",
+     productQuery: "antique",
+     shopNameQuery: "Christie"  // ❌ Old format
+   };
+   
+   // After
+   const searchRequest = {
+     language: "en",
+     currency: "USD",
+     productQuery: "antique",
+     shopName: ["Christie's"]  // ✅ New format - exact match
+   };
+   ```
+
+2. **Handle multiple shops**: You can now filter by multiple shop names:
+   ```javascript
+   const searchRequest = {
+     language: "en",
+     currency: "USD",
+     productQuery: "painting",
+     shopName: ["Sotheby's", "Christie's", "Heritage Auctions"]
+   };
+   ```
+
+3. **Use exact names**: The shop name must match exactly (case-sensitive). Partial matches no longer work:
+   ```javascript
+   // ❌ Will not match "Christie's"
+   shopName: ["Christie"]
+   
+   // ✅ Will match "Christie's"
+   shopName: ["Christie's"]
+   ```
+
+4. **Empty array for no filter**: Use empty array instead of null/undefined:
+   ```javascript
+   // Before (no shop filter)
+   shopNameQuery: null
+   
+   // After (no shop filter)
+   shopName: []  // or omit the field entirely
+   ```
+
+5. **Update response parsing**: When reading saved search filters, expect `shopName` array:
+   ```javascript
+   // Before
+   const shopFilter = filter.productSearch.shopNameQuery;  // string or null
+   
+   // After
+   const shopFilters = filter.productSearch.shopName;  // array of strings
+   ```
+
+### Removed
+
+- **shopNameQuery** field (replaced by **shopName** in ProductSearchData and PatchProductSearchData schemas)
+- Fuzzy text search capability for shop names (now requires exact match)
+- Single shop name filtering (replaced by array-based filtering supporting multiple shops)
+
 ## 2026-01-15 - Product Price Estimates
 
 This update adds price estimate fields to products, allowing antique dealers and auction houses to display estimated price ranges alongside actual selling prices. This is particularly useful for auction items where the final price may differ from the estimated value.
