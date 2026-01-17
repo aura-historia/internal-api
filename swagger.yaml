@@ -691,7 +691,7 @@ paths:
               language: "en"
               currency: "USD"
               productQuery: "smartphone case"
-              shopNameQuery: "Tech Store"
+              shopName: ["Tech Store", "Electronics Hub"]
               price:
                 min: 1000
                 max: 5000
@@ -898,7 +898,7 @@ paths:
                       language: "en"
                       currency: "USD"
                       productQuery: "smartphone"
-                      shopNameQuery: "Tech Store"
+                      shopName: ["Tech Store"]
                       price:
                         min: 1000
                         max: 5000
@@ -980,7 +980,7 @@ paths:
                 language: "en"
                 currency: "USD"
                 productQuery: "smartphone"
-                shopNameQuery: "Tech Store"
+                shopName: ["Tech Store"]
                 price:
                   min: 1000
                   max: 5000
@@ -1026,7 +1026,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
-                  shopNameQuery: "Tech Store"
+                  shopName: ["Tech Store"]
                   price:
                     min: 1000
                     max: 5000
@@ -1135,7 +1135,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
-                  shopNameQuery: "Tech Store"
+                  shopName: ["Tech Store"]
                   price:
                     min: 1000
                     max: 5000
@@ -1319,7 +1319,7 @@ paths:
                 value:
                   name: "Updated Filter Name"
                   productSearch:
-                    shopNameQuery: "Updated Store"
+                    shopName: ["Updated Store"]
                     price:
                       min: 2000
                       max: 8000
@@ -1368,7 +1368,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
-                  shopNameQuery: "Updated Store"
+                  shopName: ["Updated Store"]
                   price:
                     min: 2000
                     max: 8000
@@ -3281,12 +3281,17 @@ components:
           description: Text query for searching products (minimum 3 characters)
           minLength: 3
           example: "smartphone case"
-        shopNameQuery:
-          type: string
-          description: Optional text query for filtering by shop name
-          minLength: 3
-          nullable: true
-          example: "Tech Store"
+        shopName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter by exact shop names (keyword matching).
+            Filters products to only those from shops with names exactly matching one of the provided values.
+            This is an exact match filter, not a fuzzy text search.
+          uniqueItems: true
+          default: []
+          example: ["Sotheby's", "Christie's"]
         shopType:
           type: array
           items:
@@ -3435,12 +3440,17 @@ components:
           minLength: 3
           nullable: true
           example: "laptop bag"
-        shopNameQuery:
-          type: string
-          description: Optional text query for filtering by shop name (minimum 3 characters when provided)
-          minLength: 3
+        shopName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter by exact shop names (keyword matching).
+            Filters products to only those from shops with names exactly matching one of the provided values.
+            This is an exact match filter, not a fuzzy text search.
+          uniqueItems: true
           nullable: true
-          example: "Electronics Store"
+          example: ["Heritage Auctions", "Sotheby's"]
         shopType:
           type: array
           items:
