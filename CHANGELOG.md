@@ -6,6 +6,91 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-17 - Shop Name Exclusion Filter
+
+This update adds the ability to exclude products from specific shops when searching. The new `excludeShopName` field allows users to filter out products from unwanted shops by exact shop name matching.
+
+### Added
+
+#### ProductSearchData Schema
+
+A new `excludeShopName` field has been added:
+
+**Field Structure**:
+```json
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "vintage watch",
+  "shopName": ["Sotheby's"],
+  "excludeShopName": ["Heritage Auctions", "Christie's"]
+}
+```
+
+**Field Details**:
+- **Field name**: `excludeShopName`
+- **Type**: `array of strings` (default: empty array)
+- **Behavior**: Exact keyword match exclusion (case-sensitive)
+- **Multiple values**: Supported (excludes products from any of the specified shops)
+- **Default**: Empty array `[]` (no shops excluded)
+
+**Technical Details**:
+- The underlying OpenSearch query uses `must_not` clause with `terms` query
+- Empty array `[]` means no shop name exclusion (includes all shops)
+- Non-empty array excludes products whose shop name exactly matches one of the provided values
+- Shop names are matched as complete strings, not partial matches
+- Works in conjunction with `shopName` filter (include/exclude logic combined)
+
+#### PatchProductSearchData Schema
+
+The same `excludeShopName` field is available for partial updates:
+
+**Field Structure**:
+```json
+{
+  "excludeShopName": ["Bonhams", "Phillips"]
+}
+```
+
+**Field Details**:
+- **Field name**: `excludeShopName`
+- **Type**: `array of strings` (optional, nullable)
+- **Behavior**: Exact keyword match exclusion
+- **When updating**: Providing `excludeShopName` array replaces the entire exclusion filter; omitting it leaves existing filter unchanged
+
+#### API Endpoints Affected
+
+**POST /api/v1/products/search**:
+- Request body now accepts optional `excludeShopName` field
+- Accepts array of exact shop names to exclude from search results
+- Example request:
+  ```json
+  {
+    "language": "de",
+    "currency": "EUR",
+    "productQuery": "classical music",
+    "shopName": ["Sotheby's"],
+    "excludeShopName": ["Heritage Auctions", "Christie's"],
+    "price": {
+      "min": 1000,
+      "max": 50000
+    }
+  }
+  ```
+
+**POST /api/v1/search-filters**:
+- Request body's `productSearch` object supports new `excludeShopName` field
+- Shop name exclusion filter can be saved as part of user search filters
+
+**PATCH /api/v1/search-filters/{userSearchFilterId}**:
+- Request body's `productSearch` object supports new `excludeShopName` field
+- Can update shop name exclusions independently of other filter criteria
+
+**Response Behavior**:
+- Products from excluded shops are completely filtered out of search results
+- Total count reflects products after exclusion filter is applied
+- Works correctly with pagination and sorting
+
 ## 2026-01-17 - Shop Name Filter: Text Search to Keyword Filter
 
 This update changes the shop name filter from a fuzzy text search to an exact keyword match filter. The filter now accepts an array of exact shop names instead of a single text query string, enabling filtering by multiple specific shop names simultaneously.
