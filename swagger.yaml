@@ -396,8 +396,9 @@ paths:
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
-                      isOnWatchlist: true
-                      watchlistNotifications: true
+                      watchlist:
+                        watching: true
+                        notifications: true
                 anonymous:
                   summary: Anonymous user response without user state
                   value:
@@ -2981,7 +2982,7 @@ paths:
                     shopSlugId: "tech-store-basic"
                     name: "Tech Store Basic"
                     shopType: "COMMERCIAL_DEALER"
-                    url: ["tech-store-basic.com"]
+                    domains: ["tech-store-basic.com"]
                     created: "2024-02-01T08:30:00Z"
                     updated: "2024-07-01T14:20:00Z"
                 size: 2
