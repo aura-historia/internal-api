@@ -6,6 +6,137 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-21 - Human-Readable Slug Identifiers
+
+This update introduces human-readable slug identifiers for products and shops, providing SEO-friendly and user-friendly URLs. The new slug-based endpoints allow accessing resources using kebab-case identifiers instead of UUIDs, while maintaining backward compatibility with existing ID-based endpoints.
+
+### Added
+
+#### New Endpoints
+
+**GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId}**:
+- Retrieves a single product using human-readable slug identifiers
+- **Path Parameters**:
+  - `shopSlugId` (string, required): Kebab-case shop identifier (e.g., "tech-store-premium", "christies")
+    - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`
+    - Derived from shop name, normalized to lowercase with hyphens
+  - `productSlugId` (string, required): Kebab-case product identifier with 6-character hex suffix
+    - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$`
+    - Format: `{product-title}-{6-char-hex}`
+    - Example: "amazing-product-fa87c4"
+- **Query Parameters**: Same as existing endpoint (`currency`, `history`)
+- **Headers**: Same as existing endpoint (`Accept-Language`, optional `Authorization`)
+- **Response**: Returns `PersonalizedGetProductData` (200) with product details including new slug fields
+- **Authentication**: Optional (supports both authenticated and anonymous access)
+- **Behavior**: Identical to GET /api/v1/products/{shopId}/{shopsProductId} but uses slug identifiers
+
+**GET /api/v1/shops/by-slug/{shopSlugId}**:
+- Retrieves shop details using human-readable slug identifier
+- **Path Parameters**:
+  - `shopSlugId` (string, required): Kebab-case shop identifier
+    - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`
+    - Examples: "tech-store-premium", "christies", "sothebys"
+- **Response**: Returns `GetShopData` (200) with complete shop information including new slug field
+- **Behavior**: Identical to GET /api/v1/shops/{shopIdentifier} but specifically uses slug identifier
+
+#### Schema Changes
+
+**GetProductData**:
+Added two new required fields to the product data response:
+
+```json
+{
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "productSlugId": "amazing-product-fa87c4",
+  "shopSlugId": "tech-store-premium",
+  "eventId": "550e8400-e29b-41d4-a716-446655440001",
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopsProductId": "6ba7b810",
+  ...
+}
+```
+
+**New Fields**:
+- `productSlugId` (string, required):
+  - Human-readable product identifier with unique suffix
+  - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$`
+  - Format: Kebab-case product title + 6-character hexadecimal suffix
+  - Example: "vintage-watch-3a2f9b"
+  - The suffix ensures uniqueness when multiple products have similar titles
+  
+- `shopSlugId` (string, required):
+  - Human-readable shop identifier
+  - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`
+  - Format: Kebab-case shop name (no suffix)
+  - Example: "tech-store-premium"
+  - Derived from shop name by converting to lowercase and replacing spaces/special characters with hyphens
+
+**GetShopData**:
+Added one new required field to the shop data response:
+
+```json
+{
+  "shopId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopSlugId": "tech-store-premium",
+  "name": "Tech Store Premium",
+  "shopType": "COMMERCIAL_DEALER",
+  ...
+}
+```
+
+**New Field**:
+- `shopSlugId` (string, required):
+  - Human-readable shop identifier
+  - Pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`
+  - Format: Kebab-case shop name
+  - Example: "tech-store-premium" or "christies"
+
+#### Affected Endpoints (Schema Updates)
+
+All endpoints that return product or shop data now include the new slug fields:
+
+**Product Endpoints**:
+- GET /api/v1/products/{shopId}/{shopsProductId}
+- GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId} (new)
+- GET /api/v1/products/{shopId}/{shopsProductId}/similar
+- POST /api/v1/products/search
+- GET /api/v1/me/watchlist
+
+**Shop Endpoints**:
+- GET /api/v1/shops/{shopIdentifier}
+- GET /api/v1/shops/by-slug/{shopSlugId} (new)
+- POST /api/v1/shops
+- PATCH /api/v1/shops/{shopIdentifier}
+- POST /api/v1/shops/search
+
+### Technical Details
+
+**Slug Generation**:
+- Shop slugs: Generated from shop name using slug library (kebab-case, no suffix)
+  - Example: "Tech Store Premium" → "tech-store-premium"
+  - Example: "Christie's" → "christies"
+- Product slugs: Generated from product title + UUID-based 6-character hex suffix
+  - Example: "Amazing Product" + UUID → "amazing-product-fa87c4"
+  - The suffix ensures uniqueness across products with similar titles
+
+**Backward Compatibility**:
+- All existing ID-based endpoints remain unchanged and fully functional
+- New slug-based endpoints provide alternative access patterns
+- Clients can choose to use either UUID-based or slug-based endpoints
+- All responses now include both ID and slug fields for maximum flexibility
+
+**Error Codes**:
+- Same error codes apply to slug-based endpoints as ID-based endpoints
+- 400: Missing or invalid slug parameters (BAD_PATH_PARAMETER_VALUE)
+- 404: Product or shop not found (PRODUCT_NOT_FOUND, SHOP_NOT_FOUND)
+- 500: Internal server error (INTERNAL_SERVER_ERROR)
+
+**Use Cases**:
+- SEO-friendly URLs for web applications
+- User-shareable links with readable identifiers
+- Improved user experience with meaningful URLs
+- Backend lookups by human-readable identifiers
+
 ## 2026-01-17 - Shop Name Exclusion Filter
 
 This update adds the ability to exclude products from specific shops when searching. The new `excludeShopName` field allows users to filter out products from unwanted shops by exact shop name matching.

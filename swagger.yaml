@@ -123,10 +123,13 @@ paths:
                   value:
                     item:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "amazing-product-fa87c4"
+                      shopSlugId: "my-shop"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
+                      shopType: "COMMERCIAL_DEALER"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -165,10 +168,13 @@ paths:
                   value:
                     item:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "amazing-product-fa87c4"
+                      shopSlugId: "my-shop"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
+                      shopType: "COMMERCIAL_DEALER"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -223,6 +229,223 @@ paths:
                     source:
                       field: "shopsProductId"
                       sourceType: "path"
+                invalid_history:
+                  summary: Invalid history parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "history"
+                      sourceType: "query"
+                    detail: "Expected any of: 'true' or 'false'. Got: 'invalid'"
+        "404":
+          description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "PRODUCT_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/products/by-slug/{shopSlugId}/{productSlugId}:
+    get:
+      summary: Get a single product by slug
+      description: |
+        Retrieves a single product by its shop slug ID and product slug ID.
+        Returns localized content based on Accept-Language header and currency preferences.
+        Optionally includes product history when requested.
+
+        **Human-Readable Identifiers**: This endpoint uses slug-based identifiers which are human-readable
+        kebab-case strings. Shop slugs are derived from the shop name (e.g., "tech-store-premium"),
+        while product slugs combine the product title with a unique 6-character hexadecimal suffix
+        (e.g., "amazing-product-fa87c4").
+
+        **Personalization**: When authenticated (via optional Authorization header), the response includes
+        user-specific state such as whether the product is on the user's watchlist and notification preferences.
+        Anonymous requests receive product data without user state.
+      operationId: getProductBySlug
+      tags:
+        - Products
+      parameters:
+        - name: shopSlugId
+          in: path
+          required: true
+          description: Human-readable slug identifier of the shop (kebab-case, derived from shop name)
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            example: "tech-store-premium"
+        - name: productSlugId
+          in: path
+          required: true
+          description: |
+            Human-readable slug identifier of the product (kebab-case with 6-character hex suffix).
+            Format: {product-title}-{6-char-hex} where the title is derived from the product name.
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+            example: "amazing-product-fa87c4"
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+        - name: history
+          in: query
+          required: false
+          description: Whether to include product history in the response
+          schema:
+            type: boolean
+            default: false
+          example: false
+        - name: Accept-Language
+          in: header
+          required: false
+          description: |
+            Preferred language for localized content.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
+          schema:
+            type: string
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
+      security:
+        - BearerAuth: []
+        - {}
+      responses:
+        "200":
+          description: Product found and returned successfully
+          headers:
+            Content-Language:
+              description: The language of the returned content
+              schema:
+                $ref: "#/components/schemas/LanguageData"
+              example: "de"
+            ETag:
+              description: The event ID of the product for caching
+              schema:
+                type: string
+                format: uuid
+              example: '"550e8400-e29b-41d4-a716-446655440001"'
+            Last-Modified:
+              description: When the product was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2020 00:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalizedGetProductData"
+              examples:
+                authenticated:
+                  summary: Authenticated user response with watchlist state
+                  value:
+                    item:
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "amazing-product-fa87c4"
+                      shopSlugId: "tech-store-premium"
+                      eventId: "550e8400-e29b-41d4-a716-446655440001"
+                      shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopsProductId: "6ba7b810"
+                      shopName: "Tech Store Premium"
+                      shopType: "COMMERCIAL_DEALER"
+                      title:
+                        text: "Amazing Product"
+                        language: "en"
+                      description:
+                        text: "This is an amazing product description"
+                        language: "en"
+                      price:
+                        currency: "EUR"
+                        amount: 2999
+                      state: "AVAILABLE"
+                      url: "https://tech-store-premium.com/products/amazing-product"
+                      images:
+                        - url: "https://tech-store-premium.com/images/product-1.jpg"
+                          prohibitedContent: "NONE"
+                      created: "2024-01-01T10:00:00Z"
+                      updated: "2024-01-01T12:00:00Z"
+                    userState:
+                      isOnWatchlist: true
+                      watchlistNotifications: true
+                anonymous:
+                  summary: Anonymous user response without user state
+                  value:
+                    item:
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "amazing-product-fa87c4"
+                      shopSlugId: "tech-store-premium"
+                      eventId: "550e8400-e29b-41d4-a716-446655440001"
+                      shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopsProductId: "6ba7b810"
+                      shopName: "Tech Store Premium"
+                      shopType: "COMMERCIAL_DEALER"
+                      title:
+                        text: "Amazing Product"
+                        language: "en"
+                      state: "AVAILABLE"
+                      url: "https://tech-store-premium.com/products/amazing-product"
+                      images: []
+                      created: "2024-01-01T10:00:00Z"
+                      updated: "2024-01-01T12:00:00Z"
+                    userState: null
+        "400":
+          description: Bad request - invalid parameters
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_slug_id:
+                  summary: Missing shop slug ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopSlugId"
+                      sourceType: "path"
+                    detail: "Missing field 'shopSlugId'."
+                missing_product_slug_id:
+                  summary: Missing product slug ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "productSlugId"
+                      sourceType: "path"
+                    detail: "Missing field 'productSlugId'."
                 invalid_history:
                   summary: Invalid history parameter
                   value:
@@ -2216,7 +2439,9 @@ paths:
                 $ref: "#/components/schemas/GetShopData"
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
                 name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
                 domains:
                   - "tech-store-premium.com"
                   - "tech-store-premium.de"
@@ -2333,7 +2558,9 @@ paths:
                 $ref: "#/components/schemas/GetShopData"
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
                 name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
                 domains:
                   [
                     "tech-store-premium.com",
@@ -2471,7 +2698,9 @@ paths:
                 $ref: "#/components/schemas/GetShopData"
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium-plus"
                 name: "Tech Store Premium Plus"
+                shopType: "COMMERCIAL_DEALER"
                 domains:
                   - "tech-store-premium.com"
                   - "tech-store-premium.eu"
@@ -2559,6 +2788,104 @@ paths:
                 error: "UNPROCESSED_ITEMS"
                 detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
 
+  /api/v1/shops/by-slug/{shopSlugId}:
+    get:
+      summary: Get shop details by slug
+      description: |
+        Retrieves detailed information about a specific shop by its human-readable slug identifier.
+        Returns complete shop metadata including name, domains, image, and timestamps.
+
+        **Human-Readable Identifiers**: This endpoint uses slug-based identifiers which are human-readable
+        kebab-case strings derived from the shop name (e.g., "tech-store-premium" or "christies").
+      operationId: getShopBySlug
+      tags:
+        - Shops
+      parameters:
+        - name: shopSlugId
+          in: path
+          required: true
+          description: Human-readable slug identifier of the shop (kebab-case, derived from shop name)
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          examples:
+            simple:
+              value: "christies"
+              summary: "Simple shop slug"
+            complex:
+              value: "tech-store-premium"
+              summary: "Multi-word shop slug"
+      responses:
+        "200":
+          description: Shop found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  [
+                    "tech-store-premium.com",
+                    "tech-store-premium.de",
+                    "apple.tech-store-premium.com",
+                  ]
+                image: "https://tech-store-premium.com/logo.svg"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing shop slug identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_slug_id:
+                  summary: Missing shop slug identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopSlugId"
+                      sourceType: "path"
+                    detail: "Missing field 'shopSlugId'."
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/shops/search:
     post:
       summary: Search shops
@@ -2643,13 +2970,17 @@ paths:
               example:
                 items:
                   - shopId: "550e8400-e29b-41d4-a716-446655440000"
+                    shopSlugId: "tech-store-premium"
                     name: "Tech Store Premium"
+                    shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
                     created: "2024-01-15T10:00:00Z"
                     updated: "2024-06-15T12:00:00Z"
                   - shopId: "660f9500-f39c-42e5-b827-556766550001"
+                    shopSlugId: "tech-store-basic"
                     name: "Tech Store Basic"
+                    shopType: "COMMERCIAL_DEALER"
                     url: ["tech-store-basic.com"]
                     created: "2024-02-01T08:30:00Z"
                     updated: "2024-07-01T14:20:00Z"
@@ -2723,6 +3054,8 @@ components:
       description: Complete product information including metadata and localized content
       required:
         - productId
+        - productSlugId
+        - shopSlugId
         - eventId
         - shopId
         - shopsProductId
@@ -2739,6 +3072,19 @@ components:
           type: string
           format: uuid
           description: Unique internal identifier for the product
+        productSlugId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+          description: |
+            Human-readable slug identifier for the product (kebab-case with 6-character hex suffix).
+            Format: {product-title}-{6-char-hex} where the title is derived from the product name.
+            Example: "amazing-product-fa87c4"
+        shopSlugId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Human-readable slug identifier of the shop (kebab-case, derived from shop name).
+            Example: "tech-store-premium" or "christies"
         eventId:
           type: string
           format: uuid
@@ -3827,6 +4173,7 @@ components:
       description: Complete shop information including metadata
       required:
         - shopId
+        - shopSlugId
         - name
         - shopType
         - domains
@@ -3838,6 +4185,13 @@ components:
           format: uuid
           description: Unique identifier of the shop
           example: "550e8400-e29b-41d4-a716-446655440000"
+        shopSlugId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Human-readable slug identifier of the shop (kebab-case, derived from shop name).
+            Example: "tech-store-premium" or "christies"
+          example: "tech-store-premium"
         name:
           type: string
           description: Display name of the shop
