@@ -6,6 +6,14 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-24 - Add shop-type for auction-platforms
+
+This update adds a new shop-type for auction-platforms. 
+
+### Added
+
+- `ShopType::AUCTION_PLATFORM`
+
 ## 2026-01-21 - Human-Readable Slug Identifiers
 
 This update introduces human-readable slug identifiers for products and shops, providing SEO-friendly and user-friendly URLs. The new slug-based endpoints allow accessing resources using kebab-case identifiers instead of UUIDs, while maintaining backward compatibility with existing ID-based endpoints.

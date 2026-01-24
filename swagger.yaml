@@ -3515,10 +3515,11 @@ components:
 
     ShopTypeData:
       type: string
-      enum: [AUCTION_HOUSE, COMMERCIAL_DEALER, MARKETPLACE]
+      enum: [AUCTION_HOUSE, AUCTION_PLATFORM, COMMERCIAL_DEALER, MARKETPLACE]
       description: |
         Type of vendor or shop:
         - AUCTION_HOUSE: Auction house selling items through auctions
+        - AUCTION_PLATFORM: Auction platform hosting auctions for auction-houses
         - COMMERCIAL_DEALER: Commercial dealer or shop selling items directly
         - MARKETPLACE: Marketplace platform connecting buyers and sellers
       example: COMMERCIAL_DEALER
