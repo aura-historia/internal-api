@@ -6,6 +6,42 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-24 - Shop Name Update Restriction and Slug Uniqueness Enforcement
+
+This update removes the ability to update a shop's name after creation and adds enforcement of shop slug uniqueness during shop creation. These changes ensure shop slug identifiers remain stable and unique throughout the shop's lifetime.
+
+### Changed
+
+**PATCH /api/v1/shops/{shopIdentifier}** - Shop name can no longer be updated:
+- The `name` field has been removed from the request body schema (`PatchShopData`)
+- Shop names are now immutable after creation since they determine the shop's slug identifier
+- Only `shopType`, `domains`, and `image` fields can be updated
+- Attempting to update the name will have no effect (field is ignored if provided)
+
+**POST /api/v1/shops** - Enhanced uniqueness validation:
+- Now validates shop slug uniqueness in addition to domain uniqueness
+- Returns HTTP 409 Conflict when attempting to create a shop with a name that generates a slug already in use
+- Two distinct conflict scenarios:
+  - **Slug conflict**: Returns error "Shop with name '{name}' exists already - the shop-slug '{slug}' is already registered."
+  - **Domain conflict**: Returns error "Shop with name '{name}' exists already - a domain of the shop is already registered."
+
+### Removed
+
+**PatchShopData.name** - Field removed from shop update request:
+- Previously: `name` (string, optional, nullable)
+- Now: Field no longer exists in the schema
+- Rationale: Shop names determine slug identifiers which are used in URLs and must remain stable
+
+### Rationale
+
+This change ensures:
+- **URL Stability**: Shop slugs in URLs (e.g., `/api/v1/shops/by-slug/tech-store-premium`) remain valid and consistent
+- **Slug Uniqueness**: Each shop has a unique slug identifier, preventing confusion and routing issues
+- **Data Integrity**: Shop name and slug remain aligned throughout the shop's lifetime
+- **API Consistency**: The slug-based endpoints work reliably without handling name/slug mismatches
+
+**Migration Note**: Existing shops retain their names and slugs. Only future updates are affected by this restriction. If a shop name change is absolutely necessary, it must be handled as a special administrative operation outside the normal API flow.
+
 ## 2026-01-24 - Separate Product DTOs for Search and Similar Products
 
 This update introduces a new lightweight product summary data type (`GetProductSummaryData`) for use in search results and similar products listings. This reduces response payload size by excluding detailed metadata fields that are not needed in list views.
