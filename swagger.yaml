@@ -546,7 +546,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/PersonalizedGetProductData"
+                  $ref: "#/components/schemas/PersonalizedGetProductSummaryData"
                 description: Array of similar products, each with optional user state
               examples:
                 authenticated:
@@ -554,32 +554,24 @@ paths:
                   value:
                     - item:
                         productId: "660e8400-e29b-41d4-a716-446655440001"
+                        productSlugId: "similar-product-a1b2c3"
+                        shopSlugId: "my-shop"
                         eventId: "660e8400-e29b-41d4-a716-446655440011"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Similar Product"
                           language: "en"
                         price:
                           currency: "EUR"
                           amount: 2899
-                        priceEstimateMin:
-                          currency: "EUR"
-                          amount: 2700
-                        priceEstimateMax:
-                          currency: "EUR"
-                          amount: 3100
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
                           - url: "https://my-shop.com/images/similar-1.jpg"
                             prohibitedContent: "NONE"
-                        originYear: 1845
-                        authenticity: "ORIGINAL"
-                        condition: "GREAT"
-                        provenance: "COMPLETE"
-                        restoration: "NONE"
                         created: "2024-01-01T10:00:00Z"
                         updated: "2024-01-01T12:00:00Z"
                       userState:
@@ -588,10 +580,13 @@ paths:
                           notifications: false
                     - item:
                         productId: "770e8400-e29b-41d4-a716-446655440002"
+                        productSlugId: "another-similar-item-d4e5f6"
+                        shopSlugId: "my-shop"
                         eventId: "770e8400-e29b-41d4-a716-446655440012"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b812"
                         shopName: "My Shop"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Another Similar Item"
                           language: "en"
@@ -601,9 +596,6 @@ paths:
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/another-item"
                         images: []
-                        originYearMin: 1820
-                        originYearMax: 1840
-                        condition: "FAIR"
                         created: "2024-01-01T11:00:00Z"
                         updated: "2024-01-01T13:00:00Z"
                       userState:
@@ -615,32 +607,24 @@ paths:
                   value:
                     - item:
                         productId: "660e8400-e29b-41d4-a716-446655440001"
+                        productSlugId: "similar-product-a1b2c3"
+                        shopSlugId: "my-shop"
                         eventId: "660e8400-e29b-41d4-a716-446655440011"
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Similar Product"
                           language: "en"
                         price:
                           currency: "EUR"
                           amount: 2899
-                        priceEstimateMin:
-                          currency: "EUR"
-                          amount: 2700
-                        priceEstimateMax:
-                          currency: "EUR"
-                          amount: 3100
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
                         images:
                           - url: "https://my-shop.com/images/similar-1.jpg"
                             prohibitedContent: "NONE"
-                        originYear: 1845
-                        authenticity: "ORIGINAL"
-                        condition: "GREAT"
-                        provenance: "COMPLETE"
-                        restoration: "NONE"
                         created: "2024-01-01T10:00:00Z"
                         updated: "2024-01-01T12:00:00Z"
                 empty:
@@ -950,22 +934,19 @@ paths:
                     items:
                       - item:
                           productId: "550e8400-e29b-41d4-a716-446655440000"
+                          productSlugId: "premium-smartphone-case-a1b2c3"
+                          shopSlugId: "tech-store"
                           eventId: "550e8400-e29b-41d4-a716-446655440001"
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
+                          shopType: "COMMERCIAL_DEALER"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
                           price:
                             currency: "USD"
                             amount: 2999
-                          priceEstimateMin:
-                            currency: "USD"
-                            amount: 2800
-                          priceEstimateMax:
-                            currency: "USD"
-                            amount: 3200
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
@@ -986,22 +967,19 @@ paths:
                     items:
                       - item:
                           productId: "550e8400-e29b-41d4-a716-446655440000"
+                          productSlugId: "premium-smartphone-case-a1b2c3"
+                          shopSlugId: "tech-store"
                           eventId: "550e8400-e29b-41d4-a716-446655440001"
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
+                          shopType: "COMMERCIAL_DEALER"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
                           price:
                             currency: "USD"
                             amount: 2999
-                          priceEstimateMin:
-                            currency: "USD"
-                            amount: 2800
-                          priceEstimateMax:
-                            currency: "USD"
-                            amount: 3200
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
                           images:
@@ -2396,6 +2374,12 @@ paths:
         Creates a new shop in the system with the provided details.
         The shop must include at least one domain and can have up to 100 domains.
         Returns the created shop with generated ID and timestamps.
+        
+        **Uniqueness Checks**:
+        - The shop name must be unique (via slug normalization). A slug is automatically generated from the shop name.
+        - All shop domains must be unique - no domain can be associated with multiple shops.
+        
+        If either uniqueness constraint is violated, a 409 Conflict error is returned.
       operationId: createShop
       tags:
         - Shops
@@ -2479,16 +2463,26 @@ paths:
                     error: "SHOP_TOO_MANY_DOMAINS"
                     detail: "Shop can only have 100 domains but was given more: '142'"
         "409":
-          description: Conflict - shop with this domain already exists
+          description: Conflict - shop with this name/slug or domain already exists
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 409
-                title: "Conflict"
-                error: "SHOP_EXISTS_ALREADY"
-                detail: "Shop with name 'Tech Store Premium' exists already - a domain of shop is already registered"
+              examples:
+                shop_slug_exists:
+                  summary: Shop slug already exists
+                  value:
+                    status: 409
+                    title: "Conflict"
+                    error: "SHOP_EXISTS_ALREADY"
+                    detail: "Shop with name 'Tech Store Premium' exists already - the shop-slug 'tech-store-premium' is already registered."
+                shop_domain_exists:
+                  summary: Shop domain already exists
+                  value:
+                    status: 409
+                    title: "Conflict"
+                    error: "SHOP_EXISTS_ALREADY"
+                    detail: "Shop with name 'Tech Store Premium' exists already - a domain of the shop is already registered."
         "500":
           description: Internal server error
           content:
@@ -2626,6 +2620,8 @@ paths:
         All fields in the request body are optional - only provided fields will be updated.
         If the request body is empty or only contains null values, the shop is returned unchanged.
         When updating domains, the complete new set of domains must be provided.
+        
+        **Note**: The shop name cannot be updated as it determines the shop's slug identifier.
       operationId: updateShop
       tags:
         - Shops
@@ -2651,15 +2647,16 @@ paths:
         description: |
           Partial shop update data.
           Only provided fields will be updated. All fields are optional.
+          The shop name cannot be updated.
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/PatchShopData"
             examples:
-              update_name:
-                summary: Update only the name
+              update_shop_type:
+                summary: Update shop type
                 value:
-                  name: "Tech Store Premium Plus"
+                  shopType: "AUCTION_HOUSE"
               update_domains:
                 summary: Update domains
                 value:
@@ -2670,10 +2667,10 @@ paths:
                 summary: Update image
                 value:
                   image: "https://tech-store-premium.com/new-logo.svg"
-              update_all:
-                summary: Update all fields
+              update_multiple:
+                summary: Update multiple fields
                 value:
-                  name: "Tech Store Premium Plus"
+                  shopType: "COMMERCIAL_DEALER"
                   domains:
                     - "tech-store-premium.com"
                     - "tech-store-premium.eu"
@@ -2699,8 +2696,8 @@ paths:
                 $ref: "#/components/schemas/GetShopData"
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopSlugId: "tech-store-premium-plus"
-                name: "Tech Store Premium Plus"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
                 shopType: "COMMERCIAL_DEALER"
                 domains:
                   - "tech-store-premium.com"
@@ -3212,6 +3209,89 @@ components:
           nullable: true
           description: Optional array of product history events
 
+    GetProductSummaryData:
+      type: object
+      description: |
+        Lightweight product summary information for use in search results and similar products listings.
+        Contains essential product details without extended metadata fields like description, estimates,
+        origin year details, authenticity, condition, provenance, restoration, auction times, or history.
+      required:
+        - productId
+        - productSlugId
+        - shopSlugId
+        - eventId
+        - shopId
+        - shopsProductId
+        - shopName
+        - shopType
+        - title
+        - state
+        - url
+        - images
+        - created
+        - updated
+      properties:
+        productId:
+          type: string
+          format: uuid
+          description: Unique internal identifier for the product
+        productSlugId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+          description: |
+            Human-readable slug identifier for the product (kebab-case with 6-character hex suffix).
+            Format: {product-title}-{6-char-hex} where the title is derived from the product name.
+            Example: "amazing-product-fa87c4"
+        shopSlugId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Human-readable slug identifier of the shop (kebab-case, derived from shop name).
+            Example: "tech-store-premium" or "christies"
+        eventId:
+          type: string
+          format: uuid
+          description: Unique identifier for the current state/version of the product
+        shopId:
+          type: string
+          format: uuid
+          description: Unique identifier of the shop
+        shopsProductId:
+          type: string
+          description: Shop's unique identifier for the product. Can be any arbitrary string.
+        shopName:
+          type: string
+          description: Display name of the shop
+        shopType:
+          $ref: "#/components/schemas/ShopTypeData"
+        title:
+          $ref: "#/components/schemas/LocalizedTextData"
+        price:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional product price
+        state:
+          $ref: "#/components/schemas/ProductStateData"
+        url:
+          type: string
+          format: uri
+          description: URL to the product on the shop's website
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImageData"
+          description: Array of product images with prohibited content classification
+          default: []
+        created:
+          type: string
+          format: date-time
+          description: When the product was first created (RFC3339 format)
+        updated:
+          type: string
+          format: date-time
+          description: When the product was last updated (RFC3339 format)
+
     PersonalizedGetProductData:
       type: object
       description: |
@@ -3223,6 +3303,24 @@ components:
       properties:
         item:
           $ref: "#/components/schemas/GetProductData"
+        userState:
+          allOf:
+            - $ref: "#/components/schemas/ProductUserStateData"
+          nullable: true
+          description: Optional user-specific state for this product (only present when authenticated)
+
+    PersonalizedGetProductSummaryData:
+      type: object
+      description: |
+        Wrapper for lightweight product summary data with optional user-specific state.
+        Used in search results and similar products listings.
+        When user is authenticated, includes personalized information such as watchlist status.
+        When user is anonymous, only the product summary data is present.
+      required:
+        - item
+      properties:
+        item:
+          $ref: "#/components/schemas/GetProductSummaryData"
         userState:
           allOf:
             - $ref: "#/components/schemas/ProductUserStateData"
@@ -3241,8 +3339,8 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/PersonalizedGetProductData"
-          description: Array of personalized products in the current page
+            $ref: "#/components/schemas/PersonalizedGetProductSummaryData"
+          description: Array of personalized product summaries in the current page
         size:
           type: integer
           minimum: 0
@@ -4276,13 +4374,9 @@ components:
         Partial update data for a shop.
         All fields are optional - only provided fields will be updated.
         If the request body is empty or all fields are null, the shop is returned unchanged.
+        
+        **Note**: The shop name cannot be updated after creation as it determines the shop slug identifier.
       properties:
-        name:
-          type: string
-          nullable: true
-          description: New display name for the shop
-          maxLength: 255
-          example: "Tech Store Premium Plus"
         shopType:
           allOf:
             - $ref: "#/components/schemas/ShopTypeData"
