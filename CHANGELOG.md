@@ -6,6 +6,56 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-24 - Separate Product DTOs for Search and Similar Products
+
+This update introduces a new lightweight product summary data type (`GetProductSummaryData`) for use in search results and similar products listings. This reduces response payload size by excluding detailed metadata fields that are not needed in list views.
+
+### Added
+
+**GetProductSummaryData** - New lightweight product data type with the following fields:
+- `productId` (string, uuid, required): Unique internal identifier for the product
+- `productSlugId` (string, required): Human-readable slug identifier (e.g., "amazing-product-fa87c4")
+- `shopSlugId` (string, required): Human-readable shop slug (e.g., "tech-store-premium")
+- `eventId` (string, uuid, required): Unique identifier for current product state/version
+- `shopId` (string, uuid, required): Unique shop identifier
+- `shopsProductId` (string, required): Shop's unique product identifier
+- `shopName` (string, required): Display name of the shop
+- `shopType` (ShopTypeData, required): Type of shop (e.g., DEALER, AUCTION_HOUSE)
+- `title` (LocalizedTextData, required): Localized product title
+- `price` (PriceData, optional): Product price
+- `state` (ProductStateData, required): Current product state
+- `url` (string, uri, required): URL to product on shop's website
+- `images` (array of ProductImageData, required): Product images with prohibited content classification
+- `created` (string, date-time, required): When product was first created (RFC3339)
+- `updated` (string, date-time, required): When product was last updated (RFC3339)
+
+**PersonalizedGetProductSummaryData** - Wrapper combining `GetProductSummaryData` with optional user state:
+- `item` (GetProductSummaryData, required): The product summary data
+- `userState` (ProductUserStateData, optional): User-specific state when authenticated
+
+### Changed
+
+**GET /api/v1/products/search** - Response now uses `PersonalizedGetProductSummaryData`:
+- Response type changed from `PersonalizedProductSearchResultData<PersonalizedGetProductData>` to `PersonalizedProductSearchResultData<PersonalizedGetProductSummaryData>`
+- Each product in search results now excludes: `description`, `priceEstimateMin`, `priceEstimateMax`, `originYear`, `originYearMin`, `originYearMax`, `authenticity`, `condition`, `provenance`, `restoration`, `auctionStart`, `auctionEnd`, `history`
+- All core product information remains available (id, title, price, state, images, timestamps)
+
+**GET /api/v1/products/{shopId}/{shopsProductId}/similar** - Response now uses `PersonalizedGetProductSummaryData`:
+- Response type changed from `Array<PersonalizedGetProductData>` to `Array<PersonalizedGetProductSummaryData>`
+- Each similar product now excludes the same detailed fields as search results (listed above)
+- Reduces payload size for similar product suggestions while maintaining essential product information
+
+### Rationale
+
+The new `GetProductSummaryData` type is specifically designed for list/summary views where detailed metadata is not needed. This:
+- **Improves Performance**: Significantly reduces response payload size for endpoints that return multiple products
+- **Better Separation**: Distinguishes between detailed product views (single product endpoint) and summary views (search/similar)
+- **Maintains Compatibility**: The full `GetProductData` remains unchanged and continues to be used for single product retrieval
+
+To get full product details including description, estimates, origin years, authenticity, condition, provenance, restoration, auction times, and history, use the single product endpoints:
+- `GET /api/v1/products/{shopId}/{shopsProductId}`
+- `GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId}`
+
 ## 2026-01-24 - Add shop-type for auction-platforms
 
 This update adds a new shop-type for auction-platforms. 
