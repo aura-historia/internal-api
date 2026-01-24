@@ -3615,7 +3615,6 @@ components:
           description: Unique identifier of the shop
         shopsProductId:
           type: string
-          format: uuid
           description: Shop's unique identifier for the product. Can be any arbitrary string.
         payload:
           $ref: "#/components/schemas/ProductEventPayloadData"
