@@ -560,7 +560,7 @@ paths:
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
-                        shopType: "DEALER"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -586,7 +586,7 @@ paths:
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b812"
                         shopName: "My Shop"
-                        shopType: "DEALER"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Another Similar Item"
                           language: "en"
@@ -613,7 +613,7 @@ paths:
                         shopId: "550e8400-e29b-41d4-a716-446655440000"
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
-                        shopType: "DEALER"
+                        shopType: "COMMERCIAL_DEALER"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -940,7 +940,7 @@ paths:
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
-                          shopType: "DEALER"
+                          shopType: "COMMERCIAL_DEALER"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
@@ -973,7 +973,7 @@ paths:
                           shopId: "550e8400-e29b-41d4-a716-446655440000"
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
-                          shopType: "DEALER"
+                          shopType: "COMMERCIAL_DEALER"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
