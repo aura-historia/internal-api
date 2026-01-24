@@ -6,6 +6,127 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-24 - Split Product History into Dedicated Endpoint
+
+This update separates product history retrieval from the main product endpoint into a dedicated history endpoint. This change provides better separation of concerns and allows the history endpoint to return a cleaner array structure instead of nesting history data within the product response.
+
+### Added
+
+**GET /api/v1/products/{shopId}/{shopsProductId}/history** - New endpoint to retrieve product event history:
+- **Path Parameters**:
+  - `shopId` (string, uuid, required): Unique identifier of the shop
+  - `shopsProductId` (string, required): Shop's unique identifier for the product
+- **Query Parameters**:
+  - `currency` (CurrencyData, optional): Currency for price display in event payloads (default: EUR)
+- **Headers**:
+  - `Accept-Language` (string, optional): Preferred language for localized content
+- **Response** (200 OK):
+  - Returns an array of `GetProductEventData` objects representing the product's event history
+  - Events are ordered chronologically
+  - Each event contains:
+    - `eventType` (ProductEventTypeData): Type of event (CREATED, STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN, PRICE_DISCOVERED, PRICE_DROPPED, PRICE_INCREASED, PRICE_REMOVED)
+    - `productId` (string, uuid): Unique internal product identifier
+    - `eventId` (string, uuid): Unique event identifier
+    - `shopId` (string, uuid): Shop identifier
+    - `shopsProductId` (string): Shop's product identifier
+    - `payload` (ProductEventPayloadData): Event-specific payload with details
+    - `timestamp` (string, date-time): When the event occurred (RFC3339 format)
+- **Response Headers**:
+  - `Content-Language`: Language of returned content
+  - `Access-Control-Allow-Origin`: CORS header
+- **Error Responses**:
+  - 400 Bad Request: Invalid parameters (missing shopId or shopsProductId)
+  - 404 Not Found: Product not found
+  - 500 Internal Server Error: Server error
+
+**Example Response**:
+```json
+[
+  {
+    "eventType": "CREATED",
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "650e8400-e29b-41d4-a716-446655440001",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsProductId": "6ba7b810",
+    "payload": {
+      "price": {
+        "currency": "EUR",
+        "amount": 3000
+      },
+      "state": "LISTED"
+    },
+    "timestamp": "2024-01-01T10:00:00Z"
+  },
+  {
+    "eventType": "STATE_AVAILABLE",
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "650e8400-e29b-41d4-a716-446655440002",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsProductId": "6ba7b810",
+    "payload": {
+      "oldState": "LISTED",
+      "newState": "AVAILABLE"
+    },
+    "timestamp": "2024-01-02T14:30:00Z"
+  },
+  {
+    "eventType": "PRICE_DROPPED",
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "eventId": "650e8400-e29b-41d4-a716-446655440003",
+    "shopId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopsProductId": "6ba7b810",
+    "payload": {
+      "oldPrice": {
+        "currency": "EUR",
+        "amount": 3000
+      },
+      "newPrice": {
+        "currency": "EUR",
+        "amount": 2999
+      }
+    },
+    "timestamp": "2024-01-15T09:15:00Z"
+  }
+]
+```
+
+### Changed
+
+**GET /api/v1/products/{shopId}/{shopsProductId}** - Removed history query parameter:
+- The `history` query parameter has been removed
+- Previously: `?history=true` would include history events in the response
+- Now: Use the dedicated `/history` endpoint to retrieve product event history
+- The response no longer includes a `history` field in the product data
+
+**GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId}** - Removed history query parameter:
+- The `history` query parameter has been removed
+- Previously: `?history=true` would include history events in the response
+- Now: Use the dedicated `/history` endpoint with product IDs to retrieve event history
+- The response no longer includes a `history` field in the product data
+
+### Removed
+
+**GetProductData.history** - Field removed from product response:
+- Previously: `history` (array of GetProductEventData, optional, nullable)
+- Now: Field no longer exists in the schema
+- To retrieve product history, use the new dedicated endpoint: `GET /api/v1/products/{shopId}/{shopsProductId}/history`
+
+**Query Parameter `history`** - Removed from product retrieval endpoints:
+- Previously accepted on: `GET /api/v1/products/{shopId}/{shopsProductId}` and `GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId}`
+- The parameter and its validation error responses have been removed
+
+### Rationale
+
+This change provides:
+- **Better Separation of Concerns**: Product details and event history are distinct resources with dedicated endpoints
+- **Cleaner Response Structure**: History endpoint returns a direct array instead of nested data
+- **Performance Optimization**: Product retrieval no longer carries optional heavy history data
+- **API Design Consistency**: Follows RESTful principles with resource-specific endpoints
+
+**Migration Guide**:
+- **Before**: `GET /api/v1/products/{shopId}/{shopsProductId}?history=true`
+- **After**: First call `GET /api/v1/products/{shopId}/{shopsProductId}` to get product details, then call `GET /api/v1/products/{shopId}/{shopsProductId}/history` to get event history if needed
+
 ## 2026-01-24 - Shop Name Update Restriction and Slug Uniqueness Enforcement
 
 This update removes the ability to update a shop's name after creation and adds enforcement of shop slug uniqueness during shop creation. These changes ensure shop slug identifiers remain stable and unique throughout the shop's lifetime.
