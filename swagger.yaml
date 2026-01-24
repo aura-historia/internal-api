@@ -2374,6 +2374,12 @@ paths:
         Creates a new shop in the system with the provided details.
         The shop must include at least one domain and can have up to 100 domains.
         Returns the created shop with generated ID and timestamps.
+        
+        **Uniqueness Checks**:
+        - The shop name must be unique (via slug normalization). A slug is automatically generated from the shop name.
+        - All shop domains must be unique - no domain can be associated with multiple shops.
+        
+        If either uniqueness constraint is violated, a 409 Conflict error is returned.
       operationId: createShop
       tags:
         - Shops
@@ -2457,16 +2463,26 @@ paths:
                     error: "SHOP_TOO_MANY_DOMAINS"
                     detail: "Shop can only have 100 domains but was given more: '142'"
         "409":
-          description: Conflict - shop with this domain already exists
+          description: Conflict - shop with this name/slug or domain already exists
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 409
-                title: "Conflict"
-                error: "SHOP_EXISTS_ALREADY"
-                detail: "Shop with name 'Tech Store Premium' exists already - a domain of shop is already registered"
+              examples:
+                shop_slug_exists:
+                  summary: Shop slug already exists
+                  value:
+                    status: 409
+                    title: "Conflict"
+                    error: "SHOP_EXISTS_ALREADY"
+                    detail: "Shop with name 'Tech Store Premium' exists already - the shop-slug 'tech-store-premium' is already registered."
+                shop_domain_exists:
+                  summary: Shop domain already exists
+                  value:
+                    status: 409
+                    title: "Conflict"
+                    error: "SHOP_EXISTS_ALREADY"
+                    detail: "Shop with name 'Tech Store Premium' exists already - a domain of the shop is already registered."
         "500":
           description: Internal server error
           content:
@@ -2604,6 +2620,8 @@ paths:
         All fields in the request body are optional - only provided fields will be updated.
         If the request body is empty or only contains null values, the shop is returned unchanged.
         When updating domains, the complete new set of domains must be provided.
+        
+        **Note**: The shop name cannot be updated as it determines the shop's slug identifier.
       operationId: updateShop
       tags:
         - Shops
@@ -2629,15 +2647,16 @@ paths:
         description: |
           Partial shop update data.
           Only provided fields will be updated. All fields are optional.
+          The shop name cannot be updated.
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/PatchShopData"
             examples:
-              update_name:
-                summary: Update only the name
+              update_shop_type:
+                summary: Update shop type
                 value:
-                  name: "Tech Store Premium Plus"
+                  shopType: "AUCTION_HOUSE"
               update_domains:
                 summary: Update domains
                 value:
@@ -2648,10 +2667,10 @@ paths:
                 summary: Update image
                 value:
                   image: "https://tech-store-premium.com/new-logo.svg"
-              update_all:
-                summary: Update all fields
+              update_multiple:
+                summary: Update multiple fields
                 value:
-                  name: "Tech Store Premium Plus"
+                  shopType: "COMMERCIAL_DEALER"
                   domains:
                     - "tech-store-premium.com"
                     - "tech-store-premium.eu"
@@ -2677,8 +2696,8 @@ paths:
                 $ref: "#/components/schemas/GetShopData"
               example:
                 shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopSlugId: "tech-store-premium-plus"
-                name: "Tech Store Premium Plus"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
                 shopType: "COMMERCIAL_DEALER"
                 domains:
                   - "tech-store-premium.com"
@@ -4355,13 +4374,9 @@ components:
         Partial update data for a shop.
         All fields are optional - only provided fields will be updated.
         If the request body is empty or all fields are null, the shop is returned unchanged.
+        
+        **Note**: The shop name cannot be updated after creation as it determines the shop slug identifier.
       properties:
-        name:
-          type: string
-          nullable: true
-          description: New display name for the shop
-          maxLength: 255
-          example: "Tech Store Premium Plus"
         shopType:
           allOf:
             - $ref: "#/components/schemas/ShopTypeData"
