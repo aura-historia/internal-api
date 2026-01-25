@@ -6,6 +6,89 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-01-25 - Restructure REST API Resource Paths
+
+This update restructures API resource paths to follow a more hierarchical and RESTful pattern. Product endpoints now consistently use the `/shops/{shopId}/products/...` path structure, and shop identifier endpoints have been split into separate, more explicit endpoints based on the type of identifier (ID, domain, or slug).
+
+### Changed
+
+**Product Endpoints** - Restructured to nest under shops resource:
+
+- **GET /api/v1/products/{shopId}/{shopsProductId}** → **GET /api/v1/shops/{shopId}/products/{shopsProductId}**
+  - Path structure now clearly shows the hierarchical relationship between shops and products
+  - All parameters, headers, responses, and behavior remain identical
+  
+- **GET /api/v1/products/by-slug/{shopSlugId}/{productSlugId}** → **GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}**
+  - Path structure now clearly shows the hierarchical relationship between shops and products
+  - The `/by-slug/` prefix is moved to the beginning to group all slug-based lookups
+  - All parameters, headers, responses, and behavior remain identical
+
+- **GET /api/v1/products/{shopId}/{shopsProductId}/similar** → **GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar**
+  - Path structure now clearly shows the hierarchical relationship between shops and products
+  - All parameters, headers, responses, and behavior remain identical
+
+- **GET /api/v1/products/{shopId}/{shopsProductId}/history** → **GET /api/v1/shops/{shopId}/products/{shopsProductId}/history**
+  - Path structure now clearly shows the hierarchical relationship between shops and products
+  - All parameters, headers, responses, and behavior remain identical
+
+**Shop Endpoints** - Split polymorphic identifier endpoint into explicit endpoints:
+
+- **GET /api/v1/shops/{shopIdentifier}** has been split into two separate endpoints:
+  - **GET /api/v1/shops/{shopId}** - Retrieve shop by UUID
+    - **Path Parameters**:
+      - `shopId` (string, uuid, required): Unique identifier of the shop
+    - Previously this was accessed via `/api/v1/shops/{shopIdentifier}` with a UUID value
+    - Response structure, headers, and behavior remain identical
+    - **Error Response Changes**:
+      - Field name in errors changed from `shopIdentifier` to `shopId`
+      - Error code for invalid format changed from `INVALID_SHOP_IDENTIFIER` to `INVALID_UUID`
+      
+  - **GET /api/v1/by-domain/shops/{shopDomain}** - Retrieve shop by domain (NEW)
+    - **Path Parameters**:
+      - `shopDomain` (string, required): Domain associated with the shop (e.g., "tech-store.com")
+      - Domain is normalized (lowercased, www prefix removed)
+      - Pattern: `^[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,}$`
+    - Previously this was accessed via `/api/v1/shops/{shopIdentifier}` with a domain value
+    - Response structure, headers, and behavior remain identical
+    - **Error Response Changes**:
+      - Field name in errors changed from `shopIdentifier` to `shopDomain`
+      - Error code for invalid format changed from `INVALID_SHOP_IDENTIFIER` to `INVALID_DOMAIN`
+
+- **GET /api/v1/shops/by-slug/{shopSlugId}** → **GET /api/v1/by-slug/shops/{shopSlugId}**
+  - The `/by-slug/` prefix is moved to the beginning to group all slug-based lookups
+  - All parameters, headers, responses, and behavior remain identical
+
+- **PATCH /api/v1/shops/{shopIdentifier}** has been split into two separate endpoints:
+  - **PATCH /api/v1/shops/{shopId}** - Update shop by UUID
+    - **Path Parameters**:
+      - `shopId` (string, uuid, required): Unique identifier of the shop
+    - Previously this was accessed via `/api/v1/shops/{shopIdentifier}` with a UUID value
+    - Request body, response structure, headers, and behavior remain identical
+    - **Error Response Changes**:
+      - Field name in errors changed from `shopIdentifier` to `shopId`
+      - Error code for invalid format changed from `INVALID_SHOP_IDENTIFIER` to `INVALID_UUID`
+      
+  - **PATCH /api/v1/by-domain/shops/{shopDomain}** - Update shop by domain (NEW)
+    - **Path Parameters**:
+      - `shopDomain` (string, required): Domain associated with the shop (e.g., "tech-store.com")
+      - Domain is normalized (lowercased, www prefix removed)
+      - Pattern: `^[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,}$`
+    - Previously this was accessed via `/api/v1/shops/{shopIdentifier}` with a domain value
+    - Request body, response structure, headers, and behavior remain identical
+    - **Error Response Changes**:
+      - Field name in errors changed from `shopIdentifier` to `shopDomain`
+      - Error code for invalid format changed from `INVALID_SHOP_IDENTIFIER` to `INVALID_DOMAIN`
+
+### Removed
+
+- **GET /api/v1/shops/{shopIdentifier}** - Removed polymorphic endpoint
+  - Use `GET /api/v1/shops/{shopId}` for UUID-based lookup
+  - Use `GET /api/v1/by-domain/shops/{shopDomain}` for domain-based lookup
+  
+- **PATCH /api/v1/shops/{shopIdentifier}** - Removed polymorphic endpoint
+  - Use `PATCH /api/v1/shops/{shopId}` for UUID-based updates
+  - Use `PATCH /api/v1/by-domain/shops/{shopDomain}` for domain-based updates
+
 ## 2026-01-24 - Split Product History into Dedicated Endpoint
 
 This update separates product history retrieval from the main product endpoint into a dedicated history endpoint. This change provides better separation of concerns and allows the history endpoint to return a cleaner array structure instead of nesting history data within the product response.
