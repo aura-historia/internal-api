@@ -19,7 +19,7 @@ servers:
     description: Full Development-Server
 
 paths:
-  /api/v1/products/{shopId}/{shopsProductId}:
+  /api/v1/shops/{shopId}/products/{shopsProductId}:
     get:
       summary: Get a single product
       description: |
@@ -241,7 +241,7 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/products/by-slug/{shopSlugId}/{productSlugId}:
+  /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}:
     get:
       summary: Get a single product by slug
       description: |
@@ -440,7 +440,7 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/products/{shopId}/{shopsProductId}/history:
+  /api/v1/shops/{shopId}/products/{shopsProductId}/history:
     get:
       summary: Get product event history
       description: |
@@ -599,7 +599,7 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/products/{shopId}/{shopsProductId}/similar:
+  /api/v1/shops/{shopId}/products/{shopsProductId}/similar:
     get:
       summary: Get similar products
       description: |
@@ -763,7 +763,7 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "https://api.aura-historia.com/api/v1/products/550e8400-e29b-41d4-a716-446655440000/6ba7b810/similar"
+              example: "https://api.aura-historia.com/api/v1/shops/550e8400-e29b-41d4-a716-446655440000/products/6ba7b810/similar"
         "400":
           description: Bad request - invalid parameters
           content:
@@ -2626,33 +2626,24 @@ paths:
                 error: "UNPROCESSED_ITEMS"
                 detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
 
-  /api/v1/shops/{shopIdentifier}:
+  /api/v1/shops/{shopId}:
     get:
-      summary: Get shop details
+      summary: Get shop details by ID
       description: |
-        Retrieves detailed information about a specific shop by its identifier.
-        The identifier can be either a shop ID (UUID) or a domain associated with the shop.
+        Retrieves detailed information about a specific shop by its shop ID (UUID).
         Returns complete shop metadata including name, domains, image, and timestamps.
-      operationId: getShop
+      operationId: getShopById
       tags:
         - Shops
       parameters:
-        - name: shopIdentifier
+        - name: shopId
           in: path
           required: true
-          description: |
-            Identifier of the shop. Can be either:
-            - A shop ID (UUID format)
-            - A domain associated with the shop (e.g., "tech-store.com", "shop.example.com")
+          description: Unique identifier of the shop (UUID format)
           schema:
             type: string
-          examples:
-            uuid:
-              value: "550e8400-e29b-41d4-a716-446655440000"
-              summary: "Shop ID (UUID)"
-            domain:
-              value: "tech-store-premium.com"
-              summary: "Shop domain"
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
       responses:
         "200":
           description: Shop found and returned successfully
@@ -2687,32 +2678,32 @@ paths:
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         "400":
-          description: Bad request - invalid or missing shop identifier
+          description: Bad request - invalid or missing shop ID
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_shop_identifier:
-                  summary: Missing shop identifier
+                missing_shop_id:
+                  summary: Missing shop ID
                   value:
                     status: 400
                     title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopIdentifier"
+                      field: "shopId"
                       sourceType: "path"
-                    detail: "Missing field 'shopIdentifier'."
-                invalid_shop_identifier:
-                  summary: Invalid shop identifier format
+                    detail: "Missing field 'shopId'."
+                invalid_shop_id:
+                  summary: Invalid shop ID format
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "INVALID_SHOP_IDENTIFIER"
+                    error: "INVALID_UUID"
                     source:
-                      field: "shopIdentifier"
+                      field: "shopId"
                       sourceType: "path"
-                    detail: "Invalid shop identifier format"
+                    detail: "Invalid UUID format"
         "404":
           description: Shop not found
           content:
@@ -2734,35 +2725,26 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
     patch:
-      summary: Update shop details
+      summary: Update shop details by ID
       description: |
-        Updates an existing shop's information by its identifier.
-        The identifier can be either a shop ID (UUID) or a domain associated with the shop.
+        Updates an existing shop's information by its shop ID (UUID).
         All fields in the request body are optional - only provided fields will be updated.
         If the request body is empty or only contains null values, the shop is returned unchanged.
         When updating domains, the complete new set of domains must be provided.
         
         **Note**: The shop name cannot be updated as it determines the shop's slug identifier.
-      operationId: updateShop
+      operationId: updateShopById
       tags:
         - Shops
       parameters:
-        - name: shopIdentifier
+        - name: shopId
           in: path
           required: true
-          description: |
-            Identifier of the shop to update. Can be either:
-            - A shop ID (UUID format)
-            - A domain associated with the shop (e.g., "tech-store.com", "shop.example.com")
+          description: Unique identifier of the shop to update (UUID format)
           schema:
             type: string
-          examples:
-            uuid:
-              value: "550e8400-e29b-41d4-a716-446655440000"
-              summary: "Shop ID (UUID)"
-            domain:
-              value: "tech-store-premium.com"
-              summary: "Shop domain"
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
       requestBody:
         required: true
         description: |
@@ -2833,26 +2815,292 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_shop_identifier:
-                  summary: Missing shop identifier
+                missing_shop_id:
+                  summary: Missing shop ID
                   value:
                     status: 400
                     title: "Bad Request"
                     error: "BAD_PATH_PARAMETER_VALUE"
                     source:
-                      field: "shopIdentifier"
+                      field: "shopId"
                       sourceType: "path"
-                    detail: "Missing field 'shopIdentifier'."
-                invalid_shop_identifier:
-                  summary: Invalid shop identifier format
+                    detail: "Missing field 'shopId'."
+                invalid_shop_id:
+                  summary: Invalid shop ID format
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "INVALID_SHOP_IDENTIFIER"
+                    error: "INVALID_UUID"
                     source:
-                      field: "shopIdentifier"
+                      field: "shopId"
                       sourceType: "path"
-                    detail: "Invalid shop identifier format"
+                    detail: "Invalid UUID format"
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_json:
+                  summary: Invalid JSON format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Invalid JSON format"
+                too_many_domains:
+                  summary: Too many domains provided
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "SHOP_TOO_MANY_DOMAINS"
+                    detail: "Shop can only have 100 domains but was given more: '142'"
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+                detail: "Shop with identifier not found"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+        "503":
+          description: Service temporarily unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 503
+                title: "Service Unavailable"
+                error: "UNPROCESSED_ITEMS"
+                detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
+  /api/v1/by-domain/shops/{shopDomain}:
+    get:
+      summary: Get shop details by domain
+      description: |
+        Retrieves detailed information about a specific shop by its domain.
+        Returns complete shop metadata including name, domains, image, and timestamps.
+      operationId: getShopByDomain
+      tags:
+        - Shops
+      parameters:
+        - name: shopDomain
+          in: path
+          required: true
+          description: |
+            Domain associated with the shop (e.g., "tech-store.com", "shop.example.com").
+            The domain is normalized (lowercased, www prefix removed).
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,}$'
+            example: "tech-store-premium.com"
+      responses:
+        "200":
+          description: Shop found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  [
+                    "tech-store-premium.com",
+                    "tech-store-premium.de",
+                    "apple.tech-store-premium.com",
+                  ]
+                image: "https://tech-store-premium.com/logo.svg"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing domain
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_domain:
+                  summary: Missing shop domain
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Missing field 'shopDomain'."
+                invalid_domain:
+                  summary: Invalid domain format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_DOMAIN"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Invalid domain format"
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update shop details by domain
+      description: |
+        Updates an existing shop's information by its domain.
+        All fields in the request body are optional - only provided fields will be updated.
+        If the request body is empty or only contains null values, the shop is returned unchanged.
+        When updating domains, the complete new set of domains must be provided.
+        
+        **Note**: The shop name cannot be updated as it determines the shop's slug identifier.
+      operationId: updateShopByDomain
+      tags:
+        - Shops
+      parameters:
+        - name: shopDomain
+          in: path
+          required: true
+          description: |
+            Domain associated with the shop to update (e.g., "tech-store.com", "shop.example.com").
+            The domain is normalized (lowercased, www prefix removed).
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+([-.][a-z0-9]+)*\.[a-z]{2,}$'
+            example: "tech-store-premium.com"
+      requestBody:
+        required: true
+        description: |
+          Partial shop update data.
+          Only provided fields will be updated. All fields are optional.
+          The shop name cannot be updated.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchShopData"
+            examples:
+              update_shop_type:
+                summary: Update shop type
+                value:
+                  shopType: "AUCTION_HOUSE"
+              update_domains:
+                summary: Update domains
+                value:
+                  domains:
+                    - "tech-store-premium.com"
+                    - "tech-store-premium.eu"
+              update_image:
+                summary: Update image
+                value:
+                  image: "https://tech-store-premium.com/new-logo.svg"
+              update_multiple:
+                summary: Update multiple fields
+                value:
+                  shopType: "COMMERCIAL_DEALER"
+                  domains:
+                    - "tech-store-premium.com"
+                    - "tech-store-premium.eu"
+                  image: "https://tech-store-premium.com/new-logo.svg"
+      responses:
+        "200":
+          description: Shop updated successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:30:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  - "tech-store-premium.com"
+                  - "tech-store-premium.eu"
+                image: "https://tech-store-premium.com/new-logo.svg"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:30:00Z"
+        "400":
+          description: Bad request - invalid parameters or body
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_domain:
+                  summary: Missing shop domain
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Missing field 'shopDomain'."
+                invalid_domain:
+                  summary: Invalid domain format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_DOMAIN"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Invalid domain format"
                 missing_body:
                   summary: Missing request body
                   value:
@@ -2907,7 +3155,7 @@ paths:
                 error: "UNPROCESSED_ITEMS"
                 detail: "Did not succeed checking existence of shop due to DynamoDB Batch-Response containing unprocessed items"
 
-  /api/v1/shops/by-slug/{shopSlugId}:
+  /api/v1/by-slug/shops/{shopSlugId}:
     get:
       summary: Get shop details by slug
       description: |
