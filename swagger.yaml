@@ -15,7 +15,7 @@ info:
     url: https://github.com/aura-historia/backend/blob/develop/LICENSE
 
 servers:
-  - url: https://dev.api.aura-historia.com
+  - url: https://api.dev.aura-historia.com
     description: Full Development-Server
 
 paths:
