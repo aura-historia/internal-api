@@ -3577,7 +3577,7 @@ components:
       description: |
         Lightweight product summary information for use in search results and similar products listings.
         Contains essential product details without extended metadata fields like description, estimates,
-        origin year details, authenticity, condition, provenance, restoration, auction times, or history.
+        origin year details, authenticity, condition, provenance, restoration, or history.
       required:
         - productId
         - productSlugId
@@ -3646,6 +3646,14 @@ components:
             $ref: "#/components/schemas/ProductImageData"
           description: Array of product images with prohibited content classification
           default: []
+        auction:
+          allOf:
+            - $ref: "#/components/schemas/AuctionData"
+          nullable: true
+          description: |
+            Optional auction time window information.
+            Only present for products from auction houses with scheduled auction times.
+            Contains start and/or end timestamps for the auction.
         created:
           type: string
           format: date-time
@@ -3922,6 +3930,32 @@ components:
         - UNKNOWN: Authenticity has not been determined
       default: UNKNOWN
       example: ORIGINAL
+
+    AuctionData:
+      type: object
+      description: |
+        Auction time window information for products from auction houses.
+        Contains optional start and end timestamps for scheduled auctions.
+        At least one of the fields (start or end) must be present when this object is included.
+      properties:
+        start:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Start datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction start times.
+            Used to indicate when bidding begins or when the item will be auctioned.
+          example: "2025-05-01T12:00:00Z"
+        end:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            End datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction end times.
+            Used to indicate when bidding ends or when the auction session concludes.
+          example: "2025-05-10T12:00:00Z"
 
     ConditionData:
       type: string

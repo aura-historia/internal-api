@@ -6,6 +6,32 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-07 - Add Auction Data to Product Summary
+
+This update adds auction timing information to product summary responses, providing lightweight access to auction start and end times without requiring a full product details request.
+
+### Added
+
+**New Schema - AuctionData**:
+- **Properties**:
+  - `start` (string, date-time, nullable): Start datetime of the auction window in RFC3339 format. Optional field indicating when bidding begins or when the item will be auctioned.
+  - `end` (string, date-time, nullable): End datetime of the auction window in RFC3339 format. Optional field indicating when bidding ends or when the auction session concludes.
+- At least one of the fields (start or end) is present when the AuctionData object is included in a response.
+- Both fields use RFC3339 datetime format (e.g., "2025-05-01T12:00:00Z")
+
+### Changed
+
+**GetProductSummaryData Schema** - Added auction field:
+- **New Property**:
+  - `auction` (AuctionData, nullable): Optional auction time window information. Only present for products from auction houses with scheduled auction times. Contains start and/or end timestamps for the auction.
+- This field is skipped in JSON responses when null
+- The GetProductSummaryData description has been updated to reflect that auction times are now included (previously listed as excluded metadata)
+
+**Affected Endpoints**:
+All endpoints returning `GetProductSummaryData` or `PersonalizedGetProductSummaryData` now include the auction field:
+- **GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar** - Returns array of PersonalizedGetProductSummaryData
+- **POST /api/v1/products/search** - Returns PersonalizedProductSearchResultData containing PersonalizedGetProductSummaryData items
+
 ## 2026-01-25 - Restructure REST API Resource Paths
 
 This update restructures API resource paths to follow a more hierarchical and RESTful pattern. Product endpoints now consistently use the `/shops/{shopId}/products/...` path structure, and shop identifier endpoints have been split into separate, more explicit endpoints based on the type of identifier (ID, domain, or slug).
