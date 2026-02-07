@@ -128,14 +128,16 @@ paths:
                         text: "This is an amazing product description"
                         language: "en"
                       price:
-                        currency: "EUR"
-                        amount: 2999
-                      priceEstimateMin:
-                        currency: "EUR"
-                        amount: 2500
-                      priceEstimateMax:
-                        currency: "EUR"
-                        amount: 3500
+                        offer:
+                          currency: "EUR"
+                          amount: 2999
+                        estimate:
+                          min:
+                            currency: "EUR"
+                            amount: 2500
+                          max:
+                            currency: "EUR"
+                            amount: 3500
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
@@ -143,11 +145,15 @@ paths:
                           prohibitedContent: "NONE"
                         - url: "https://my-shop.com/images/product-2.jpg"
                           prohibitedContent: "NONE"
-                      originYear: 1837
+                      originYear:
+                        year: 1837
                       authenticity: "ORIGINAL"
                       condition: "EXCELLENT"
                       provenance: "PARTIAL"
                       restoration: "MINOR"
+                      auction:
+                        start: "2025-05-01T12:00:00Z"
+                        end: "2025-05-10T12:00:00Z"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -173,14 +179,16 @@ paths:
                         text: "This is an amazing product description"
                         language: "en"
                       price:
-                        currency: "EUR"
-                        amount: 2999
-                      priceEstimateMin:
-                        currency: "EUR"
-                        amount: 2800
-                      priceEstimateMax:
-                        currency: "EUR"
-                        amount: 3200
+                        offer:
+                          currency: "EUR"
+                          amount: 2999
+                        estimate:
+                          min:
+                            currency: "EUR"
+                            amount: 2800
+                          max:
+                            currency: "EUR"
+                            amount: 3200
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
                       images:
@@ -188,7 +196,8 @@ paths:
                           prohibitedContent: "NONE"
                         - url: "https://my-shop.com/images/product-2.jpg"
                           prohibitedContent: "NONE"
-                      originYearMax: 1950
+                      originYear:
+                        max: 1950
                       authenticity: "QUESTIONABLE"
                       condition: "GOOD"
                       provenance: "CLAIMED"
@@ -358,13 +367,18 @@ paths:
                         text: "This is an amazing product description"
                         language: "en"
                       price:
-                        currency: "EUR"
-                        amount: 2999
+                        offer:
+                          currency: "EUR"
+                          amount: 2999
                       state: "AVAILABLE"
                       url: "https://tech-store-premium.com/products/amazing-product"
                       images:
                         - url: "https://tech-store-premium.com/images/product-1.jpg"
                           prohibitedContent: "NONE"
+                      authenticity: "UNKNOWN"
+                      condition: "UNKNOWN"
+                      provenance: "UNKNOWN"
+                      restoration: "UNKNOWN"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -389,6 +403,10 @@ paths:
                       state: "AVAILABLE"
                       url: "https://tech-store-premium.com/products/amazing-product"
                       images: []
+                      authenticity: "UNKNOWN"
+                      condition: "UNKNOWN"
+                      provenance: "UNKNOWN"
+                      restoration: "UNKNOWN"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState: null
@@ -3432,6 +3450,10 @@ components:
         - state
         - url
         - images
+        - authenticity
+        - condition
+        - provenance
+        - restoration
         - created
         - updated
       properties:
@@ -3477,19 +3499,11 @@ components:
           description: Optional product description
         price:
           allOf:
-            - $ref: "#/components/schemas/PriceData"
+            - $ref: "#/components/schemas/PricingData"
           nullable: true
-          description: Optional product price
-        priceEstimateMin:
-          allOf:
-            - $ref: "#/components/schemas/PriceData"
-          nullable: true
-          description: Optional minimum estimated price for the product
-        priceEstimateMax:
-          allOf:
-            - $ref: "#/components/schemas/PriceData"
-          nullable: true
-          description: Optional maximum estimated price for the product
+          description: |
+            Complete pricing information including offer price and optional estimates.
+            When null, no pricing information is available for this product.
         state:
           $ref: "#/components/schemas/ProductStateData"
         url:
@@ -3502,67 +3516,29 @@ components:
             $ref: "#/components/schemas/ProductImageData"
           description: Array of product images with prohibited content classification
           default: []
-        originYearMin:
-          type: integer
-          nullable: true
-          description: |
-            Lower end of the year range when the antique is estimated to have originated.
-            Only present when the origin year is expressed as a range (originYear will be null).
-            Can be present alone (without originYearMax) to indicate "after this year".
-          example: 1900
         originYear:
-          type: integer
+          allOf:
+            - $ref: "#/components/schemas/OriginYearData"
           nullable: true
           description: |
-            Exact year the antique is estimated to have originated.
-            When this value is present, both originYearMin and originYearMax will be null.
-          example: 1837
-        originYearMax:
-          type: integer
-          nullable: true
-          description: |
-            Upper end of the year range when the antique is estimated to have originated.
-            Only present when the origin year is expressed as a range (originYear will be null).
-            Can be present alone (without originYearMin) to indicate "before this year".
-          example: 1950
+            Origin year information for the antique product.
+            Can be an exact year or a year range.
         authenticity:
-          allOf:
-            - $ref: "#/components/schemas/AuthenticityData"
-          nullable: true
-          description: Authenticity classification of the antique product
+          $ref: "#/components/schemas/AuthenticityData"
         condition:
-          allOf:
-            - $ref: "#/components/schemas/ConditionData"
-          nullable: true
-          description: Physical condition assessment of the antique product
+          $ref: "#/components/schemas/ConditionData"
         provenance:
-          allOf:
-            - $ref: "#/components/schemas/ProvenanceData"
-          nullable: true
-          description: Documentation trail and ownership history of the antique product
+          $ref: "#/components/schemas/ProvenanceData"
         restoration:
+          $ref: "#/components/schemas/RestorationData"
+        auction:
           allOf:
-            - $ref: "#/components/schemas/RestorationData"
-          nullable: true
-          description: Level of restoration work performed on the antique product
-        auctionStart:
-          type: string
-          format: date-time
+            - $ref: "#/components/schemas/AuctionData"
           nullable: true
           description: |
-            Start datetime of the auction window for this product (RFC3339 format).
+            Optional auction time window information.
             Only present for products from auction houses with scheduled auction times.
-            Used to indicate when bidding begins or when the item will be auctioned.
-          example: "2026-02-15T10:00:00Z"
-        auctionEnd:
-          type: string
-          format: date-time
-          nullable: true
-          description: |
-            End datetime of the auction window for this product (RFC3339 format).
-            Only present for products from auction houses with scheduled auction times.
-            Used to indicate when bidding ends or when the auction session concludes.
-          example: "2026-02-15T14:00:00Z"
+            Contains start and/or end timestamps for the auction.
         created:
           type: string
           format: date-time
@@ -3577,7 +3553,7 @@ components:
       description: |
         Lightweight product summary information for use in search results and similar products listings.
         Contains essential product details without extended metadata fields like description, estimates,
-        origin year details, authenticity, condition, provenance, restoration, auction times, or history.
+        origin year details, authenticity, condition, provenance, restoration, or history.
       required:
         - productId
         - productSlugId
@@ -3646,6 +3622,14 @@ components:
             $ref: "#/components/schemas/ProductImageData"
           description: Array of product images with prohibited content classification
           default: []
+        auction:
+          allOf:
+            - $ref: "#/components/schemas/AuctionData"
+          nullable: true
+          description: |
+            Optional auction time window information.
+            Only present for products from auction houses with scheduled auction times.
+            Contains start and/or end timestamps for the auction.
         created:
           type: string
           format: date-time
@@ -3923,6 +3907,32 @@ components:
       default: UNKNOWN
       example: ORIGINAL
 
+    AuctionData:
+      type: object
+      description: |
+        Auction time window information for products from auction houses.
+        Contains optional start and end timestamps for scheduled auctions.
+        At least one of the fields (start or end) must be present when this object is included.
+      properties:
+        start:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            Start datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction start times.
+            Used to indicate when bidding begins or when the item will be auctioned.
+          example: "2025-05-01T12:00:00Z"
+        end:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            End datetime of the auction window for this product (RFC3339 format).
+            Only present for products from auction houses with scheduled auction end times.
+            Used to indicate when bidding ends or when the auction session concludes.
+          example: "2025-05-10T12:00:00Z"
+
     ConditionData:
       type: string
       enum: [EXCELLENT, GREAT, GOOD, FAIR, POOR, UNKNOWN]
@@ -3936,6 +3946,75 @@ components:
         - UNKNOWN: Condition has not been assessed
       default: UNKNOWN
       example: EXCELLENT
+
+    OriginYearData:
+      type: object
+      description: |
+        Origin year information for antique products.
+        Can represent either an exact year or a year range.
+        At least one of the fields (min, year, or max) will be present when this object is included.
+      properties:
+        min:
+          type: integer
+          nullable: true
+          description: |
+            Lower end of the year range when the antique is estimated to have originated.
+            Only present when the origin year is expressed as a range (year will be null).
+            Can be present alone (without max) to indicate "after this year".
+          example: 1900
+        year:
+          type: integer
+          nullable: true
+          description: |
+            Exact year the antique is estimated to have originated.
+            When this value is present, both min and max will typically be null.
+          example: 1837
+        max:
+          type: integer
+          nullable: true
+          description: |
+            Upper end of the year range when the antique is estimated to have originated.
+            Only present when the origin year is expressed as a range (year will be null).
+            Can be present alone (without min) to indicate "before this year".
+          example: 1950
+
+    PriceEstimateData:
+      type: object
+      description: |
+        Price estimate range for a product.
+        Contains optional minimum and maximum estimated prices.
+      properties:
+        min:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional minimum estimated price for the product
+        max:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional maximum estimated price for the product
+
+    PricingData:
+      type: object
+      description: |
+        Complete pricing information for a product.
+        Contains both the offer price and optional price estimates.
+      properties:
+        offer:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: |
+            The actual offer or asking price for the product.
+            This is the price at which the product is currently being sold.
+        estimate:
+          allOf:
+            - $ref: "#/components/schemas/PriceEstimateData"
+          nullable: true
+          description: |
+            Optional price estimate range.
+            Common for auction items where an estimated value range is provided.
 
     ProvenanceData:
       type: string
