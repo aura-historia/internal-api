@@ -6,9 +6,9 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2026-02-07 - Add Auction Data to Product Summary
+## 2026-02-07 - Restructure Product Data Response Format
 
-This update adds auction timing information to product summary responses, providing lightweight access to auction start and end times without requiring a full product details request.
+This update restructures the product data response format to better organize pricing, origin year, and auction information into composite objects. This provides a more cohesive API structure and reduces field proliferation at the top level.
 
 ### Added
 
@@ -19,7 +19,93 @@ This update adds auction timing information to product summary responses, provid
 - At least one of the fields (start or end) is present when the AuctionData object is included in a response.
 - Both fields use RFC3339 datetime format (e.g., "2025-05-01T12:00:00Z")
 
+**New Schema - PricingData**:
+- **Properties**:
+  - `offer` (PriceData, nullable): The actual offer or asking price for the product. This is the price at which the product is currently being sold.
+  - `estimate` (PriceEstimateData, nullable): Optional price estimate range, common for auction items.
+- Combines offer price and estimates into a single cohesive pricing structure.
+
+**New Schema - PriceEstimateData**:
+- **Properties**:
+  - `min` (PriceData, nullable): Optional minimum estimated price for the product.
+  - `max` (PriceData, nullable): Optional maximum estimated price for the product.
+- Encapsulates price estimate range information.
+
+**New Schema - OriginYearData**:
+- **Properties**:
+  - `min` (integer, nullable): Lower end of the year range when the antique is estimated to have originated.
+  - `year` (integer, nullable): Exact year the antique is estimated to have originated.
+  - `max` (integer, nullable): Upper end of the year range when the antique is estimated to have originated.
+- At least one of the fields will be present when this object is included.
+- Can represent either an exact year or a year range.
+
 ### Changed
+
+**GetProductData Schema** - Major restructuring of product fields:
+
+1. **Price Structure Changed**:
+   - **Removed**: `price`, `priceEstimateMin`, `priceEstimateMax` (three separate fields)
+   - **Added**: `price` (PricingData, nullable) - Single field containing nested offer and estimate data
+   - **Example Before**:
+     ```json
+     {
+       "price": { "currency": "EUR", "amount": 2999 },
+       "priceEstimateMin": { "currency": "EUR", "amount": 2500 },
+       "priceEstimateMax": { "currency": "EUR", "amount": 3500 }
+     }
+     ```
+   - **Example After**:
+     ```json
+     {
+       "price": {
+         "offer": { "currency": "EUR", "amount": 2999 },
+         "estimate": {
+           "min": { "currency": "EUR", "amount": 2500 },
+           "max": { "currency": "EUR", "amount": 3500 }
+         }
+       }
+     }
+     ```
+
+2. **Origin Year Structure Changed**:
+   - **Removed**: `originYearMin`, `originYear`, `originYearMax` (three separate fields)
+   - **Added**: `originYear` (OriginYearData, nullable) - Single field containing nested min/year/max data
+   - **Example Before**:
+     ```json
+     {
+       "originYear": 1837
+     }
+     ```
+   - **Example After**:
+     ```json
+     {
+       "originYear": { "year": 1837 }
+     }
+     ```
+
+3. **Auction Fields Restructured**:
+   - **Removed**: `auctionStart`, `auctionEnd` (two separate fields)
+   - **Added**: `auction` (AuctionData, nullable) - Single field containing nested start and end data
+   - **Example Before**:
+     ```json
+     {
+       "auctionStart": "2025-05-01T12:00:00Z",
+       "auctionEnd": "2025-05-10T12:00:00Z"
+     }
+     ```
+   - **Example After**:
+     ```json
+     {
+       "auction": {
+         "start": "2025-05-01T12:00:00Z",
+         "end": "2025-05-10T12:00:00Z"
+       }
+     }
+     ```
+
+4. **Metadata Fields Now Required**:
+   - `authenticity`, `condition`, `provenance`, `restoration` are now required fields (always present with default value "UNKNOWN" when not specified)
+   - Previously these fields were nullable and could be absent from responses
 
 **GetProductSummaryData Schema** - Added auction field:
 - **New Property**:
@@ -28,6 +114,10 @@ This update adds auction timing information to product summary responses, provid
 - The GetProductSummaryData description has been updated to reflect that auction times are now included (previously listed as excluded metadata)
 
 **Affected Endpoints**:
+All endpoints returning `GetProductData` or `PersonalizedGetProductData` now use the restructured format:
+- **GET /api/v1/shops/{shopId}/products/{shopsProductId}** - Returns PersonalizedGetProductData
+- **GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}** - Returns PersonalizedGetProductData
+
 All endpoints returning `GetProductSummaryData` or `PersonalizedGetProductSummaryData` now include the auction field:
 - **GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar** - Returns array of PersonalizedGetProductSummaryData
 - **POST /api/v1/products/search** - Returns PersonalizedProductSearchResultData containing PersonalizedGetProductSummaryData items
