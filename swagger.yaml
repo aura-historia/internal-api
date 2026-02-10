@@ -1066,6 +1066,7 @@ paths:
               language: "en"
               currency: "USD"
               productQuery: "smartphone case"
+              categoryId: "musical-instruments"
               shopName: ["Tech Store", "Electronics Hub"]
               price:
                 min: 1000
@@ -1275,6 +1276,7 @@ paths:
                       language: "en"
                       currency: "USD"
                       productQuery: "smartphone"
+                      categoryId: "musical-instruments"
                       shopName: ["Tech Store"]
                       price:
                         min: 1000
@@ -1357,6 +1359,7 @@ paths:
                 language: "en"
                 currency: "USD"
                 productQuery: "smartphone"
+                categoryId: "musical-instruments"
                 shopName: ["Tech Store"]
                 price:
                   min: 1000
@@ -1403,6 +1406,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
+                  categoryId: "musical-instruments"
                   shopName: ["Tech Store"]
                   price:
                     min: 1000
@@ -1512,6 +1516,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
+                  categoryId: "musical-instruments"
                   shopName: ["Tech Store"]
                   price:
                     min: 1000
@@ -1697,6 +1702,7 @@ paths:
                   name: "Updated Filter Name"
                   productSearch:
                     shopName: ["Updated Store"]
+                    categoryId: "musical-instruments"
                     price:
                       min: 2000
                       max: 8000
@@ -1710,6 +1716,7 @@ paths:
                   productSearch:
                     language: "de"
                     currency: "EUR"
+                    categoryId: "musical-instruments"
               empty_update:
                 summary: No changes (returns existing filter)
                 value: {}
@@ -1745,6 +1752,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "smartphone"
+                  categoryId: "musical-instruments"
                   shopName: ["Updated Store"]
                   price:
                     min: 2000
@@ -4250,6 +4258,15 @@ components:
           description: Text query for searching products (minimum 3 characters)
           minLength: 3
           example: "smartphone case"
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          nullable: true
+          description: |
+            Optional kebab-case identifier for the level-one category to filter products by.
+            When provided, only products classified into this category are returned.
+            Examples: "musical-instruments", "antique-furniture", "antique-clocks"
+          example: "musical-instruments"
         shopName:
           type: array
           items:
@@ -4421,6 +4438,15 @@ components:
           minLength: 3
           nullable: true
           example: "laptop bag"
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          nullable: true
+          description: |
+            Optional kebab-case identifier for the level-one category to filter products by.
+            When provided, only products classified into this category are returned.
+            Examples: "musical-instruments", "antique-furniture", "antique-clocks"
+          example: "musical-instruments"
         shopName:
           type: array
           items:
