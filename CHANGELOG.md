@@ -6,6 +6,71 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-10 - Product Category Classification
+
+This update adds automatic level-one category classification to product data. Products are now classified into top-level categories (e.g., "musical-instruments", "antique-furniture", "antique-clocks") through an event-driven classification pipeline. Category information is returned in all product responses with localized display names supporting German, English, French, and Spanish.
+
+### Added
+
+**Product Category Fields** - Two new optional fields added to product responses:
+
+**GetProductData Schema**:
+- **`categoryId`** (string, nullable, pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`):
+  - Kebab-case identifier for the level-one category the product has been classified into
+  - Categories are automatically assigned by the backend classification system
+  - Examples: `"musical-instruments"`, `"antique-furniture"`, `"antique-clocks"`, `"archaeological-artifacts"`
+  - Optional field - will be `null` if product has not yet been classified
+  
+- **`category`** (LocalizedTextData, nullable):
+  - Localized display name for the product's level-one category
+  - Language matches the product's primary content language
+  - Supports: German (de), English (en), French (fr), Spanish (es)
+  - Examples:
+    - German: `{"text": "Historische Musikinstrumente", "language": "de"}`
+    - English: `{"text": "Antique Musical Instruments", "language": "en"}`
+    - French: `{"text": "Instruments de musique anciens", "language": "fr"}`
+    - Spanish: `{"text": "Instrumentos musicales antiguos", "language": "es"}`
+  - Optional field - will be `null` if product has not yet been classified
+
+**GetProductSummaryData Schema** - Same category fields as above:
+- **`categoryId`** (string, nullable)
+- **`category`** (LocalizedTextData, nullable)
+
+**Example Response with Category Data**:
+```json
+{
+  "productId": "550e8400-e29b-41d4-a716-446655440000",
+  "shopName": "My Shop",
+  "shopType": "COMMERCIAL_DEALER",
+  "categoryId": "musical-instruments",
+  "category": {
+    "text": "Antique Musical Instruments",
+    "language": "en"
+  },
+  "title": {
+    "text": "Vintage Violin",
+    "language": "en"
+  }
+}
+```
+
+### Changed
+
+**All Product Endpoints** now include category fields in their responses:
+- `GET /api/v1/shops/{shopId}/products/{shopsProductId}` - Returns `GetProductData` with category fields
+- `GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}` - Returns `GetProductData` with category fields
+- `GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar` - Returns array of `GetProductSummaryData` with category fields
+- `GET /api/v1/products` - Returns array of `GetProductSummaryData` with category fields
+- `GET /api/v1/products/search` - Returns array of `GetProductSummaryData` with category fields
+
+**Backward Compatibility**: These changes are fully backward compatible as both new fields are optional (nullable). Existing integrations will continue to work without modification.
+
+**Implementation Notes**:
+- Classification is event-driven and asynchronous - newly added products may not have category data immediately
+- Categories are assigned at the level-one (top-level) only - no sub-categories at this time
+- The classification system uses machine learning and rule-based approaches for automatic categorization
+- Category display names are stored and returned in the language that best matches the product's content
+
 ## 2026-02-07 - Restructure Product Data Response Format
 
 This update restructures the product data response format to better organize pricing, origin year, and auction information into composite objects. This provides a more cohesive API structure and reduces field proliferation at the top level.

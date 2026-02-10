@@ -121,6 +121,10 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       shopType: "COMMERCIAL_DEALER"
+                      categoryId: "musical-instruments"
+                      category:
+                        text: "Antique Musical Instruments"
+                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -172,6 +176,10 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       shopType: "COMMERCIAL_DEALER"
+                      categoryId: "musical-instruments"
+                      category:
+                        text: "Antique Musical Instruments"
+                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -360,6 +368,10 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "Tech Store Premium"
                       shopType: "COMMERCIAL_DEALER"
+                      categoryId: "musical-instruments"
+                      category:
+                        text: "Antique Musical Instruments"
+                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -397,6 +409,10 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "Tech Store Premium"
                       shopType: "COMMERCIAL_DEALER"
+                      categoryId: "musical-instruments"
+                      category:
+                        text: "Antique Musical Instruments"
+                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -700,6 +716,10 @@ paths:
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
+                        categoryId: "musical-instruments"
+                        category:
+                          text: "Antique Musical Instruments"
+                          language: "en"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -726,6 +746,10 @@ paths:
                         shopsProductId: "6ba7b812"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
+                        categoryId: "musical-instruments"
+                        category:
+                          text: "Antique Musical Instruments"
+                          language: "en"
                         title:
                           text: "Another Similar Item"
                           language: "en"
@@ -753,6 +777,10 @@ paths:
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
+                        categoryId: "musical-instruments"
+                        category:
+                          text: "Antique Musical Instruments"
+                          language: "en"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -1080,6 +1108,10 @@ paths:
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           shopType: "COMMERCIAL_DEALER"
+                          categoryId: "musical-instruments"
+                          category:
+                            text: "Antique Musical Instruments"
+                            language: "en"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
@@ -1113,6 +1145,10 @@ paths:
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           shopType: "COMMERCIAL_DEALER"
+                          categoryId: "musical-instruments"
+                          category:
+                            text: "Antique Musical Instruments"
+                            language: "en"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
@@ -3490,6 +3526,20 @@ components:
           description: Display name of the shop
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          nullable: true
+          description: |
+            Optional kebab-case identifier for the level-one category the product has been classified into.
+            Categories are automatically classified by the system. Examples: "musical-instruments", "antique-furniture", "antique-clocks"
+        category:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          nullable: true
+          description: |
+            Optional localized display name for the product's level-one category.
+            Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
         title:
           $ref: "#/components/schemas/LocalizedTextData"
         description:
@@ -3603,6 +3653,20 @@ components:
           description: Display name of the shop
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          nullable: true
+          description: |
+            Optional kebab-case identifier for the level-one category the product has been classified into.
+            Categories are automatically classified by the system. Examples: "musical-instruments", "antique-furniture", "antique-clocks"
+        category:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          nullable: true
+          description: |
+            Optional localized display name for the product's level-one category.
+            Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
         title:
           $ref: "#/components/schemas/LocalizedTextData"
         price:
