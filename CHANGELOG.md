@@ -6,6 +6,51 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-10 - Category Filter for Product Search
+
+This update introduces an optional category filter for product search and saved search filters. Clients can now restrict results to a single level-one category by providing a `categoryId`.
+
+### Added
+
+**New Field in Product Search Criteria**:
+- **`categoryId`** (string, nullable, pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`):
+  - Optional kebab-case identifier for the level-one category to filter products by
+  - Examples: `"musical-instruments"`, `"antique-furniture"`, `"antique-clocks"`
+  - When omitted or `null`, no category filtering is applied
+
+**Affected Endpoints**:
+- **POST `/api/v1/products/search`** (optional authentication via `Authorization: Bearer <token>`)
+  - Request body (`ProductSearchData`) now accepts `categoryId`
+- **POST `/api/v1/me/search-filters`** (requires authentication)
+  - Request body (`PostUserSearchFilterData.productSearch`) now accepts `categoryId`
+- **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Request body (`PatchUserSearchFilterData.productSearch`) now accepts `categoryId`
+- **GET `/api/v1/me/search-filters`** and **GET `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Responses return `ProductSearchData.categoryId` when a filter stores a category
+
+**Example - Product Search Request**:
+```json
+{
+  "language": "en",
+  "currency": "USD",
+  "productQuery": "antique clock",
+  "categoryId": "antique-clocks"
+}
+```
+
+**Example - Create Search Filter Request**:
+```json
+{
+  "name": "Category Filtered Search",
+  "productSearch": {
+    "language": "en",
+    "currency": "USD",
+    "productQuery": "antique clock",
+    "categoryId": "antique-clocks"
+  }
+}
+```
+
 ## 2026-02-10 - Product Category Classification
 
 This update adds automatic level-one category classification to product data. Products are now classified into top-level categories (e.g., "musical-instruments", "antique-furniture", "antique-clocks") through an event-driven classification pipeline. Category information is returned in all product responses with localized display names supporting German, English, French, and Spanish.
