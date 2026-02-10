@@ -33,8 +33,8 @@ This update introduces an optional category filter for product search and saved 
 {
   "language": "en",
   "currency": "USD",
-  "productQuery": "smartphone case",
-  "categoryId": "musical-instruments"
+  "productQuery": "antique clock",
+  "categoryId": "antique-clocks"
 }
 ```
 
@@ -45,8 +45,8 @@ This update introduces an optional category filter for product search and saved 
   "productSearch": {
     "language": "en",
     "currency": "USD",
-    "productQuery": "smartphone",
-    "categoryId": "musical-instruments"
+    "productQuery": "antique clock",
+    "categoryId": "antique-clocks"
   }
 }
 ```
