@@ -6,6 +6,59 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-11 - Read-Only Category API
+
+This update introduces a public, read-only API for retrieving and searching product categories with localized names and descriptions.
+
+### Added
+
+**New Category Endpoints** (no authentication required):
+- **GET `/api/v1/categories`**
+  - Optional header: `Accept-Language` (de, en, fr, es)
+  - Response: `200 OK` with an array of `GetCategorySummaryData`
+- **GET `/api/v1/categories/{categoryId}`**
+  - Path parameter: `categoryId` (kebab-case)
+  - Optional header: `Accept-Language` (de, en, fr, es)
+  - Response: `200 OK` with `GetCategoryData` and `Last-Modified` header
+- **POST `/api/v1/categories/search`**
+  - Query parameters: `sort` (score|name|updated|created), `order` (asc|desc)
+  - Request body: `CategorySearchData` (required `language`, optional `nameQuery`)
+  - Response: `200 OK` with an array of `GetCategorySummaryData`
+
+**New Data Types**:
+- **`CategorySearchData`**: `{ language: LanguageData, nameQuery?: string }`
+- **`SortCategoryFieldData`**: `score | name | updated | created`
+- **`GetCategorySummaryData`**: `categoryId`, `categoryKey`, optional `name`, `created`, `updated`
+- **`GetCategoryData`**: `categoryId`, `categoryKey`, optional `name`, optional `description`, `created`, `updated`
+
+**New Error Codes**:
+- `BAD_PATH_PARAMETER_VALUE` - missing `categoryId`
+- `BAD_BODY_VALUE` - missing or invalid JSON body
+- `BAD_SORT_VALUE` - invalid sort field
+- `BAD_ORDER_VALUE` - invalid sort order
+- `NOT_FOUND` - category not found
+- `INTERNAL_SERVER_ERROR` - unexpected server errors
+
+**Example - Search Categories Request**:
+```json
+{
+  "language": "en",
+  "nameQuery": "Furniture"
+}
+```
+
+**Example - Get Category Response**:
+```json
+{
+  "categoryId": "musical-instruments",
+  "categoryKey": "musical-instruments",
+  "name": { "text": "Antique Musical Instruments", "language": "en" },
+  "description": { "text": "Antique instruments and accessories.", "language": "en" },
+  "created": "2024-01-01T00:00:00Z",
+  "updated": "2024-06-01T00:00:00Z"
+}
+```
+
 ## 2026-02-10 - Category Filter for Product Search
 
 This update introduces an optional category filter for product search and saved search filters. Clients can now restrict results to a single level-one category by providing a `categoryId`.
