@@ -64,7 +64,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -311,7 +311,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -519,7 +519,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -682,7 +682,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -1894,7 +1894,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -3487,7 +3487,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -3566,7 +3566,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
