@@ -5345,6 +5345,7 @@ components:
       required:
         - categoryId
         - categoryKey
+        - name
         - created
         - updated
       properties:
@@ -5378,6 +5379,8 @@ components:
       required:
         - categoryId
         - categoryKey
+        - name
+        - description
         - created
         - updated
       properties:

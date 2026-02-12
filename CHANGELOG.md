@@ -28,8 +28,8 @@ This update introduces a public, read-only API for retrieving and searching prod
 **New Data Types**:
 - **`CategorySearchData`**: `{ language: LanguageData, nameQuery?: string }`
 - **`SortCategoryFieldData`**: `score | name | updated | created`
-- **`GetCategorySummaryData`**: `categoryId`, `categoryKey`, optional `name`, `created`, `updated`
-- **`GetCategoryData`**: `categoryId`, `categoryKey`, optional `name`, optional `description`, `created`, `updated`
+- **`GetCategorySummaryData`**: `categoryId`, `categoryKey`, `name`, `created`, `updated`
+- **`GetCategoryData`**: `categoryId`, `categoryKey`, `name`, `description`, `created`, `updated`
 
 **New Error Codes**:
 - `BAD_PATH_PARAMETER_VALUE` - missing `categoryId`
