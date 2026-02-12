@@ -64,7 +64,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -311,7 +311,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -519,7 +519,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -682,7 +682,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -1894,7 +1894,7 @@ paths:
             Supported languages: de, en, fr, es (with regional variants).
           schema:
             type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)(,([a-z]{2}(-[A-Z]{2})?(;q=[0-9](\.[0-9])?)?)*)*$'
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
           examples:
             single:
               value: "de"
@@ -3468,6 +3468,310 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/categories:
+    get:
+      summary: Get all categories
+      description: |
+        Retrieves all product categories with localized names.
+        Localization is based on the Accept-Language header.
+      operationId: getCategories
+      tags:
+        - Categories
+      parameters:
+        - name: Accept-Language
+          in: header
+          required: false
+          description: |
+            Preferred language for localized content.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
+          schema:
+            type: string
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
+      responses:
+        "200":
+          description: Categories returned successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetCategorySummaryData"
+              example:
+                - categoryId: "furniture"
+                  categoryKey: "furniture"
+                  name:
+                    text: "Furniture"
+                    language: "en"
+                  created: "2024-01-01T00:00:00Z"
+                  updated: "2024-06-01T00:00:00Z"
+                - categoryId: "musical-instruments"
+                  categoryKey: "musical-instruments"
+                  name:
+                    text: "Antique Musical Instruments"
+                    language: "en"
+                  created: "2024-01-05T00:00:00Z"
+                  updated: "2024-06-05T00:00:00Z"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/categories/{categoryId}:
+    get:
+      summary: Get category details by ID
+      description: |
+        Retrieves detailed category information by its kebab-case category ID.
+        Localization is based on the Accept-Language header.
+      operationId: getCategoryById
+      tags:
+        - Categories
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          description: Kebab-case identifier of the category
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          example: "musical-instruments"
+        - name: Accept-Language
+          in: header
+          required: false
+          description: |
+            Preferred language for localized content.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
+          schema:
+            type: string
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
+      responses:
+        "200":
+          description: Category found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the category was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCategoryData"
+              example:
+                categoryId: "musical-instruments"
+                categoryKey: "musical-instruments"
+                name:
+                  text: "Antique Musical Instruments"
+                  language: "en"
+                description:
+                  text: "Antique instruments, accessories, and related items."
+                  language: "en"
+                created: "2024-01-01T00:00:00Z"
+                updated: "2024-06-01T00:00:00Z"
+        "400":
+          description: Bad request - missing category ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_category_id:
+                  summary: Missing category ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "categoryId"
+                      sourceType: "path"
+                    detail: "Missing field 'categoryId'."
+        "404":
+          description: Category not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/categories/search:
+    post:
+      summary: Search categories
+      description: |
+        Searches categories using a localized name query.
+        Provide a language and optionally a nameQuery to filter results.
+      operationId: searchCategories
+      tags:
+        - Categories
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by
+          schema:
+            $ref: "#/components/schemas/SortCategoryFieldData"
+          example: name
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
+      requestBody:
+        required: true
+        description: |
+          Category search configuration.
+          Provide at least a language; omit nameQuery to return all categories.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategorySearchData"
+            examples:
+              name_search:
+                summary: Search by localized name
+                value:
+                  language: "en"
+                  nameQuery: "Furniture"
+              unrestricted:
+                summary: Unrestricted search (language only)
+                value:
+                  language: "en"
+      responses:
+        "200":
+          description: Category search results returned successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetCategorySummaryData"
+              example:
+                - categoryId: "furniture"
+                  categoryKey: "furniture"
+                  name:
+                    text: "Furniture"
+                    language: "en"
+                  created: "2024-01-01T00:00:00Z"
+                  updated: "2024-06-01T00:00:00Z"
+                - categoryId: "musical-instruments"
+                  categoryKey: "musical-instruments"
+                  name:
+                    text: "Antique Musical Instruments"
+                    language: "en"
+                  created: "2024-01-05T00:00:00Z"
+                  updated: "2024-06-05T00:00:00Z"
+        "400":
+          description: Bad request - invalid parameters or body
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
+                invalid_json:
+                  summary: Invalid JSON format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_SORT_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_ORDER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -5009,6 +5313,104 @@ components:
           description: Total number of products matching the query
           nullable: true
           example: 127
+
+    CategorySearchData:
+      type: object
+      description: Search configuration for categories
+      required:
+        - language
+      properties:
+        language:
+          $ref: "#/components/schemas/LanguageData"
+        nameQuery:
+          type: string
+          description: Optional localized name query for categories
+          example: "Furniture"
+
+    SortCategoryFieldData:
+      type: string
+      enum: [score, name, updated, created]
+      description: |
+        Fields available for sorting categories:
+        - score: Sort by relevance score (default, only available when searching with text query)
+        - name: Sort by localized category name
+        - updated: Sort by last updated timestamp
+        - created: Sort by creation timestamp
+      default: score
+      example: name
+
+    GetCategorySummaryData:
+      type: object
+      description: Summary information about a category
+      required:
+        - categoryId
+        - categoryKey
+        - name
+        - created
+        - updated
+      properties:
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: Kebab-case identifier of the category
+          example: "musical-instruments"
+        categoryKey:
+          type: string
+          description: Stable key for the category
+          example: "musical-instruments"
+        name:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized display name
+        created:
+          type: string
+          format: date-time
+          description: When the category was created (RFC3339 format)
+          example: "2024-01-01T00:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the category was last updated (RFC3339 format)
+          example: "2024-06-01T00:00:00Z"
+
+    GetCategoryData:
+      type: object
+      description: Detailed category information
+      required:
+        - categoryId
+        - categoryKey
+        - name
+        - description
+        - created
+        - updated
+      properties:
+        categoryId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: Kebab-case identifier of the category
+          example: "musical-instruments"
+        categoryKey:
+          type: string
+          description: Stable key for the category
+          example: "musical-instruments"
+        name:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized display name
+        description:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized description
+        created:
+          type: string
+          format: date-time
+          description: When the category was created (RFC3339 format)
+          example: "2024-01-01T00:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the category was last updated (RFC3339 format)
+          example: "2024-06-01T00:00:00Z"
 
     ProductKeyData:
       type: object
