@@ -867,6 +867,160 @@ paths:
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/products:
+    get:
+      summary: Simple product search via query parameters
+      description: |
+        Performs product search using query parameters instead of a JSON request body.
+        This is the cache-friendly equivalent of `POST /api/v1/products/search`.
+        It supports sorting, cursor pagination, and product personalization (when authenticated).
+
+        Required query parameters for this simple-search mode are:
+        - `language`
+        - `currency`
+        - `productQuery`
+
+        Additional optional filters from `ProductSearchData` are also supported as query parameters
+        using the same field names:
+        - `categoryId`
+        - `shopName`
+        - `excludeShopName`
+        - `shopType`
+        - `price[min]`, `price[max]`
+        - `state`
+        - `originYear[min]`, `originYear[max]`
+        - `authenticity`
+        - `condition`
+        - `provenance`
+        - `restoration`
+        - `created[min]`, `created[max]`
+        - `updated[min]`, `updated[max]`
+        - `auctionStart[min]`, `auctionStart[max]`
+        - `auctionEnd[min]`, `auctionEnd[max]`
+      operationId: simpleSearchProducts
+      tags:
+        - Products
+      parameters:
+        - name: language
+          in: query
+          required: true
+          description: Language used for search matching and localized response fields
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: true
+          description: Currency used for price normalization in search
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+        - name: productQuery
+          in: query
+          required: true
+          description: Text query for products (minimum 3 characters)
+          schema:
+            type: string
+            minLength: 3
+          example: test
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by
+          schema:
+            $ref: "#/components/schemas/SortProductFieldData"
+          example: created
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+          example: desc
+        - name: searchAfter
+          in: query
+          required: false
+          description: |
+            Cursor value for pagination (search-after pattern).
+            This is a JSON value returned as `searchAfter` in the previous response.
+          schema:
+            type: array
+            items: {}
+          example: '[2999, "6ba7b810-9dad-11d1-80b4-00c04fd430c8"]'
+        - name: size
+          in: query
+          required: false
+          description: Number of products to return per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 21
+          example: 5
+      security:
+        - BearerAuth: []
+        - {}
+      responses:
+        "200":
+          description: Simple search results returned successfully
+          headers:
+            Cache-Control:
+              description: Shared/public cache directives for GET simple-search responses
+              schema:
+                type: string
+              example: "public, max-age=60, s-maxage=300"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonalizedProductSearchResultData"
+        "400":
+          description: Bad request - invalid query parameters
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_query:
+                  summary: Invalid query parameter payload
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'price', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
     put:
       summary: Bulk create or update products
       description: |
@@ -2551,6 +2705,126 @@ paths:
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops:
+    get:
+      summary: Simple shop search via query parameters
+      description: |
+        Performs shop search using query parameters instead of a JSON request body.
+        This is the cache-friendly equivalent of `POST /api/v1/shops/search`.
+
+        All optional filters from `ShopSearchData` are supported as query parameters
+        using the same field names:
+        - `shopNameQuery`
+        - `shopType`
+        - `created[min]`, `created[max]`
+        - `updated[min]`, `updated[max]`
+      operationId: simpleSearchShops
+      tags:
+        - Shops
+      parameters:
+        - name: shopNameQuery
+          in: query
+          required: false
+          description: Optional text query for searching shops by name
+          schema:
+            type: string
+          example: house
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by
+          schema:
+            $ref: "#/components/schemas/SortShopFieldData"
+          example: name
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
+        - name: searchAfter
+          in: query
+          required: false
+          description: |
+            Cursor value for keyset pagination (search-after pattern).
+            This is a JSON array value returned as `searchAfter` in the previous response.
+          schema:
+            type: array
+            items: {}
+          example: '["Tech Store Premium", "550e8400-e29b-41d4-a716-446655440000"]'
+        - name: size
+          in: query
+          required: false
+          description: Number of shops to return per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 21
+          example: 5
+      responses:
+        "200":
+          description: Shop search results returned successfully
+          headers:
+            Cache-Control:
+              description: Shared/public cache directives for GET simple-search responses
+              schema:
+                type: string
+              example: "public, max-age=3600, s-maxage=86400"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopSearchResultData"
+        "400":
+          description: Bad request - invalid query parameters
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_query:
+                  summary: Invalid query parameter payload
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
     post:
       summary: Create a new shop
       description: |
@@ -3470,14 +3744,50 @@ paths:
 
   /api/v1/categories:
     get:
-      summary: Get all categories
+      summary: Get all categories or simple-search categories
       description: |
-        Retrieves all product categories with localized names.
-        Localization is based on the Accept-Language header.
+        Retrieves all product categories with localized names when no query parameters are supplied.
+        When query parameters are present, this endpoint performs simple category search and behaves
+        like `POST /api/v1/categories/search` using query-string input instead of a JSON body.
+
+        For simple-search mode, use:
+        - `language` (required for search mode)
+        - `nameQuery` (optional)
+        - `sort` and `order` (optional)
       operationId: getCategories
       tags:
         - Categories
       parameters:
+        - name: language
+          in: query
+          required: false
+          description: Required in simple-search mode; ignored for get-all mode
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: nameQuery
+          in: query
+          required: false
+          description: Optional localized name query (simple-search mode)
+          schema:
+            type: string
+          example: furniture
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by in simple-search mode
+          schema:
+            $ref: "#/components/schemas/SortCategoryFieldData"
+          example: name
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
         - name: Accept-Language
           in: header
           required: false
@@ -3502,6 +3812,11 @@ paths:
         "200":
           description: Categories returned successfully
           headers:
+            Cache-Control:
+              description: Shared/public cache directives for GET category responses
+              schema:
+                type: string
+              example: "public, max-age=86400, s-maxage=604800"
             Access-Control-Allow-Origin:
               description: CORS header
               schema:
@@ -3528,6 +3843,39 @@ paths:
                     language: "en"
                   created: "2024-01-05T00:00:00Z"
                   updated: "2024-06-05T00:00:00Z"
+        "400":
+          description: Bad request - invalid query parameters in simple-search mode
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_query:
+                  summary: Invalid query parameter payload
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
         "500":
           description: Internal server error
           content:
