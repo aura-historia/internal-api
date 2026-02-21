@@ -6,6 +6,65 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-20 - Cacheable GET Simple-Search Endpoints
+
+This update adds cache-friendly GET simple-search variants for products, shops, and categories. The new GET behavior mirrors existing POST search contracts while moving search inputs to query parameters.
+
+### Added
+
+**New GET Simple-Search Endpoint - Products**:
+- **GET `/api/v1/products`**
+  - Optional authentication: `Authorization: Bearer <token>` (same personalization behavior as `POST /api/v1/products/search`)
+  - Required query parameters:
+    - `language` (`LanguageData`)
+    - `currency` (`CurrencyData`)
+    - `productQuery` (string, min length 3)
+  - Optional query parameters:
+    - Existing search controls: `sort`, `order`, `searchAfter`, `size`
+    - Additional product filter fields from `ProductSearchData` using query-string encoding (e.g. `categoryId`, `shopName`, `state`, `price[min]`, `created[max]`)
+  - Response:
+    - `200 OK` with `PersonalizedProductSearchResultData`
+    - `Cache-Control: public, max-age=60, s-maxage=300`
+    - `Access-Control-Allow-Origin: *`
+
+**New GET Simple-Search Endpoint - Shops**:
+- **GET `/api/v1/shops`**
+  - Optional query parameters:
+    - Existing search controls: `sort`, `order`, `searchAfter`, `size`
+    - Additional shop filter fields from `ShopSearchData` using query-string encoding (e.g. `shopNameQuery`, `shopType`, `created[min]`, `updated[max]`)
+  - Response:
+    - `200 OK` with `ShopSearchResultData`
+    - `Cache-Control: public, max-age=3600, s-maxage=86400`
+    - `Access-Control-Allow-Origin: *`
+
+**Extended GET Endpoint Behavior - Categories**:
+- **GET `/api/v1/categories`**
+  - Existing get-all behavior remains unchanged when **no query parameters** are provided
+  - New simple-search behavior is used when query parameters are present
+  - Query parameters for search mode:
+    - `language` (required in search mode)
+    - `nameQuery` (optional)
+    - `sort` (optional: `score|name|updated|created`)
+    - `order` (optional: `asc|desc`)
+  - Response:
+    - `200 OK` with array of `GetCategorySummaryData`
+    - `Cache-Control: public, max-age=86400, s-maxage=604800`
+    - `Access-Control-Allow-Origin: *`
+
+### Changed
+
+**Category Caching Policy**:
+- **GET `/api/v1/categories`** cache policy was increased to stronger caching:
+  - from `public, max-age=3600, s-maxage=86400`
+  - to `public, max-age=86400, s-maxage=604800`
+
+**Search Input Transport**:
+- Existing POST search endpoints are unchanged and remain supported:
+  - `POST /api/v1/products/search`
+  - `POST /api/v1/shops/search`
+  - `POST /api/v1/categories/search`
+- Equivalent GET search variants are now available for cacheable query-param based calls.
+
 ## 2026-02-11 - Read-Only Category API
 
 This update introduces a public, read-only API for retrieving and searching product categories with localized names and descriptions.
