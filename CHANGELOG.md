@@ -15,7 +15,7 @@ This update adds an optional period filter to product search criteria and to per
 **New Field in Product Search Criteria**:
 - **`periodId`** (string, nullable, pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`):
   - Optional kebab-case identifier for the level-one period to filter products by
-  - Example values include `"renaissance"`, `"baroque"`, `"furniture"`
+  - Example values include `"renaissance"`, `"baroque"`, `"decorative-objects"`
   - When omitted or `null`, no period filtering is applied
 
 **Affected Endpoints**:
