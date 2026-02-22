@@ -4120,6 +4120,389 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/periods:
+    get:
+      summary: Get all periods or simple-search periods
+      description: |
+        Retrieves all product periods with localized names when no query parameters are supplied.
+        When query parameters are present, this endpoint performs simple period search and behaves
+        like `POST /api/v1/periods/search` using query-string input instead of a JSON body.
+
+        For simple-search mode, use:
+        - `language` (required for search mode)
+        - `nameQuery` (optional)
+        - `sort` and `order` (optional)
+      operationId: getPeriods
+      tags:
+        - Periods
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: Required in simple-search mode; ignored for get-all mode
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: nameQuery
+          in: query
+          required: false
+          description: Optional localized name query (simple-search mode)
+          schema:
+            type: string
+          example: renaissance
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by in simple-search mode
+          schema:
+            $ref: "#/components/schemas/SortPeriodFieldData"
+          example: name
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
+        - name: Accept-Language
+          in: header
+          required: false
+          description: |
+            Preferred language for localized content.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
+          schema:
+            type: string
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
+      responses:
+        "200":
+          description: Periods returned successfully
+          headers:
+            Cache-Control:
+              description: Shared/public cache directives for GET period responses
+              schema:
+                type: string
+              example: "public, max-age=86400, s-maxage=604800"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetPeriodSummaryData"
+              example:
+                - periodId: "renaissance"
+                  periodKey: "RENAISSANCE"
+                  name:
+                    text: "Renaissance"
+                    language: "en"
+                  created: "2024-01-01T00:00:00Z"
+                  updated: "2024-06-01T00:00:00Z"
+                - periodId: "baroque"
+                  periodKey: "BAROQUE"
+                  name:
+                    text: "Baroque"
+                    language: "en"
+                  created: "2024-01-05T00:00:00Z"
+                  updated: "2024-06-05T00:00:00Z"
+        "400":
+          description: Bad request - invalid query parameters in simple-search mode
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_query:
+                  summary: Invalid query parameter payload
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/periods/{periodId}:
+    get:
+      summary: Get period details by ID
+      description: |
+        Retrieves detailed period information by its kebab-case period ID.
+        Localization is based on the Accept-Language header.
+      operationId: getPeriodById
+      tags:
+        - Periods
+      parameters:
+        - name: periodId
+          in: path
+          required: true
+          description: Kebab-case identifier of the period
+          schema:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          example: "renaissance"
+        - name: Accept-Language
+          in: header
+          required: false
+          description: |
+            Preferred language for localized content.
+            Supports quality values and multiple languages.
+            Supported languages: de, en, fr, es (with regional variants).
+          schema:
+            type: string
+            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
+          examples:
+            single:
+              value: "de"
+              description: "German"
+            multiple:
+              value: "en;q=0.9,de;q=0.8"
+              description: "English preferred, German as fallback"
+            regional:
+              value: "en-US"
+              description: "US English"
+      responses:
+        "200":
+          description: Period found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the period was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Cache-Control:
+              description: Shared/public cache directives for GET period responses
+              schema:
+                type: string
+              example: "public, max-age=3600, s-maxage=86400"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPeriodData"
+              example:
+                periodId: "renaissance"
+                periodKey: "RENAISSANCE"
+                name:
+                  text: "Renaissance"
+                  language: "en"
+                description:
+                  text: "European cultural period from the 14th to 17th centuries marked by revival of classical art, humanism, and major artistic innovation."
+                  language: "en"
+                created: "2024-01-01T00:00:00Z"
+                updated: "2024-06-01T00:00:00Z"
+        "400":
+          description: Bad request - missing period ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_period_id:
+                  summary: Missing period ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "periodId"
+                      sourceType: "path"
+                    detail: "Missing field 'periodId'."
+        "404":
+          description: Period not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/periods/search:
+    post:
+      summary: Search periods
+      description: |
+        Searches periods using a localized name query.
+        Provide a language and optionally a nameQuery to filter results.
+      operationId: searchPeriods
+      tags:
+        - Periods
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by
+          schema:
+            $ref: "#/components/schemas/SortPeriodFieldData"
+          example: name
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
+      requestBody:
+        required: true
+        description: |
+          Period search configuration.
+          Provide at least a language; omit nameQuery to return all periods.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeriodSearchData"
+            examples:
+              name_search:
+                summary: Search by localized name
+                value:
+                  language: "en"
+                  nameQuery: "Renaissance"
+              unrestricted:
+                summary: Unrestricted search (language only)
+                value:
+                  language: "en"
+      responses:
+        "200":
+          description: Period search results returned successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetPeriodSummaryData"
+              example:
+                - periodId: "renaissance"
+                  periodKey: "RENAISSANCE"
+                  name:
+                    text: "Renaissance"
+                    language: "en"
+                  created: "2024-01-01T00:00:00Z"
+                  updated: "2024-06-01T00:00:00Z"
+                - periodId: "baroque"
+                  periodKey: "BAROQUE"
+                  name:
+                    text: "Baroque"
+                    language: "en"
+                  created: "2024-01-05T00:00:00Z"
+                  updated: "2024-06-05T00:00:00Z"
+        "400":
+          description: Bad request - invalid parameters or body
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
+                invalid_json:
+                  summary: Invalid JSON format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_SORT_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_ORDER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -5758,6 +6141,104 @@ components:
           type: string
           format: date-time
           description: When the category was last updated (RFC3339 format)
+          example: "2024-06-01T00:00:00Z"
+
+    PeriodSearchData:
+      type: object
+      description: Search configuration for periods
+      required:
+        - language
+      properties:
+        language:
+          $ref: "#/components/schemas/LanguageData"
+        nameQuery:
+          type: string
+          description: Optional localized name query for periods
+          example: "Renaissance"
+
+    SortPeriodFieldData:
+      type: string
+      enum: [score, name, updated, created]
+      description: |
+        Fields available for sorting periods:
+        - score: Sort by relevance score (default, only available when searching with text query)
+        - name: Sort by localized period name
+        - updated: Sort by last updated timestamp
+        - created: Sort by creation timestamp
+      default: score
+      example: name
+
+    GetPeriodSummaryData:
+      type: object
+      description: Summary information about a period
+      required:
+        - periodId
+        - periodKey
+        - name
+        - created
+        - updated
+      properties:
+        periodId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: Kebab-case identifier of the period
+          example: "renaissance"
+        periodKey:
+          type: string
+          description: Stable key for the period
+          example: "RENAISSANCE"
+        name:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized display name
+        created:
+          type: string
+          format: date-time
+          description: When the period was created (RFC3339 format)
+          example: "2024-01-01T00:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the period was last updated (RFC3339 format)
+          example: "2024-06-01T00:00:00Z"
+
+    GetPeriodData:
+      type: object
+      description: Detailed period information
+      required:
+        - periodId
+        - periodKey
+        - name
+        - description
+        - created
+        - updated
+      properties:
+        periodId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: Kebab-case identifier of the period
+          example: "renaissance"
+        periodKey:
+          type: string
+          description: Stable key for the period
+          example: "RENAISSANCE"
+        name:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized display name
+        description:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          description: Localized description
+        created:
+          type: string
+          format: date-time
+          description: When the period was created (RFC3339 format)
+          example: "2024-01-01T00:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the period was last updated (RFC3339 format)
           example: "2024-06-01T00:00:00Z"
 
     ProductKeyData:

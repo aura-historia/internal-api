@@ -6,6 +6,44 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-22 - Read-Only Period API
+
+This update introduces a public, read-only API for retrieving and searching product periods with localized names and descriptions.
+
+### Added
+
+**New Period Endpoints** (no authentication required):
+- **GET `/api/v1/periods`**
+  - Existing get-all behavior when no query parameters are provided
+  - GET simple-search behavior when query parameters are present
+  - Search query parameters: `language` (required in search mode), `nameQuery` (optional), `sort` (`score|name|updated|created`, optional), `order` (`asc|desc`, optional)
+  - Optional header: `Accept-Language` (de, en, fr, es)
+  - Response: `200 OK` with an array of `GetPeriodSummaryData`
+  - Cache headers: `Cache-Control: public, max-age=86400, s-maxage=604800`
+- **GET `/api/v1/periods/{periodId}`**
+  - Path parameter: `periodId` (kebab-case)
+  - Optional header: `Accept-Language` (de, en, fr, es)
+  - Response: `200 OK` with `GetPeriodData`
+  - Response headers: `Last-Modified`, `Cache-Control: public, max-age=3600, s-maxage=86400`
+- **POST `/api/v1/periods/search`**
+  - Query parameters: `sort` (score|name|updated|created), `order` (asc|desc)
+  - Request body: `PeriodSearchData` (required `language`, optional `nameQuery`)
+  - Response: `200 OK` with an array of `GetPeriodSummaryData`
+
+**New Data Types**:
+- **`PeriodSearchData`**: `{ language: LanguageData, nameQuery?: string }`
+- **`SortPeriodFieldData`**: `score | name | updated | created`
+- **`GetPeriodSummaryData`**: `periodId`, `periodKey`, `name`, `created`, `updated`
+- **`GetPeriodData`**: `periodId`, `periodKey`, `name`, `description`, `created`, `updated`
+
+**New Error Codes**:
+- `BAD_PATH_PARAMETER_VALUE` - missing `periodId`
+- `BAD_BODY_VALUE` - missing or invalid JSON body
+- `BAD_SORT_VALUE` - invalid sort field
+- `BAD_ORDER_VALUE` - invalid sort order
+- `NOT_FOUND` - period not found
+- `INTERNAL_SERVER_ERROR` - unexpected server errors
+
 ## 2026-02-20 - Cacheable GET Simple-Search Endpoints
 
 This update adds cache-friendly GET simple-search variants for products, shops, and categories. The new GET behavior mirrors existing POST search contracts while moving search inputs to query parameters.
