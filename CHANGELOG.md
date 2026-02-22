@@ -6,6 +6,30 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-22 - Product Search Period Filter
+
+This update adds an optional period filter to product search criteria and to persisted user search filters.
+
+### Added
+
+**New Field in Product Search Criteria**:
+- **`periodId`** (string, nullable, pattern: `^[a-z0-9]+(-[a-z0-9]+)*$`):
+  - Optional kebab-case identifier for the level-one period to filter products by
+  - Example values include `"renaissance"`, `"baroque"`, `"decorative-objects"`
+  - When omitted or `null`, no period filtering is applied
+
+**Affected Endpoints**:
+- **GET `/api/v1/products`**
+  - Supports `periodId` as an additional optional simple-search query parameter
+- **POST `/api/v1/products/search`** (optional authentication via `Authorization: Bearer <token>`)
+  - Request body (`ProductSearchData`) now accepts `periodId`
+- **POST `/api/v1/me/search-filters`** (requires authentication)
+  - Request body (`PostUserSearchFilterData.productSearch`) now accepts `periodId`
+- **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Request body (`PatchUserSearchFilterData.productSearch`) now accepts `periodId`
+- **GET `/api/v1/me/search-filters`** and **GET `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Responses may include `ProductSearchData.periodId` when stored on the filter
+
 ## 2026-02-22 - Read-Only Period API
 
 This update introduces a public, read-only API for retrieving and searching product periods with localized names and descriptions.
