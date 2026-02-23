@@ -1221,8 +1221,8 @@ paths:
               language: "en"
               currency: "USD"
               productQuery: "antique clock"
-              categoryId: "antique-clocks"
-              periodId: "baroque"
+              categoryId: ["antique-clocks", "musical-instruments"]
+              periodId: ["baroque", "renaissance"]
               shopName: ["Antique Store", "Vintage Gallery"]
               price:
                 min: 1000
@@ -1432,7 +1432,7 @@ paths:
                       language: "en"
                       currency: "USD"
                       productQuery: "antique clock"
-                      categoryId: "antique-clocks"
+                      categoryId: ["antique-clocks"]
                       shopName: ["Antique Store"]
                       price:
                         min: 1000
@@ -1515,7 +1515,7 @@ paths:
                 language: "en"
                 currency: "USD"
                 productQuery: "antique clock"
-                categoryId: "antique-clocks"
+                categoryId: ["antique-clocks"]
                 shopName: ["Antique Store"]
                 price:
                   min: 1000
@@ -1562,7 +1562,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: "antique-clocks"
+                  categoryId: ["antique-clocks"]
                   shopName: ["Antique Store"]
                   price:
                     min: 1000
@@ -1672,7 +1672,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: "antique-clocks"
+                  categoryId: ["antique-clocks"]
                   shopName: ["Antique Store"]
                   price:
                     min: 1000
@@ -1908,7 +1908,7 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: "antique-clocks"
+                  categoryId: ["antique-clocks"]
                   shopName: ["Updated Store"]
                   price:
                     min: 2000
@@ -5296,23 +5296,29 @@ components:
           minLength: 3
           example: "smartphone case"
         categoryId:
-          type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
-          nullable: true
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          uniqueItems: true
+          default: []
           description: |
-            Optional kebab-case identifier for the level-one category to filter products by.
-            When provided, only products classified into this category are returned.
-            Examples: "musical-instruments", "antique-furniture", "antique-clocks"
-          example: "musical-instruments"
+            Optional set of kebab-case level-one category identifiers to filter products by.
+            When provided, products matching any of the categories are returned.
+            Examples: ["musical-instruments"], ["antique-furniture", "antique-clocks"]
+          example: ["musical-instruments"]
         periodId:
-          type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
-          nullable: true
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          uniqueItems: true
+          default: []
           description: |
-            Optional kebab-case identifier for the level-one period to filter products by.
-            When provided, only products classified into this period are returned.
-            Examples: "renaissance", "baroque", "decorative-objects"
-          example: "baroque"
+            Optional set of kebab-case level-one period identifiers to filter products by.
+            When provided, products matching any of the periods are returned.
+            Examples: ["renaissance"], ["baroque", "decorative-objects"]
+          example: ["baroque"]
         shopName:
           type: array
           items:
