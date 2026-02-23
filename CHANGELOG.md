@@ -6,6 +6,24 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-23 - Search Filter PATCH Any-Of Category & Period Fields
+
+This update aligns the PATCH search-filter contract with the existing multi-value (any-of) search semantics for category and period filters.
+
+### Changed
+
+- **`PatchProductSearchData.categoryId`**
+  - Changed from `string | null` to `string[] | null` (kebab-case category IDs, unique values)
+  - PATCH updates now accept any-of category filters
+- **`PatchProductSearchData.periodId`**
+  - Changed from `string | null` to `string[] | null` (kebab-case period IDs, unique values)
+  - PATCH updates now accept any-of period filters
+
+**Affected Endpoint**:
+- **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Request body field `productSearch.categoryId` now expects an array when provided
+  - Request body field `productSearch.periodId` now expects an array when provided
+
 ## 2026-02-23 - Product Search Multi-Value Category & Period Filters
 
 This update changes product-search category and period filters from single-value fields to multi-value fields.
