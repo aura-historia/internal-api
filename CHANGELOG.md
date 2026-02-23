@@ -6,6 +6,29 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-23 - Product Search Multi-Value Category & Period Filters
+
+This update changes product-search category and period filters from single-value fields to multi-value fields.
+
+### Changed
+
+- **`ProductSearchData.categoryId`**
+  - Changed from `string | null` to `string[]` (kebab-case category IDs, unique values)
+  - Products are now matched when they belong to **any** of the provided categories
+- **`ProductSearchData.periodId`**
+  - Changed from `string | null` to `string[]` (kebab-case period IDs, unique values)
+  - Products are now matched when they belong to **any** of the provided periods
+
+**Affected Endpoints**:
+- **POST `/api/v1/products/search`**
+  - Request body now expects `categoryId` and `periodId` as arrays when provided
+- **POST `/api/v1/me/search-filters`** (requires authentication)
+  - `productSearch.categoryId` and `productSearch.periodId` now use array shape
+- **GET `/api/v1/me/search-filters`** and **GET `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Returned `productSearch.categoryId` and `productSearch.periodId` now use array shape when present
+- **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Returned `productSearch.categoryId` and `productSearch.periodId` now use array shape when present
+
 ## 2026-02-22 - Product Search Period Filter
 
 This update adds an optional period filter to product search criteria and to persisted user search filters.
