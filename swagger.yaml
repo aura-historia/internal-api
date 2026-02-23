@@ -1858,7 +1858,8 @@ paths:
                   name: "Updated Filter Name"
                   productSearch:
                     shopName: ["Updated Store"]
-                    categoryId: "antique-clocks"
+                    categoryId: ["antique-clocks"]
+                    periodId: ["baroque"]
                     price:
                       min: 2000
                       max: 8000
@@ -1872,7 +1873,8 @@ paths:
                   productSearch:
                     language: "de"
                     currency: "EUR"
-                    categoryId: "antique-clocks"
+                    categoryId: ["antique-clocks"]
+                    periodId: ["baroque"]
               empty_update:
                 summary: No changes (returns existing filter)
                 value: {}
@@ -5491,23 +5493,29 @@ components:
           nullable: true
           example: "laptop bag"
         categoryId:
-          type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
-          nullable: true
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          uniqueItems: true
           description: |
-            Optional kebab-case identifier for the level-one category to filter products by.
-            When provided, only products classified into this category are returned.
-            Examples: "musical-instruments", "antique-furniture", "antique-clocks"
-          example: "musical-instruments"
+            Optional set of kebab-case level-one category identifiers to filter products by.
+            When provided, products matching any of the categories are returned.
+            Examples: ["musical-instruments"], ["antique-furniture", "antique-clocks"]
+          nullable: true
+          example: ["musical-instruments"]
         periodId:
-          type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
-          nullable: true
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          uniqueItems: true
           description: |
-            Optional kebab-case identifier for the level-one period to filter products by.
-            When provided, only products classified into this period are returned.
-            Examples: "renaissance", "baroque", "decorative-objects"
-          example: "baroque"
+            Optional set of kebab-case level-one period identifiers to filter products by.
+            When provided, products matching any of the periods are returned.
+            Examples: ["renaissance"], ["baroque", "decorative-objects"]
+          nullable: true
+          example: ["baroque"]
         shopName:
           type: array
           items:
