@@ -24,7 +24,7 @@ paths:
       summary: Get a single product
       description: |
         Retrieves a single product by its shop ID and shop's product ID.
-        Returns localized content based on Accept-Language header and currency preferences.
+        Returns localized content based on the optional `language` query parameter and currency preferences.
 
         **Personalization**: When authenticated (via optional Authorization header), the response includes
         user-specific state such as whether the product is on the user's watchlist and notification preferences.
@@ -55,26 +55,15 @@ paths:
           schema:
             $ref: "#/components/schemas/CurrencyData"
           example: EUR
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       security:
         - BearerAuth: []
         - {}
@@ -482,7 +471,7 @@ paths:
         Returns an array of events representing state changes, price changes, and other significant 
         product lifecycle events, ordered chronologically.
         
-        Returns localized content based on Accept-Language header and currency preferences for 
+        Returns localized content based on the optional `language` query parameter and currency preferences for 
         price information in the event payloads.
       operationId: getProductHistory
       tags:
@@ -510,26 +499,15 @@ paths:
           schema:
             $ref: "#/components/schemas/CurrencyData"
           example: EUR
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       responses:
         "200":
           description: Product history retrieved successfully
@@ -638,7 +616,7 @@ paths:
       summary: Get similar products
       description: |
         Retrieves products similar to the specified product using semantic search based on text embeddings.
-        Returns localized content based on Accept-Language header and currency preferences.
+        Returns localized content based on the optional `language` query parameter and currency preferences.
 
         **Personalization**: When authenticated (via optional Authorization header), the response includes
         user-specific state for each similar product (watchlist status, notifications).
@@ -673,23 +651,15 @@ paths:
           schema:
             $ref: "#/components/schemas/CurrencyData"
           example: EUR
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       security:
         - BearerAuth: []
         - {}
@@ -2043,26 +2013,15 @@ paths:
             maximum: 100
             default: 21
           example: 21
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       security:
         - BearerAuth: []
       responses:
@@ -3755,7 +3714,7 @@ paths:
         like `POST /api/v1/categories/search` using query-string input instead of a JSON body.
 
         For simple-search mode, use:
-        - `language` (required for search mode)
+        - `language` (optional, defaults to `en`)
         - `nameQuery` (optional)
         - `sort` and `order` (optional)
       operationId: getCategories
@@ -3765,7 +3724,7 @@ paths:
         - name: language
           in: query
           required: false
-          description: Required in simple-search mode; ignored for get-all mode
+          description: Optional language for localization and simple-search matching (defaults to `en`)
           schema:
             $ref: "#/components/schemas/LanguageData"
           example: de
@@ -3792,26 +3751,6 @@ paths:
             enum: [asc, desc]
             default: asc
           example: asc
-        - name: Accept-Language
-          in: header
-          required: false
-          description: |
-            Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
-          schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
       responses:
         "200":
           description: Categories returned successfully
@@ -3896,7 +3835,7 @@ paths:
       summary: Get category details by ID
       description: |
         Retrieves detailed category information by its kebab-case category ID.
-        Localization is based on the Accept-Language header.
+        Localization is based on the optional `language` query parameter (defaults to `en`).
       operationId: getCategoryById
       tags:
         - Categories
@@ -3909,26 +3848,15 @@ paths:
             type: string
             pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
           example: "musical-instruments"
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       responses:
         "200":
           description: Category found and returned successfully
@@ -4002,7 +3930,7 @@ paths:
       summary: Search categories
       description: |
         Searches categories using a localized name query.
-        Provide a language and optionally a nameQuery to filter results.
+        Provide an optional language and optionally a nameQuery to filter results.
       operationId: searchCategories
       tags:
         - Categories
@@ -4027,7 +3955,7 @@ paths:
         required: true
         description: |
           Category search configuration.
-          Provide at least a language; omit nameQuery to return all categories.
+          Omit `language` to default to `en`. Omit `nameQuery` to return all categories.
         content:
           application/json:
             schema:
@@ -4133,7 +4061,7 @@ paths:
         like `POST /api/v1/periods/search` using query-string input instead of a JSON body.
 
         For simple-search mode, use:
-        - `language` (required for search mode)
+        - `language` (optional, defaults to `en`)
         - `nameQuery` (optional)
         - `sort` and `order` (optional)
       operationId: getPeriods
@@ -4143,7 +4071,7 @@ paths:
         - name: language
           in: query
           required: false
-          description: Required in simple-search mode; ignored for get-all mode
+          description: Optional language for localization and simple-search matching (defaults to `en`)
           schema:
             $ref: "#/components/schemas/LanguageData"
           example: de
@@ -4170,26 +4098,6 @@ paths:
             enum: [asc, desc]
             default: asc
           example: asc
-        - name: Accept-Language
-          in: header
-          required: false
-          description: |
-            Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
-          schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
       responses:
         "200":
           description: Periods returned successfully
@@ -4274,7 +4182,7 @@ paths:
       summary: Get period details by ID
       description: |
         Retrieves detailed period information by its kebab-case period ID.
-        Localization is based on the Accept-Language header.
+        Localization is based on the optional `language` query parameter (defaults to `en`).
       operationId: getPeriodById
       tags:
         - Periods
@@ -4287,26 +4195,15 @@ paths:
             type: string
             pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
           example: "renaissance"
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       responses:
         "200":
           description: Period found and returned successfully
@@ -4385,7 +4282,7 @@ paths:
       summary: Search periods
       description: |
         Searches periods using a localized name query.
-        Provide a language and optionally a nameQuery to filter results.
+        Provide an optional language and optionally a nameQuery to filter results.
       operationId: searchPeriods
       tags:
         - Periods
@@ -4410,7 +4307,7 @@ paths:
         required: true
         description: |
           Period search configuration.
-          Provide at least a language; omit nameQuery to return all periods.
+          Omit `language` to default to `en`. Omit `nameQuery` to return all periods.
         content:
           application/json:
             schema:
@@ -5284,8 +5181,6 @@ components:
       type: object
       description: Product search configuration with query parameters and filtering options
       required:
-        - language
-        - currency
         - productQuery
       properties:
         language:
@@ -6082,8 +5977,6 @@ components:
     CategorySearchData:
       type: object
       description: Search configuration for categories
-      required:
-        - language
       properties:
         language:
           $ref: "#/components/schemas/LanguageData"
@@ -6180,8 +6073,6 @@ components:
     PeriodSearchData:
       type: object
       description: Search configuration for periods
-      required:
-        - language
       properties:
         language:
           $ref: "#/components/schemas/LanguageData"
