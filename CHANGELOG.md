@@ -6,6 +6,38 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-24 - Language Input Moved to Query Parameter + Search Body Defaults
+
+This update aligns multiple read endpoints to use the `language` query parameter instead of the `Accept-Language` request header, and makes language/currency fields optional in selected search request bodies through server-side defaults.
+
+### Changed
+
+- **Localization input transport (header → query parameter)**:
+  - The following endpoints now read localization from query parameter **`language`** (`LanguageData`, optional, default `en`) instead of header **`Accept-Language`**:
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}`**
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}/history`**
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}/similar`**
+    - **GET `/api/v1/me/watchlist`** (requires authentication)
+    - **GET `/api/v1/categories`**
+    - **GET `/api/v1/categories/{categoryId}`**
+    - **GET `/api/v1/periods`**
+    - **GET `/api/v1/periods/{periodId}`**
+- **Search body defaults**:
+  - **`ProductSearchData`**
+    - `language` is now optional (defaults to `en`)
+    - `currency` is now optional (defaults to `EUR`)
+    - `productQuery` remains required
+  - **`CategorySearchData`**
+    - `language` is now optional (defaults to `en`)
+  - **`PeriodSearchData`**
+    - `language` is now optional (defaults to `en`)
+- **Affected request-body endpoints due updated search schemas**:
+  - **POST `/api/v1/products/search`**
+  - **POST `/api/v1/me/search-filters`** (requires authentication)
+  - **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - **POST `/api/v1/categories/search`**
+  - **POST `/api/v1/periods/search`**
+
 ## 2026-02-23 - Search Filter PATCH Any-Of Category & Period Fields
 
 This update aligns the PATCH search-filter contract with the existing multi-value (any-of) search semantics for category and period filters.
