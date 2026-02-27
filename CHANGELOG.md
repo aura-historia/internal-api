@@ -6,6 +6,38 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-02-27 - Italian Language Support (`it`)
+
+This update extends API language support by adding Italian as a first-class supported language across language-constrained request and response fields.
+
+### Changed
+
+- **`LanguageData`**
+  - Added new allowed value: `it`
+  - Updated supported regional variants to include Italian: `it-IT`, `it-CH`
+  - Default remains `en`
+- **Header/query language inputs and localized response language outputs**
+  - Endpoints that accept/return `LanguageData` now support `it` in addition to `de|en|fr|es`
+  - Affected read endpoints include:
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}`**
+    - **GET `/api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`**
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}/history`**
+    - **GET `/api/v1/shops/{shopId}/products/{shopsProductId}/similar`**
+    - **GET `/api/v1/products`**
+    - **GET `/api/v1/me/watchlist`** (requires authentication)
+    - **GET `/api/v1/categories`**
+    - **GET `/api/v1/categories/{categoryId}`**
+    - **GET `/api/v1/periods`**
+    - **GET `/api/v1/periods/{periodId}`**
+- **Request/response bodies containing language fields typed as `LanguageData`**
+  - Contracts now allow/return `it` anywhere `LanguageData` is used (for example in localized text/search-filter related payloads)
+  - Common affected endpoints include:
+    - **POST `/api/v1/products/search`**
+    - **POST `/api/v1/me/search-filters`** (requires authentication)
+    - **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+    - **GET `/api/v1/me/search-filters`** (requires authentication)
+    - **GET `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+
 ## 2026-02-24 - Language Input Moved to Query Parameter + Search Body Defaults
 
 This update aligns multiple read endpoints to use the `language` query parameter instead of the `Accept-Language` request header, and makes language/currency fields optional in selected search request bodies through server-side defaults.

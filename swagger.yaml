@@ -297,7 +297,7 @@ paths:
           description: |
             Preferred language for localized content.
             Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es (with regional variants).
+            Supported languages: de, en, fr, es, it (with regional variants).
           schema:
             type: string
             pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
@@ -4865,13 +4865,14 @@ components:
 
     LanguageData:
       type: string
-      enum: [de, en, fr, es]
+      enum: [de, en, fr, es, it]
       description: |
         Supported languages (ISO 639-1 codes):
         - de: German (includes de-DE, de-AT, de-CH, de-LU, de-LI)
         - en: English (includes en-US, en-GB, en-AU, en-CA, en-NZ, en-IE)
         - fr: French (includes fr-FR, fr-CA, fr-BE, fr-CH, fr-LU)
         - es: Spanish (includes es-ES, es-MX, es-AR, es-CO, es-CL, es-PE, es-VE)
+        - it: Italian (includes it-IT, it-CH)
       default: en
       example: de
 
