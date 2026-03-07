@@ -847,7 +847,6 @@ paths:
         Required query parameters for this simple-search mode are:
         - `language`
         - `currency`
-        - `productQuery`
 
         Additional optional filters from `ProductSearchData` are also supported as query parameters
         using the same field names:
@@ -887,11 +886,11 @@ paths:
           example: EUR
         - name: productQuery
           in: query
-          required: true
-          description: Text query for products (minimum 3 characters)
+          required: false
+          description: Optional text query for products (minimum 1 character when provided)
           schema:
             type: string
-            minLength: 3
+            minLength: 1
           example: test
         - name: sort
           in: query
@@ -1313,13 +1312,6 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Invalid JSON format"
-                invalid_product_query:
-                  summary: Invalid product query length
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "productQuery must be at least 3 characters long"
                 invalid_sort_field:
                   summary: Invalid sort field
                   value:
@@ -1561,13 +1553,6 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Invalid JSON format"
-                invalid_product_query:
-                  summary: Invalid product query
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "productQuery must be at least 3 characters long"
         "401":
           description: Unauthorized - invalid or missing JWT token
           content:
@@ -1921,13 +1906,6 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Invalid JSON format"
-                invalid_product_query:
-                  summary: Invalid product query length
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "productQuery must be at least 3 characters long"
         "401":
           description: Unauthorized - invalid or missing JWT token
           content:
@@ -5181,8 +5159,6 @@ components:
     ProductSearchData:
       type: object
       description: Product search configuration with query parameters and filtering options
-      required:
-        - productQuery
       properties:
         language:
           $ref: "#/components/schemas/LanguageData"
@@ -5190,8 +5166,9 @@ components:
           $ref: "#/components/schemas/CurrencyData"
         productQuery:
           type: string
-          description: Text query for searching products (minimum 3 characters)
-          minLength: 3
+          description: Optional text query for searching products (minimum 1 character when provided)
+          minLength: 1
+          nullable: true
           example: "smartphone case"
         categoryId:
           type: array
@@ -5384,8 +5361,8 @@ components:
           description: Currency for price display
         productQuery:
           type: string
-          description: Text query for searching products (minimum 3 characters when provided)
-          minLength: 3
+          description: Text query for searching products (minimum 1 character when provided)
+          minLength: 1
           nullable: true
           example: "laptop bag"
         categoryId:

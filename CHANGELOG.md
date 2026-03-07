@@ -6,6 +6,35 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-07 - Product Search Query Minimum-Length Removal (`backend#592`)
+
+This update removes the former minimum length constraint of 3 characters for `productQuery` and aligns request/response contracts with the backend change where `productQuery` is optional and, when provided, accepts 1+ characters.
+
+### Changed
+
+- **`ProductSearchData.productQuery`**
+  - Changed from required `string` (min length 3) to optional `string | null` (min length 1 when provided)
+  - Applies to request/response payloads and query-based simple product search
+- **`PatchProductSearchData.productQuery`**
+  - Changed minimum length from 3 to 1 when field is provided
+- **Validation/error examples**
+  - Removed outdated `productQuery must be at least 3 characters long` examples from affected 400-response documentation
+
+**Affected Endpoints**:
+- **GET `/api/v1/products`**
+  - Query parameter `productQuery` is now optional and uses min length 1 when provided
+- **POST `/api/v1/products/search`**
+  - Request body `productQuery` is now optional and uses min length 1 when provided
+  - 400 examples no longer include the removed min-length-3 validation message
+- **POST `/api/v1/me/search-filters`** (requires authentication)
+  - Search payload `productQuery` now uses min length 1 when provided
+  - 400 examples no longer include the removed min-length-3 validation message
+- **PATCH `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Search payload `productQuery` now uses min length 1 when provided
+  - 400 examples no longer include the removed min-length-3 validation message
+- **GET `/api/v1/me/search-filters`** and **GET `/api/v1/me/search-filters/{userSearchFilterId}`** (requires authentication)
+  - Returned search payloads now document `productQuery` as optional
+
 ## 2026-02-27 - Italian Language Support (`it`)
 
 This update extends API language support by adding Italian as a first-class supported language across language-constrained request and response fields.
