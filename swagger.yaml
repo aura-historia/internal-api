@@ -892,6 +892,264 @@ paths:
             type: string
             minLength: 1
           example: test
+        - name: categoryId
+          in: query
+          required: false
+          description: |
+            Optional set of kebab-case level-one category identifiers to filter products by.
+            When provided, products matching any of the given categories are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["antique-furniture"]
+        - name: periodId
+          in: query
+          required: false
+          description: |
+            Optional set of kebab-case level-one period identifiers to filter products by.
+            When provided, products matching any of the given periods are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["baroque"]
+        - name: shopName
+          in: query
+          required: false
+          description: |
+            Optional filter by exact shop names (keyword matching).
+            Products are filtered to those from shops whose names exactly match one of the provided values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+          example: ["Sotheby's"]
+        - name: excludeShopName
+          in: query
+          required: false
+          description: |
+            Optional filter to exclude products from specific shops (keyword matching).
+            Products from shops whose names exactly match one of the provided values are excluded from results.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+          example: ["Heritage Auctions"]
+        - name: shopType
+          in: query
+          required: false
+          description: Optional filter by shop types. When provided, only products from shops of the given types are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ShopTypeData"
+            uniqueItems: true
+          example: ["COMMERCIAL_DEALER"]
+        - name: price
+          in: query
+          required: false
+          description: |
+            Optional price range filter in minor currency units (e.g. cents).
+            Use `price[min]` and/or `price[max]` to specify the range bounds.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: integer
+                minimum: 0
+                description: Minimum price (inclusive) in minor currency units
+                example: 1000
+              max:
+                type: integer
+                minimum: 0
+                description: Maximum price (inclusive) in minor currency units
+                example: 50000
+        - name: state
+          in: query
+          required: false
+          description: Optional filter by product states. When provided, only products in the given states are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ProductStateData"
+            uniqueItems: true
+          example: ["AVAILABLE"]
+        - name: originYear
+          in: query
+          required: false
+          description: |
+            Optional filter by product origin year range.
+            Use `originYear[min]` and/or `originYear[max]` to specify the year bounds.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: integer
+                format: int32
+                description: Minimum origin year (inclusive)
+                example: 1800
+              max:
+                type: integer
+                format: int32
+                description: Maximum origin year (inclusive)
+                example: 1950
+        - name: authenticity
+          in: query
+          required: false
+          description: Optional filter by authenticity classifications. When provided, only products with the given authenticity values are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AuthenticityData"
+            uniqueItems: true
+          example: ["ORIGINAL"]
+        - name: condition
+          in: query
+          required: false
+          description: Optional filter by product condition assessments. When provided, only products with the given condition values are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ConditionData"
+            uniqueItems: true
+          example: ["EXCELLENT"]
+        - name: provenance
+          in: query
+          required: false
+          description: Optional filter by provenance documentation levels. When provided, only products with the given provenance values are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ProvenanceData"
+            uniqueItems: true
+          example: ["PARTIAL"]
+        - name: restoration
+          in: query
+          required: false
+          description: Optional filter by restoration work levels. When provided, only products with the given restoration values are returned.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/RestorationData"
+            uniqueItems: true
+          example: ["NONE"]
+        - name: created
+          in: query
+          required: false
+          description: |
+            Optional filter by product creation date range (RFC3339 format).
+            Use `created[min]` and/or `created[max]` to specify the datetime bounds.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: string
+                format: date-time
+                description: Minimum creation datetime (inclusive, RFC3339 format)
+                example: "2024-01-01T00:00:00Z"
+              max:
+                type: string
+                format: date-time
+                description: Maximum creation datetime (inclusive, RFC3339 format)
+                example: "2024-12-31T23:59:59Z"
+        - name: updated
+          in: query
+          required: false
+          description: |
+            Optional filter by product last-updated date range (RFC3339 format).
+            Use `updated[min]` and/or `updated[max]` to specify the datetime bounds.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: string
+                format: date-time
+                description: Minimum last-updated datetime (inclusive, RFC3339 format)
+                example: "2024-01-01T00:00:00Z"
+              max:
+                type: string
+                format: date-time
+                description: Maximum last-updated datetime (inclusive, RFC3339 format)
+                example: "2024-12-31T23:59:59Z"
+        - name: auctionStart
+          in: query
+          required: false
+          description: |
+            Optional filter by auction start datetime range (RFC3339 format).
+            Use `auctionStart[min]` and/or `auctionStart[max]` to specify the bounds.
+            Only matches products that have an auction start time set.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: string
+                format: date-time
+                description: Minimum auction start datetime (inclusive, RFC3339 format)
+                example: "2025-05-01T00:00:00Z"
+              max:
+                type: string
+                format: date-time
+                description: Maximum auction start datetime (inclusive, RFC3339 format)
+                example: "2025-05-31T23:59:59Z"
+        - name: auctionEnd
+          in: query
+          required: false
+          description: |
+            Optional filter by auction end datetime range (RFC3339 format).
+            Use `auctionEnd[min]` and/or `auctionEnd[max]` to specify the bounds.
+            Only matches products that have an auction end time set.
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              min:
+                type: string
+                format: date-time
+                description: Minimum auction end datetime (inclusive, RFC3339 format)
+                example: "2025-05-01T00:00:00Z"
+              max:
+                type: string
+                format: date-time
+                description: Maximum auction end datetime (inclusive, RFC3339 format)
+                example: "2025-05-31T23:59:59Z"
         - name: sort
           in: query
           required: false

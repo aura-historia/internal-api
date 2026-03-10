@@ -6,6 +6,37 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-10 - Simple Product Search – Formal Query Parameter Definitions (`GET /api/v1/products`)
+
+This update formally documents all optional filter query parameters for the simple product search endpoint `GET /api/v1/products`. The parameters were already accepted by the backend (via `ProductSearchData`) but were not formally typed in the OpenAPI spec.
+
+### Changed
+
+- **`GET /api/v1/products`** – Added formal query parameter definitions for all optional search filters:
+
+  | Parameter | Type | Description |
+  |---|---|---|
+  | `categoryId` | `string[]` | Filter by category identifiers (kebab-case, e.g. `antique-furniture`). Repeated parameter: `categoryId=a&categoryId=b`. |
+  | `periodId` | `string[]` | Filter by period identifiers (kebab-case, e.g. `baroque`). Repeated parameter. |
+  | `shopName` | `string[]` | Filter products to those from exact-matching shop names. Repeated parameter. |
+  | `excludeShopName` | `string[]` | Exclude products from exact-matching shop names. Repeated parameter. |
+  | `shopType` | `ShopTypeData[]` | Filter by shop type (`AUCTION_HOUSE`, `AUCTION_PLATFORM`, `COMMERCIAL_DEALER`, `MARKETPLACE`). Repeated parameter. |
+  | `price[min]` / `price[max]` | `integer` | Price range filter in minor currency units (e.g. cents). Both bounds are optional and inclusive. |
+  | `state` | `ProductStateData[]` | Filter by product state (`LISTED`, `AVAILABLE`, `RESERVED`, `SOLD`, `REMOVED`, `UNKNOWN`). Repeated parameter. |
+  | `originYear[min]` / `originYear[max]` | `integer` | Origin year range filter. Both bounds are optional and inclusive. |
+  | `authenticity` | `AuthenticityData[]` | Filter by authenticity (`ORIGINAL`, `LATER_COPY`, `REPRODUCTION`, `QUESTIONABLE`, `UNKNOWN`). Repeated parameter. |
+  | `condition` | `ConditionData[]` | Filter by condition (`EXCELLENT`, `GREAT`, `GOOD`, `FAIR`, `POOR`, `UNKNOWN`). Repeated parameter. |
+  | `provenance` | `ProvenanceData[]` | Filter by provenance (`COMPLETE`, `PARTIAL`, `CLAIMED`, `NONE`, `UNKNOWN`). Repeated parameter. |
+  | `restoration` | `RestorationData[]` | Filter by restoration level (`NONE`, `MINOR`, `MAJOR`, `UNKNOWN`). Repeated parameter. |
+  | `created[min]` / `created[max]` | `string (date-time)` | Filter by product creation datetime (RFC3339). Both bounds are optional and inclusive. |
+  | `updated[min]` / `updated[max]` | `string (date-time)` | Filter by last-updated datetime (RFC3339). Both bounds are optional and inclusive. |
+  | `auctionStart[min]` / `auctionStart[max]` | `string (date-time)` | Filter by auction start datetime (RFC3339). Only matches products with an auction start time set. |
+  | `auctionEnd[min]` / `auctionEnd[max]` | `string (date-time)` | Filter by auction end datetime (RFC3339). Only matches products with an auction end time set. |
+
+  All previously documented parameters (`language`, `currency`, `productQuery`, `sort`, `order`, `searchAfter`, `size`) remain unchanged.
+
+---
+
 ## 2026-03-07 - Product Search Query Minimum-Length Removal (`backend#592`)
 
 This update removes the former minimum length constraint of 3 characters for `productQuery` and aligns request/response contracts with the backend change where `productQuery` is optional and, when provided, accepts 1+ characters.
