@@ -6,6 +6,18 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-11 - Language Input Moved to Query Parameter for Slug-Based Product Endpoint
+
+This update aligns the slug-based product read endpoint with the rest of the API by replacing the `Accept-Language` request header with the `language` query parameter.
+
+### Changed
+
+- **`GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`** – Language input transport changed from header to query parameter:
+  - **Removed**: `Accept-Language` request header
+  - **Added**: `language` query parameter (`LanguageData`, optional, defaults to `en`)
+
+---
+
 ## 2026-03-10 - Simple Product Search – Formal Query Parameter Definitions (`GET /api/v1/products`)
 
 This update formally documents all optional filter query parameters for the simple product search endpoint `GET /api/v1/products`. The parameters were already accepted by the backend (via `ProductSearchData`) but were not formally typed in the OpenAPI spec.
