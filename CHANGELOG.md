@@ -6,6 +6,23 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-11 - User Account Prohibited Content Consent Flag (`backend#606`)
+
+This update extends the user account API contract with a persisted consent flag for prohibited content display behavior.
+
+### Changed
+
+- **`GET /api/v1/me/account`** response schema **`GetUserAccountData`**
+  - Added required boolean property **`prohibitedContentConsent`**
+  - Existing users without an explicit stored value are represented with `false` by default
+- **`PATCH /api/v1/me/account`** request schema **`PatchUserAccountData`**
+  - Added optional boolean property **`prohibitedContentConsent`**
+  - When provided, updates the authenticated user's consent state
+- **`PATCH /api/v1/me/account`** and **`GET /api/v1/me/account`** response examples
+  - Updated examples to include `prohibitedContentConsent`
+
+---
+
 ## 2026-03-11 - Language Input Moved to Query Parameter for Slug-Based Product Endpoint
 
 This update aligns the slug-based product read endpoint with the rest of the API by replacing the `Accept-Language` request header with the `language` query parameter.
