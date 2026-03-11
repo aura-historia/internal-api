@@ -252,7 +252,7 @@ paths:
       summary: Get a single product by slug
       description: |
         Retrieves a single product by its shop slug ID and product slug ID.
-        Returns localized content based on Accept-Language header and currency preferences.
+        Returns localized content based on the optional `language` query parameter and currency preferences.
 
         **Human-Readable Identifiers**: This endpoint uses slug-based identifiers which are human-readable
         kebab-case strings. Shop slugs are derived from the shop name (e.g., "tech-store-premium"),
@@ -291,26 +291,15 @@ paths:
           schema:
             $ref: "#/components/schemas/CurrencyData"
           example: EUR
-        - name: Accept-Language
-          in: header
+        - name: language
+          in: query
           required: false
           description: |
             Preferred language for localized content.
-            Supports quality values and multiple languages.
-            Supported languages: de, en, fr, es, it (with regional variants).
+            Defaults to `en` when omitted.
           schema:
-            type: string
-            pattern: '^([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?)( *, *([a-z]{2}(-[A-Z]{2})?(;q=(0(\.[0-9]{1,3})?|1(\.0{1,3})?))?))*$'
-          examples:
-            single:
-              value: "de"
-              description: "German"
-            multiple:
-              value: "en;q=0.9,de;q=0.8"
-              description: "English preferred, German as fallback"
-            regional:
-              value: "en-US"
-              description: "US English"
+            $ref: "#/components/schemas/LanguageData"
+          example: de
       security:
         - BearerAuth: []
         - {}
