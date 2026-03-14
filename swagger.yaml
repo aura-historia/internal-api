@@ -2900,6 +2900,539 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/notifications:
+    get:
+      summary: List user notifications
+      description: |
+        Retrieves the authenticated user's notifications, sorted latest-first.
+        Results are paginated using search-after cursor-based pagination with an event ID cursor.
+        Requires valid Cognito JWT authentication.
+      operationId: getNotifications
+      tags:
+        - Notifications
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display in notification payloads.
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+        - name: searchAfter
+          in: query
+          required: false
+          description: |
+            Event ID cursor for pagination (UUID string).
+            Pass the `searchAfter` value from the previous response to retrieve the next page.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        - name: size
+          in: query
+          required: false
+          description: Maximum number of notifications to return per page (capped at 100).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          example: 21
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Notifications retrieved successfully.
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationCollectionData"
+              example:
+                items:
+                  - originEventId: "550e8400-e29b-41d4-a716-446655440001"
+                    notificationId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                    payload:
+                      type: "WATCHLIST"
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                      shopsProductId: "ABC123"
+                      shopSlugId: "tech-store"
+                      productSlugId: "amazing-product-fa87c4"
+                      shopName: "Tech Store"
+                      title:
+                        text: "Amazing Product"
+                        language: "en"
+                      watchlistPayload:
+                        type: "PRICE_CHANGE"
+                        oldPrice:
+                          currency: "EUR"
+                          amount: 5000
+                        newPrice:
+                          currency: "EUR"
+                          amount: 4500
+                    seen: false
+                    external: false
+                    created: "2024-01-15T08:00:00Z"
+                    updated: "2024-01-15T08:00:00Z"
+                size: 1
+                searchAfter: null
+                total: 1
+        "400":
+          description: Bad request – invalid query parameters.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_language:
+                  summary: Invalid language value
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "language"
+                      sourceType: "query"
+                    detail: "Expected any of: 'de', 'en', 'fr', 'it', 'nl', 'pl', 'es'. Got: 'invalid'"
+                invalid_search_after:
+                  summary: Invalid searchAfter UUID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "searchAfter"
+                      sourceType: "query"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update all notifications
+      description: |
+        Updates all notifications for the authenticated user.
+        Accepts an optional `PatchNotificationData` body. If the body is omitted or empty,
+        the update command defaults to no-op field values (e.g. `seen` remains unchanged).
+        Returns the first page of the updated notifications, localized by the given `language` and `currency` query parameters.
+        Requires valid Cognito JWT authentication.
+      operationId: patchAllNotifications
+      tags:
+        - Notifications
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content in the response.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display in notification payloads of the response.
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        description: |
+          Optional patch fields to apply to all notifications.
+          If the body is omitted entirely, all fields default to their zero/null values
+          (for `seen`: no change is applied).
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchNotificationData"
+            examples:
+              mark_all_seen:
+                summary: Mark all notifications as seen
+                value:
+                  seen: true
+              no_body:
+                summary: No body – no-op patch
+                value: {}
+      responses:
+        "200":
+          description: Notifications updated successfully. Returns the first page of updated notifications.
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationCollectionData"
+              example:
+                items: []
+                size: 0
+                searchAfter: null
+                total: 0
+        "400":
+          description: Bad request – malformed request body or invalid query parameters.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 400
+                title: "Bad Request"
+                error: "BAD_BODY_VALUE"
+                detail: "Expected object. Got: string"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete all notifications
+      description: |
+        Deletes all notifications for the authenticated user.
+        Returns 204 No Content on success.
+        Requires valid Cognito JWT authentication.
+      operationId: deleteAllNotifications
+      tags:
+        - Notifications
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: All notifications deleted successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/me/notifications/{eventId}:
+    patch:
+      summary: Update a single notification
+      description: |
+        Updates the fields of a single notification identified by `eventId`.
+        The request body is required and must contain at least one field.
+        Returns the updated, localized notification.
+        Requires valid Cognito JWT authentication.
+      operationId: patchNotification
+      tags:
+        - Notifications
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The event ID (UUID) of the notification to update.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content in the response.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display in notification payloads of the response.
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Patch fields to apply to the notification.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchNotificationData"
+            example:
+              seen: true
+      responses:
+        "200":
+          description: Notification updated successfully. Returns the updated notification.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNotificationData"
+              example:
+                originEventId: "550e8400-e29b-41d4-a716-446655440001"
+                notificationId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+                payload:
+                  type: "WATCHLIST"
+                  productId: "550e8400-e29b-41d4-a716-446655440000"
+                  shopId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                  shopsProductId: "ABC123"
+                  shopSlugId: "tech-store"
+                  productSlugId: "amazing-product-fa87c4"
+                  shopName: "Tech Store"
+                  title:
+                    text: "Amazing Product"
+                    language: "en"
+                  watchlistPayload:
+                    type: "PRICE_CHANGE"
+                    oldPrice:
+                      currency: "EUR"
+                      amount: 5000
+                    newPrice:
+                      currency: "EUR"
+                      amount: 4500
+                seen: true
+                external: false
+                created: "2024-01-15T08:00:00Z"
+                updated: "2024-01-15T09:00:00Z"
+        "400":
+          description: Bad request – missing or invalid path parameter or request body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_event_id:
+                  summary: Missing eventId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "eventId"
+                      sourceType: "path"
+                    detail: "Missing field 'eventId'."
+                invalid_event_id:
+                  summary: Invalid eventId UUID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "eventId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Expected object. Got: string"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Not found – no notification with the given event ID exists for this user.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "NOTIFICATION_NOT_FOUND"
+                detail: "Notification not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete a single notification
+      description: |
+        Deletes the notification identified by `eventId` for the authenticated user.
+        Returns 204 No Content on success.
+        Returns 404 if no notification with the given event ID exists for this user.
+        Requires valid Cognito JWT authentication.
+      operationId: deleteNotification
+      tags:
+        - Notifications
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The event ID (UUID) of the notification to delete.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Notification deleted successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "400":
+          description: Bad request – missing or invalid path parameter.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_event_id:
+                  summary: Missing eventId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "eventId"
+                      sourceType: "path"
+                    detail: "Missing field 'eventId'."
+                invalid_event_id:
+                  summary: Invalid eventId UUID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "eventId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Not found – no notification with the given event ID exists for this user.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "NOTIFICATION_NOT_FOUND"
+                detail: "Notification not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/shops:
     get:
       summary: Simple shop search via query parameters
@@ -6637,9 +7170,211 @@ components:
           description: New consent state for displaying prohibited content
           example: true
 
+    GetNotificationData:
+      type: object
+      description: A single user notification, fully localized for the requested language and currency.
+      required:
+        - originEventId
+        - notificationId
+        - payload
+        - seen
+        - external
+        - created
+        - updated
+      properties:
+        originEventId:
+          type: string
+          format: uuid
+          description: The ID of the domain event that triggered this notification.
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        notificationId:
+          type: string
+          format: uuid
+          description: Unique identifier of this notification record.
+          example: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+        payload:
+          $ref: "#/components/schemas/NotificationPayloadData"
+        seen:
+          type: boolean
+          description: Whether the user has seen this notification.
+          example: false
+        external:
+          type: boolean
+          description: Whether this notification was triggered by an external (non-system) event.
+          example: false
+        created:
+          type: string
+          format: date-time
+          description: When the notification was created (RFC3339 format).
+          example: "2024-01-15T08:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the notification was last updated (RFC3339 format).
+          example: "2024-01-15T08:00:00Z"
+
+    NotificationPayloadData:
+      description: |
+        The notification payload. The structure depends on the `type` discriminator field:
+        - `WATCHLIST`: Notification triggered by a watchlist event (price change or state change).
+      oneOf:
+        - $ref: "#/components/schemas/WatchlistNotificationPayloadData"
+      discriminator:
+        propertyName: type
+        mapping:
+          WATCHLIST: "#/components/schemas/WatchlistNotificationPayloadData"
+
+    WatchlistNotificationPayloadData:
+      type: object
+      description: Notification payload for a watchlist event.
+      required:
+        - type
+        - productId
+        - shopId
+        - shopsProductId
+        - shopSlugId
+        - productSlugId
+        - shopName
+        - title
+        - watchlistPayload
+      properties:
+        type:
+          type: string
+          enum: [WATCHLIST]
+          description: Discriminator field identifying this as a watchlist notification.
+        productId:
+          type: string
+          format: uuid
+          description: Internal product identifier.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        shopId:
+          type: string
+          format: uuid
+          description: Unique identifier of the shop.
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        shopsProductId:
+          type: string
+          description: Shop's own identifier for the product.
+          example: "ABC123"
+        shopSlugId:
+          type: string
+          description: URL-friendly slug identifier for the shop.
+          example: "tech-store"
+        productSlugId:
+          type: string
+          description: URL-friendly slug identifier for the product (6-character suffix).
+          example: "amazing-product-fa87c4"
+        shopName:
+          type: string
+          description: Display name of the shop.
+          example: "Tech Store"
+        title:
+          $ref: "#/components/schemas/LocalizedTextData"
+        watchlistPayload:
+          $ref: "#/components/schemas/WatchlistPayloadData"
+
+    WatchlistPayloadData:
+      description: |
+        The watchlist-specific sub-payload. The structure depends on the `type` discriminator field:
+        - `PRICE_CHANGE`: A price change event. Both `oldPrice` and `newPrice` are optional (absent when the price was not available in the requested currency).
+        - `STATE_CHANGE`: A product state change event. Both `oldState` and `newState` are always present.
+      oneOf:
+        - $ref: "#/components/schemas/PriceChangeWatchlistPayloadData"
+        - $ref: "#/components/schemas/StateChangeWatchlistPayloadData"
+      discriminator:
+        propertyName: type
+        mapping:
+          PRICE_CHANGE: "#/components/schemas/PriceChangeWatchlistPayloadData"
+          STATE_CHANGE: "#/components/schemas/StateChangeWatchlistPayloadData"
+
+    PriceChangeWatchlistPayloadData:
+      type: object
+      description: Watchlist payload for a price change notification.
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [PRICE_CHANGE]
+          description: Discriminator field identifying this as a price-change watchlist payload.
+        oldPrice:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Previous price in the requested currency. Absent when price was unavailable in that currency.
+        newPrice:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: New price in the requested currency. Absent when price is unavailable in that currency.
+
+    StateChangeWatchlistPayloadData:
+      type: object
+      description: Watchlist payload for a product state change notification.
+      required:
+        - type
+        - oldState
+        - newState
+      properties:
+        type:
+          type: string
+          enum: [STATE_CHANGE]
+          description: Discriminator field identifying this as a state-change watchlist payload.
+        oldState:
+          $ref: "#/components/schemas/ProductStateData"
+        newState:
+          $ref: "#/components/schemas/ProductStateData"
+
+    PatchNotificationData:
+      type: object
+      description: |
+        Patch body for updating notification fields. All fields are optional.
+        Only provided (non-null) fields are applied.
+      properties:
+        seen:
+          type: boolean
+          nullable: true
+          description: Set to `true` to mark the notification as seen, `false` to mark it unseen.
+          example: true
+
+    NotificationCollectionData:
+      type: object
+      description: Cursor-paginated collection of notifications, sorted latest-first.
+      required:
+        - items
+        - size
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GetNotificationData"
+          description: Notifications in the current page.
+        size:
+          type: integer
+          minimum: 0
+          description: Number of notifications in the current page.
+          example: 21
+        searchAfter:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            Event ID cursor for the next page (UUID string).
+            Present only when more results are available.
+            Pass this value as the `searchAfter` query parameter to retrieve the next page.
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        total:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Total number of notifications for the user. May be absent in some cases.
+          example: 42
+
 tags:
   - name: Products
     description: Operations related to product retrieval and search
+  - name: Notifications
+    description: Operations for managing user notifications
   - name: Search Filters
     description: Operations for managing user search filters
   - name: Shops

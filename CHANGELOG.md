@@ -6,6 +6,113 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-14 - User Notifications REST API (`backend#622`)
+
+This update exposes user notifications via a new REST API. Users can list, update (mark as seen), and delete their notifications — individually or in bulk.
+
+### Added
+
+- **`GET /api/v1/me/notifications`** – Retrieve the authenticated user's notifications.
+  - Sorted latest-first.
+  - Cursor-based pagination using an event ID (`searchAfter` / `size` query parameters).
+  - Query parameters:
+    | Parameter | Type | Required | Description |
+    |---|---|---|---|
+    | `language` | `LanguageData` | No | Language for localized content. Defaults to `en`. |
+    | `currency` | `CurrencyData` | No | Currency for price display in payloads. Defaults to `EUR`. |
+    | `searchAfter` | `string (uuid)` | No | Event ID cursor from the previous response for pagination. |
+    | `size` | `integer` | No | Page size; capped at 100. |
+  - Response: `NotificationCollectionData` (200); `Cache-Control: no-store` response header always set.
+  - Error codes: `BAD_QUERY_PARAMETER_VALUE` (400), `INVALID_UUID` (400), `UNAUTHORIZED` (401).
+
+- **`PATCH /api/v1/me/notifications/{eventId}`** – Update a single notification.
+  - Path parameter `eventId` (UUID): identifies the notification.
+  - Query parameters: `language` (optional), `currency` (optional) – control localization of the response.
+  - Request body: **required** `PatchNotificationData` JSON object.
+  - Response: updated `GetNotificationData` (200).
+  - Error codes: `BAD_PATH_PARAMETER_VALUE` (400), `INVALID_UUID` (400), `BAD_BODY_VALUE` (400), `UNAUTHORIZED` (401), `NOTIFICATION_NOT_FOUND` (404).
+
+- **`PATCH /api/v1/me/notifications`** – Update all notifications at once.
+  - Query parameters: `language` (optional), `currency` (optional) – control localization of the response.
+  - Request body: **optional** `PatchNotificationData` JSON object. If the body is omitted or empty the patch is a no-op.
+  - Response: `NotificationCollectionData` (200) — first page of the updated notifications; `Cache-Control: no-store` response header always set.
+  - Error codes: `BAD_BODY_VALUE` (400), `UNAUTHORIZED` (401).
+
+- **`DELETE /api/v1/me/notifications/{eventId}`** – Delete a single notification.
+  - Path parameter `eventId` (UUID): identifies the notification.
+  - Response: 204 No Content on success.
+  - Error codes: `BAD_PATH_PARAMETER_VALUE` (400), `INVALID_UUID` (400), `UNAUTHORIZED` (401), `NOTIFICATION_NOT_FOUND` (404).
+
+- **`DELETE /api/v1/me/notifications`** – Delete all notifications for the authenticated user.
+  - No request body or query parameters.
+  - Response: 204 No Content on success.
+  - Error codes: `UNAUTHORIZED` (401).
+
+- **New schemas**:
+
+  - **`GetNotificationData`** – Full localized notification response object.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `originEventId` | `string (uuid)` | Yes | ID of the domain event that triggered the notification. |
+    | `notificationId` | `string (uuid)` | Yes | Unique identifier of the notification record. |
+    | `payload` | `NotificationPayloadData` | Yes | Notification-type-specific payload. |
+    | `seen` | `boolean` | Yes | Whether the user has seen this notification. |
+    | `external` | `boolean` | Yes | Whether the notification was triggered by an external event. |
+    | `created` | `string (date-time)` | Yes | Creation timestamp (RFC3339). |
+    | `updated` | `string (date-time)` | Yes | Last-updated timestamp (RFC3339). |
+
+  - **`NotificationPayloadData`** – Discriminated union keyed on `type`. Current variants:
+    - `WATCHLIST` → `WatchlistNotificationPayloadData`
+
+  - **`WatchlistNotificationPayloadData`** – Payload for watchlist-triggered notifications.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `type` | `"WATCHLIST"` | Yes | Discriminator. |
+    | `productId` | `string (uuid)` | Yes | Internal product identifier. |
+    | `shopId` | `string (uuid)` | Yes | Shop identifier. |
+    | `shopsProductId` | `string` | Yes | Shop's own identifier for the product. |
+    | `shopSlugId` | `string` | Yes | URL-friendly slug for the shop. |
+    | `productSlugId` | `string` | Yes | URL-friendly slug for the product (6-character suffix). |
+    | `shopName` | `string` | Yes | Display name of the shop. |
+    | `title` | `LocalizedTextData` | Yes | Localized product title. |
+    | `watchlistPayload` | `WatchlistPayloadData` | Yes | Watchlist-specific event payload. |
+
+  - **`WatchlistPayloadData`** – Discriminated union keyed on `type`. Current variants:
+    - `PRICE_CHANGE` → `PriceChangeWatchlistPayloadData`
+    - `STATE_CHANGE` → `StateChangeWatchlistPayloadData`
+
+  - **`PriceChangeWatchlistPayloadData`** – Payload for price-change watchlist notifications.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `type` | `"PRICE_CHANGE"` | Yes | Discriminator. |
+    | `oldPrice` | `PriceData \| null` | No | Previous price in the requested currency. Absent when not available. |
+    | `newPrice` | `PriceData \| null` | No | New price in the requested currency. Absent when not available. |
+
+  - **`StateChangeWatchlistPayloadData`** – Payload for product state-change watchlist notifications.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `type` | `"STATE_CHANGE"` | Yes | Discriminator. |
+    | `oldState` | `ProductStateData` | Yes | Previous product state. |
+    | `newState` | `ProductStateData` | Yes | New product state. |
+
+  - **`PatchNotificationData`** – Request body for PATCH operations.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `seen` | `boolean \| null` | No | Set to `true`/`false` to mark the notification seen/unseen. Omit to leave unchanged. |
+
+  - **`NotificationCollectionData`** – Paginated notification list response.
+    | Property | Type | Required | Description |
+    |---|---|---|---|
+    | `items` | `GetNotificationData[]` | Yes | Notifications in the current page. |
+    | `size` | `integer` | Yes | Number of items in the current page. |
+    | `searchAfter` | `string (uuid) \| null` | No | Cursor for the next page. Present only when more results are available. |
+    | `total` | `integer \| null` | No | Total notification count for the user. May be absent. |
+
+- **New error code**:
+  - `NOTIFICATION_NOT_FOUND` (404) – No notification with the given event ID exists for this user.
+
+---
+
 ## 2026-03-11 - User Account Prohibited Content Consent Flag (`backend#606`)
 
 This update extends the user account API contract with a persisted consent flag for prohibited content display behavior.
