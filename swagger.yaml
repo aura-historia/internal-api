@@ -7200,7 +7200,7 @@ components:
           example: false
         external:
           type: boolean
-          description: Whether this notification was triggered by an external (non-system) event.
+          description: Whether the notification has been sent externally to the user via a third-party medium (e.g. mail, SMS). `true` means it was sent externally; `false` means it was not.
           example: false
         created:
           type: string

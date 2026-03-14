@@ -57,7 +57,7 @@ This update exposes user notifications via a new REST API. Users can list, updat
     | `notificationId` | `string (uuid)` | Yes | Unique identifier of the notification record. |
     | `payload` | `NotificationPayloadData` | Yes | Notification-type-specific payload. |
     | `seen` | `boolean` | Yes | Whether the user has seen this notification. |
-    | `external` | `boolean` | Yes | Whether the notification was triggered by an external event. |
+    | `external` | `boolean` | Yes | Whether the notification has been sent externally to the user via a third-party medium (e.g. mail, SMS). `true` means it was sent externally; `false` means it was not. |
     | `created` | `string (date-time)` | Yes | Creation timestamp (RFC3339). |
     | `updated` | `string (date-time)` | Yes | Last-updated timestamp (RFC3339). |
 
