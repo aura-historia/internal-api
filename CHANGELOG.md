@@ -6,6 +6,53 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-17 - Personalize Image Responses via User Consent (`backend#618`)
+
+This update personalizes product image responses based on the authenticated user's prohibited-content consent flag. Image URLs for images that carry prohibited content are now withheld unless the user has explicitly consented to view them. The user's consent state is also surfaced in the `userState` response so the frontend can reflect the current consent setting without an extra round-trip.
+
+### Changed
+
+- **`GET /api/v1/shops/{shopId}/products/{productId}`** (`PersonalizedGetProductData` response)
+  - `item.images[].url` is now **optional** (`string | absent`). The field is omitted for any image whose `prohibitedContent != "NONE"` when the authenticated user has not consented, and always omitted for unauthenticated users for such images.
+  - `userState` (when present): extended with a new required field `prohibitedContent` — see **`ProductUserStateData`** changes below.
+
+- **`GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`** (`PersonalizedGetProductData` response)
+  - Same image URL behaviour and `userState` extension as the endpoint above.
+
+- **`GET /api/v1/shops/{shopId}/products/{productId}/similar`** (`PersonalizedGetProductSummaryData[]` response)
+  - `item.images[].url` is now **optional** (`string | absent`) following the same consent-based logic.
+  - `userState` (when present): extended with `prohibitedContent`.
+
+- **`POST /api/v1/products/search`** and **`GET /api/v1/products`** (`CursoredResult<PersonalizedGetProductSummaryData>` response)
+  - `item.images[].url` is now **optional** following the same consent-based logic.
+  - `userState` (when present): extended with `prohibitedContent`.
+
+- **`GET /api/v1/me/watchlist`** (`PersonalizedGetProductSummaryData[]` response)
+  - `item.images[].url` is now **optional** following the same consent-based logic.
+
+### Changed schemas
+
+- **`ProductImageData`**
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `url` | `string (uri)` | **No** (was Yes) | URL to the product image. Omitted when `prohibitedContent != "NONE"` and the user has not consented (or the request is unauthenticated). |
+  | `prohibitedContent` | `ProhibitedContentData` | Yes | Unchanged. |
+
+- **`ProductUserStateData`**
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `watchlist` | `WatchlistUserStateData` | Yes | Unchanged. |
+  | `prohibitedContent` | `ProhibitedContentUserStateData` | **Yes (new)** | User's prohibited-content consent state. |
+
+### New schemas
+
+- **`ProhibitedContentUserStateData`** – Reflects the authenticated user's consent for viewing prohibited content.
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `consent` | `boolean` | Yes | `true` if the user has consented to see prohibited-content images; `false` otherwise. When `false`, image URLs for non-safe images are omitted from the response. |
+
+---
+
 ## 2026-03-14 - User Notifications REST API (`backend#622`)
 
 This update exposes user notifications via a new REST API. Users can list, update (mark as seen), and delete their notifications — individually or in bulk.
