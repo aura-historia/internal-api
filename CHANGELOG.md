@@ -6,7 +6,62 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2026-03-17 - Personalize Image Responses via User Consent (`backend#618`)
+## 2026-03-17 - Search Filter Match Notifications (`backend#630`)
+
+This update introduces a new notification type for search filter matches. When a product event (price change, state change, or enrichment) results in a product matching a user's saved search filter, a `SEARCH_FILTER` notification is now created and optionally emailed to the user. Additionally, all search filter objects now expose a `notifications` flag that users can toggle to control whether they receive such notifications.
+
+### Added
+
+- **`SEARCH_FILTER` notification type** — New variant in `NotificationPayloadData`.
+  - When a product matches a user's saved search filter, a notification with `type: "SEARCH_FILTER"` is created.
+  - Notifications are sent externally (via email) only if the matched search filter has `notifications: true`.
+
+### Changed
+
+- **`UserSearchFilterData`** (returned by `GET /api/v1/me/search-filters`, `GET /api/v1/me/search-filters/{userSearchFilterId}`, `POST /api/v1/me/search-filters`, `PATCH /api/v1/me/search-filters/{userSearchFilterId}`)
+  - Added required boolean field **`notifications`**: whether notifications are enabled for this search filter.
+  - Defaults to `true` for all newly created filters. Existing filters without an explicit stored value also default to `true`.
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `notifications` | `boolean` | **Yes (new)** | `true` if the user receives notifications when products match this filter; `false` to suppress all match notifications. |
+
+- **`PatchUserSearchFilterData`** (request body for `PATCH /api/v1/me/search-filters/{userSearchFilterId}`)
+  - Added optional boolean field **`notifications`**: set to `true` or `false` to enable or disable match notifications for this filter. Omit to leave unchanged.
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `notifications` | `boolean \| null` | No | Toggle notifications for this search filter. `true` enables, `false` disables. Omit to leave unchanged. |
+
+### New schemas
+
+- **`SearchFilterNotificationPayloadData`** — Payload for a search filter match notification (`type: "SEARCH_FILTER"`).
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | `"SEARCH_FILTER"` | Yes | Discriminator. |
+  | `productId` | `string (uuid)` | Yes | Internal product identifier. |
+  | `shopId` | `string (uuid)` | Yes | Shop identifier. |
+  | `shopsProductId` | `string` | Yes | Shop's own identifier for the product. |
+  | `shopSlugId` | `string` | Yes | URL-friendly slug for the shop. |
+  | `productSlugId` | `string` | Yes | URL-friendly slug for the product (6-character suffix). |
+  | `shopName` | `string` | Yes | Display name of the shop. |
+  | `title` | `LocalizedTextData` | Yes | Localized product title. |
+  | `searchFilterPayload` | `SearchFilterPayloadData` | Yes | Sub-payload identifying the matched search filter. |
+
+- **`SearchFilterPayloadData`** — Sub-payload for search filter match notifications.
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `userSearchFilterId` | `string (uuid)` | Yes | Unique identifier of the saved search filter that matched the product. |
+  | `userSearchFilterName` | `string` | Yes | User-defined name of the matched search filter. |
+
+- **`NotificationPayloadData`** — Extended discriminated union; new variant added:
+  - `SEARCH_FILTER` → `SearchFilterNotificationPayloadData`
+
+---
+
+
 
 This update personalizes product image responses based on the authenticated user's prohibited-content consent flag. Image URLs for images that carry prohibited content are now withheld unless the user has explicitly consented to view them. The user's consent state is also surfaced in the `userState` response so the frontend can reflect the current consent setting without an extra round-trip.
 

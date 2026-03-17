@@ -1647,6 +1647,7 @@ paths:
                   - userId: "550e8400-e29b-41d4-a716-446655440000"
                     userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     name: "My Tech Store Search"
+                    notifications: true
                     productSearch:
                       language: "en"
                       currency: "USD"
@@ -1777,6 +1778,7 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
+                notifications: true
                 productSearch:
                   language: "en"
                   currency: "USD"
@@ -1880,6 +1882,7 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
+                notifications: true
                 productSearch:
                   language: "en"
                   currency: "USD"
@@ -2079,6 +2082,14 @@ paths:
                 summary: Update only the name
                 value:
                   name: "New Filter Name"
+              disable_notifications:
+                summary: Disable notifications for this search filter
+                value:
+                  notifications: false
+              enable_notifications:
+                summary: Enable notifications for this search filter
+                value:
+                  notifications: true
               update_filter_only:
                 summary: Update only the filter criteria
                 value:
@@ -2118,6 +2129,7 @@ paths:
                 userId: "550e8400-e29b-41d4-a716-446655440000"
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "Updated Filter Name"
+                notifications: true
                 productSearch:
                   language: "en"
                   currency: "USD"
@@ -6147,7 +6159,7 @@ components:
       description: |
         Partial search filter update data.
         All fields are optional and only provided fields will be updated.
-        Can update the search filter name and/or the search filter criteria.
+        Can update the search filter name, notifications preference, and/or the search filter criteria.
       properties:
         name:
           type: string
@@ -6155,6 +6167,15 @@ components:
           maxLength: 255
           nullable: true
           example: "Updated Filter Name"
+        notifications:
+          type: boolean
+          nullable: true
+          description: |
+            Whether to enable or disable email/push notifications for new products matching this search filter.
+            When `true`, the user will be notified when a new product matches this filter.
+            When `false`, no notifications are sent for this filter.
+            Omit to leave unchanged.
+          example: true
         productSearch:
           allOf:
             - $ref: "#/components/schemas/PatchProductSearchData"
@@ -6322,6 +6343,7 @@ components:
         - userId
         - userSearchFilterId
         - name
+        - notifications
         - productSearch
         - created
         - updated
@@ -6340,6 +6362,14 @@ components:
           type: string
           description: User-defined name for the search filter
           example: "My Tech Store Search"
+        notifications:
+          type: boolean
+          description: |
+            Whether notifications are enabled for this search filter.
+            When `true`, the user will be notified when a new product matches this filter.
+            When `false`, no notifications are sent for this filter.
+            Defaults to `true` for newly created filters.
+          example: true
         productSearch:
           $ref: "#/components/schemas/ProductSearchData"
         created:
@@ -7248,12 +7278,15 @@ components:
       description: |
         The notification payload. The structure depends on the `type` discriminator field:
         - `WATCHLIST`: Notification triggered by a watchlist event (price change or state change).
+        - `SEARCH_FILTER`: Notification triggered when a new product matches a user's search filter.
       oneOf:
         - $ref: "#/components/schemas/WatchlistNotificationPayloadData"
+        - $ref: "#/components/schemas/SearchFilterNotificationPayloadData"
       discriminator:
         propertyName: type
         mapping:
           WATCHLIST: "#/components/schemas/WatchlistNotificationPayloadData"
+          SEARCH_FILTER: "#/components/schemas/SearchFilterNotificationPayloadData"
 
     WatchlistNotificationPayloadData:
       type: object
@@ -7355,6 +7388,72 @@ components:
           $ref: "#/components/schemas/ProductStateData"
         newState:
           $ref: "#/components/schemas/ProductStateData"
+
+    SearchFilterNotificationPayloadData:
+      type: object
+      description: Notification payload for a search filter match event. Triggered when a new or updated product matches a user's saved search filter.
+      required:
+        - type
+        - productId
+        - shopId
+        - shopsProductId
+        - shopSlugId
+        - productSlugId
+        - shopName
+        - title
+        - searchFilterPayload
+      properties:
+        type:
+          type: string
+          enum: [SEARCH_FILTER]
+          description: Discriminator field identifying this as a search filter notification.
+        productId:
+          type: string
+          format: uuid
+          description: Internal product identifier.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        shopId:
+          type: string
+          format: uuid
+          description: Unique identifier of the shop.
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        shopsProductId:
+          type: string
+          description: Shop's own identifier for the product.
+          example: "ABC123"
+        shopSlugId:
+          type: string
+          description: URL-friendly slug identifier for the shop.
+          example: "antique-store"
+        productSlugId:
+          type: string
+          description: URL-friendly slug identifier for the product (6-character suffix).
+          example: "baroque-clock-fa87c4"
+        shopName:
+          type: string
+          description: Display name of the shop.
+          example: "Antique Store"
+        title:
+          $ref: "#/components/schemas/LocalizedTextData"
+        searchFilterPayload:
+          $ref: "#/components/schemas/SearchFilterPayloadData"
+
+    SearchFilterPayloadData:
+      type: object
+      description: Search-filter-specific sub-payload identifying which saved filter matched the product.
+      required:
+        - userSearchFilterId
+        - userSearchFilterName
+      properties:
+        userSearchFilterId:
+          type: string
+          format: uuid
+          description: Unique identifier of the user's search filter that matched the product.
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        userSearchFilterName:
+          type: string
+          description: User-defined name of the search filter that matched the product.
+          example: "My Baroque Clock Search"
 
     PatchNotificationData:
       type: object
