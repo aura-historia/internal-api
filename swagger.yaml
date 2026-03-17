@@ -153,6 +153,8 @@ paths:
                       watchlist:
                         watching: true
                         notifications: true
+                      prohibitedContent:
+                        consent: false
                 anonymous:
                   summary: Anonymous user response without user state
                   value:
@@ -375,6 +377,8 @@ paths:
                       watchlist:
                         watching: true
                         notifications: true
+                      prohibitedContent:
+                        consent: false
                 anonymous:
                   summary: Anonymous user response without user state
                   value:
@@ -696,6 +700,8 @@ paths:
                         watchlist:
                           watching: true
                           notifications: false
+                        prohibitedContent:
+                          consent: false
                     - item:
                         productId: "770e8400-e29b-41d4-a716-446655440002"
                         productSlugId: "another-similar-item-d4e5f6"
@@ -724,6 +730,8 @@ paths:
                         watchlist:
                           watching: false
                           notifications: false
+                        prohibitedContent:
+                          consent: false
                 anonymous:
                   summary: Anonymous user response without user state
                   value:
@@ -1502,6 +1510,8 @@ paths:
                           watchlist:
                             watching: true
                             notifications: false
+                          prohibitedContent:
+                            consent: false
                     size: 21
                     total: 84
                     searchAfter: '[2999, "550e8400-e29b-41d4-a716-446655440000"]'
@@ -5488,9 +5498,12 @@ components:
       description: User-specific state information for a product
       required:
         - watchlist
+        - prohibitedContent
       properties:
         watchlist:
           $ref: "#/components/schemas/WatchlistUserStateData"
+        prohibitedContent:
+          $ref: "#/components/schemas/ProhibitedContentUserStateData"
 
     WatchlistUserStateData:
       type: object
@@ -5506,6 +5519,20 @@ components:
         notifications:
           type: boolean
           description: Whether notifications are enabled for this watchlist product
+          example: false
+
+    ProhibitedContentUserStateData:
+      type: object
+      description: |
+        User's consent state for viewing prohibited content on a product.
+        When `consent` is `true`, image URLs for images with prohibited content are included in the response.
+        When `consent` is `false`, image URLs for images with prohibited content are omitted.
+      required:
+        - consent
+      properties:
+        consent:
+          type: boolean
+          description: Whether the user has consented to view prohibited content
           example: false
 
     LocalizedTextData:
@@ -5840,15 +5867,19 @@ components:
 
     ProductImageData:
       type: object
-      description: Product image with prohibited content classification
+      description: |
+        Product image with prohibited content classification.
+        The `url` field is omitted when the image contains prohibited content and the authenticated user has not consented to view such content.
+        For unauthenticated users the `url` is always omitted for any image whose `prohibitedContent` is not `NONE`.
       required:
-        - url
         - prohibitedContent
       properties:
         url:
           type: string
           format: uri
-          description: URL to the product image
+          description: |
+            URL to the product image.
+            Absent when the image has prohibited content (`prohibitedContent != "NONE"`) and the user has not given consent (`prohibitedContent.consent == false`).
           example: "https://my-shop.com/images/product-1.jpg"
         prohibitedContent:
           $ref: "#/components/schemas/ProhibitedContentData"
