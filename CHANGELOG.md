@@ -6,6 +6,35 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-18 - Personalized Product Notification State (`backend#638`)
+
+This update extends `ProductUserStateData` with notification awareness. When the authenticated user has an unseen notification for a product, the product response now includes `notification.seen: false` in the `userState`, enabling the frontend to surface an unread indicator without an additional round-trip.
+
+### Changed
+
+- **`GET /api/v1/shops/{shopId}/products/{productId}`** — `userState` (when present) is extended with a new required field **`notification`**.
+- **`GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`** — same `userState` extension.
+- **`GET /api/v1/shops/{shopId}/products/{productId}/similar`** — `userState` (when present) is extended with **`notification`**.
+- **`POST /api/v1/products/search`** and **`GET /api/v1/products`** — `userState` (when present) is extended with **`notification`**.
+
+- **`ProductUserStateData`** — New required field added:
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `watchlist` | `WatchlistUserStateData` | Yes | Unchanged. |
+  | `prohibitedContent` | `ProhibitedContentUserStateData` | Yes | Unchanged. |
+  | `notification` | `NotificationUserStateData` | **Yes (new)** | Notification seen-state for this product. |
+
+### New schemas
+
+- **`NotificationUserStateData`** — Indicates whether the authenticated user has unseen notifications for a product. Derived from the latest notification (by creation time) associated with the product.
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `seen` | `boolean` | Yes | `false` if the latest notification for this product is unseen; `true` otherwise. Defaults to `true` when the user has no notifications for this product. |
+
+---
+
 ## 2026-03-17 - Search Filter Match Notifications (`backend#630`)
 
 This update introduces a new notification type for search filter matches. When a product event (price change, state change, or enrichment) results in a product matching a user's saved search filter, a `SEARCH_FILTER` notification is now created and optionally emailed to the user. Additionally, all search filter objects now expose a `notifications` flag that users can toggle to control whether they receive such notifications.

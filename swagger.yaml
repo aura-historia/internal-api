@@ -5511,11 +5511,14 @@ components:
       required:
         - watchlist
         - prohibitedContent
+        - notification
       properties:
         watchlist:
           $ref: "#/components/schemas/WatchlistUserStateData"
         prohibitedContent:
           $ref: "#/components/schemas/ProhibitedContentUserStateData"
+        notification:
+          $ref: "#/components/schemas/NotificationUserStateData"
 
     WatchlistUserStateData:
       type: object
@@ -5546,6 +5549,22 @@ components:
           type: boolean
           description: Whether the user has consented to view prohibited content
           example: false
+
+    NotificationUserStateData:
+      type: object
+      description: |
+        User's notification seen-state for a product.
+        When `seen` is `false`, the product has at least one unseen notification for the authenticated user.
+        When `seen` is `true`, there are no unseen notifications (or no notifications at all) for the user on this product.
+        Defaults to `true`.
+      required:
+        - seen
+      properties:
+        seen:
+          type: boolean
+          description: Whether the latest notification for this product has been seen by the user. Defaults to `true` when no notifications exist.
+          default: true
+          example: true
 
     LocalizedTextData:
       type: object
