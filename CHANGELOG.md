@@ -6,6 +6,32 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-19 - Notification User State `originEventId` (`backend#647`)
+
+This update extends `NotificationUserStateData` with a reference to the event that triggered the latest notification for a product. Clients can use this ID to directly patch a specific notification (e.g. mark it as seen) without an additional lookup.
+
+### Changed
+
+- **`NotificationUserStateData`** — New optional field **`originEventId`** added:
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `seen` | `boolean` | Yes | Unchanged. `false` if the latest notification is unseen; `true` otherwise. Defaults to `true` when no notifications exist. |
+  | `originEventId` | `string (uuid)` | **No (new)** | ID of the domain event that triggered the latest notification for this product. Present whenever at least one notification exists (seen or unseen); **absent** (field omitted entirely) when there are no notifications for this product. |
+
+  **Presence rules for `originEventId`:**
+  - **Present** — one or more notifications exist for this user/product (regardless of whether `seen` is `true` or `false`).
+  - **Absent** — no notifications exist for this user/product (`seen` will be `true` in this case).
+
+  Affected endpoints (all endpoints that return `userState.notification`):
+  - `GET /api/v1/shops/{shopId}/products/{productId}`
+  - `GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`
+  - `GET /api/v1/shops/{shopId}/products/{productId}/similar`
+  - `POST /api/v1/products/search`
+  - `GET /api/v1/products`
+
+---
+
 ## 2026-03-18 - Personalized Product Notification State (`backend#638`)
 
 This update extends `ProductUserStateData` with notification awareness. When the authenticated user has an unseen notification for a product, the product response now includes `notification.seen: false` in the `userState`, enabling the frontend to surface an unread indicator without an additional round-trip.

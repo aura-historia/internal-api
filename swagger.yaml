@@ -5557,6 +5557,7 @@ components:
         When `seen` is `false`, the product has at least one unseen notification for the authenticated user.
         When `seen` is `true`, there are no unseen notifications (or no notifications at all) for the user on this product.
         Defaults to `true`.
+        `originEventId` is present whenever at least one notification exists for the user on this product (regardless of `seen` status), and absent when there are no notifications.
       required:
         - seen
       properties:
@@ -5565,6 +5566,14 @@ components:
           description: Whether the latest notification for this product has been seen by the user. Defaults to `true` when no notifications exist.
           default: true
           example: true
+        originEventId:
+          type: string
+          format: uuid
+          description: |
+            The ID of the domain event that triggered the latest notification for this product.
+            Present whenever at least one notification exists for the user on this product (seen or unseen).
+            Absent (`undefined` / omitted) when no notifications exist for this product.
+          example: "550e8400-e29b-41d4-a716-446655440001"
 
     LocalizedTextData:
       type: object
