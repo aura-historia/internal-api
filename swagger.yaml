@@ -2288,32 +2288,49 @@ paths:
                 items:
                   - item:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "smartphone-case-a1b2c3"
+                      shopSlugId: "tech-store"
                       eventId: "550e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
                       shopsProductId: "6ba7b810"
                       shopName: "Tech Store"
+                      shopType: "COMMERCIAL_DEALER"
                       title:
                         text: "Smartphone Case"
                         language: "en"
                       price:
-                        currency: "EUR"
-                        amount: 2999
-                      priceEstimateMin:
-                        currency: "EUR"
-                        amount: 2700
-                      priceEstimateMax:
-                        currency: "EUR"
-                        amount: 3300
+                        offer:
+                          currency: "EUR"
+                          amount: 2999
+                        estimate:
+                          min:
+                            currency: "EUR"
+                            amount: 2700
+                          max:
+                            currency: "EUR"
+                            amount: 3300
                       state: "AVAILABLE"
                       url: "https://tech-store.com/smartphone-case"
                       images:
                         - url: "https://tech-store.com/images/case-1.jpg"
                           prohibitedContent: "NONE"
+                      authenticity: "ORIGINAL"
+                      condition: "GOOD"
+                      provenance: "PARTIAL"
+                      restoration: "NONE"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
-                    created: "2024-01-15T08:00:00Z"
-                size: 21
-                searchAfter: "2024-01-15T08:00:00Z"
+                    userState:
+                      watchlist:
+                        watching: true
+                        notifications: false
+                      prohibitedContent:
+                        consent: false
+                      notification:
+                        seen: true
+                size: 1
+                total: 1
+                searchAfter: null
         "400":
           description: Bad request - invalid parameters
           content:
@@ -2378,11 +2395,28 @@ paths:
         The request body must contain the shop ID and shop's product ID.
         Each user is limited to a maximum of 5 watchlist products. If the user already has 5 products
         in their watchlist, adding another will result in a 422 Unprocessable Entity error.
-        Returns a 201 Created response with a Location header pointing to the created resource.
+        Returns a 201 Created response with a Location header pointing to the created resource and the full personalized product data.
         Requires valid Cognito JWT authentication.
       operationId: addWatchlistProduct
       tags:
         - Watchlist
+      parameters:
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content in the response.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display in the response.
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
       security:
         - BearerAuth: []
       requestBody:
@@ -2413,14 +2447,50 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WatchlistProductPatchResponse"
+                $ref: "#/components/schemas/PersonalizedGetProductData"
               example:
-                shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsProductId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-                productId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
-                notifications: false
-                created: "2024-01-15T08:00:00Z"
-                updated: "2024-01-15T08:00:00Z"
+                item:
+                  productId: "550e8400-e29b-41d4-a716-446655440000"
+                  productSlugId: "smartphone-case-a1b2c3"
+                  shopSlugId: "tech-store"
+                  eventId: "550e8400-e29b-41d4-a716-446655440001"
+                  shopId: "550e8400-e29b-41d4-a716-446655440000"
+                  shopsProductId: "6ba7b810"
+                  shopName: "Tech Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  title:
+                    text: "Smartphone Case"
+                    language: "en"
+                  price:
+                    offer:
+                      currency: "EUR"
+                      amount: 2999
+                    estimate:
+                      min:
+                        currency: "EUR"
+                        amount: 2700
+                      max:
+                        currency: "EUR"
+                        amount: 3300
+                  state: "AVAILABLE"
+                  url: "https://tech-store.com/smartphone-case"
+                  images:
+                    - url: "https://tech-store.com/images/case-1.jpg"
+                      prohibitedContent: "NONE"
+                  authenticity: "ORIGINAL"
+                  condition: "GOOD"
+                  provenance: "PARTIAL"
+                  restoration: "NONE"
+                  created: "2024-01-01T10:00:00Z"
+                  updated: "2024-01-01T12:00:00Z"
+                userState:
+                  watchlist:
+                    watching: true
+                    notifications: false
+                  prohibitedContent:
+                    consent: false
+                  notification:
+                    seen: true
         "400":
           description: Bad request - invalid request body
           content:
@@ -2777,7 +2847,7 @@ paths:
       summary: Update watchlist product settings
       description: |
         Updates settings for a specific watchlist product (e.g., toggle notifications).
-        Returns the updated watchlist product data with core identifiers and settings.
+        Returns the full personalized product data after applying the update.
         Requires valid Cognito JWT authentication.
       operationId: patchWatchlistProduct
       tags:
@@ -2798,6 +2868,22 @@ paths:
           schema:
             type: string
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content in the response.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display in the response.
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
       security:
         - BearerAuth: []
       requestBody:
@@ -2825,23 +2911,53 @@ paths:
               schema:
                 type: string
               example: "*"
-            Last-Modified:
-              description: When the watchlist product was last updated
-              schema:
-                type: string
-                format: date-time
-              example: "2024-01-15T08:30:00Z"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WatchlistProductPatchResponse"
+                $ref: "#/components/schemas/PersonalizedGetProductData"
               example:
-                shopId: "550e8400-e29b-41d4-a716-446655440000"
-                shopsProductId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-                productId: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
-                notifications: true
-                created: "2024-01-15T08:00:00Z"
-                updated: "2024-01-15T08:30:00Z"
+                item:
+                  productId: "550e8400-e29b-41d4-a716-446655440000"
+                  productSlugId: "smartphone-case-a1b2c3"
+                  shopSlugId: "tech-store"
+                  eventId: "550e8400-e29b-41d4-a716-446655440001"
+                  shopId: "550e8400-e29b-41d4-a716-446655440000"
+                  shopsProductId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+                  shopName: "Tech Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  title:
+                    text: "Smartphone Case"
+                    language: "en"
+                  price:
+                    offer:
+                      currency: "EUR"
+                      amount: 2999
+                    estimate:
+                      min:
+                        currency: "EUR"
+                        amount: 2700
+                      max:
+                        currency: "EUR"
+                        amount: 3300
+                  state: "AVAILABLE"
+                  url: "https://tech-store.com/smartphone-case"
+                  images:
+                    - url: "https://tech-store.com/images/case-1.jpg"
+                      prohibitedContent: "NONE"
+                  authenticity: "ORIGINAL"
+                  condition: "GOOD"
+                  provenance: "PARTIAL"
+                  restoration: "NONE"
+                  created: "2024-01-01T10:00:00Z"
+                  updated: "2024-01-01T12:00:00Z"
+                userState:
+                  watchlist:
+                    watching: true
+                    notifications: true
+                  prohibitedContent:
+                    consent: false
+                  notification:
+                    seen: true
         "400":
           description: Bad request - invalid parameters or body
           content:
@@ -7038,35 +7154,9 @@ components:
           description: Shop's unique identifier for the product. Can be any arbitrary string.
           example: "6ba7b810"
 
-    WatchlistProductData:
-      type: object
-      description: Watchlist product containing the product data and when it was added to the watchlist
-      required:
-        - product
-        - notifications
-        - created
-        - updated
-      properties:
-        product:
-          $ref: "#/components/schemas/GetProductData"
-        notifications:
-          type: boolean
-          description: Whether notifications are enabled for this watchlist product
-          example: false
-        created:
-          type: string
-          format: date-time
-          description: When the product was added to the watchlist (RFC3339 format)
-          example: "2024-01-15T08:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the watchlist product was last updated (RFC3339 format)
-          example: "2024-01-15T08:00:00Z"
-
     WatchlistCollectionData:
       type: object
-      description: Paginated collection of watchlist products using cursor-based pagination
+      description: Paginated collection of personalized watchlist products using cursor-based pagination
       required:
         - items
         - size
@@ -7074,8 +7164,8 @@ components:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/WatchlistProductData"
-          description: Array of watchlist products in the current page
+            $ref: "#/components/schemas/PersonalizedGetProductData"
+          description: Array of personalized watchlist products in the current page
         size:
           type: integer
           minimum: 0
@@ -7102,46 +7192,6 @@ components:
           type: boolean
           description: Whether to enable or disable notifications for this watchlist product
           example: true
-
-    WatchlistProductPatchResponse:
-      type: object
-      description: Response after patching a watchlist product, containing core product identifiers and notification settings
-      required:
-        - shopId
-        - shopsProductId
-        - productId
-        - notifications
-        - created
-        - updated
-      properties:
-        shopId:
-          type: string
-          format: uuid
-          description: Unique identifier of the shop
-          example: "550e8400-e29b-41d4-a716-446655440000"
-        shopsProductId:
-          type: string
-          description: Shop's unique identifier for the product
-          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
-        productId:
-          type: string
-          format: uuid
-          description: Internal product identifier
-          example: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
-        notifications:
-          type: boolean
-          description: Current notification setting for this watchlist product
-          example: true
-        created:
-          type: string
-          format: date-time
-          description: When the product was added to the watchlist (RFC3339 format)
-          example: "2024-01-15T08:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the watchlist product was last updated (RFC3339 format)
-          example: "2024-01-15T08:30:00Z"
 
     SortWatchlistProductFieldData:
       type: string
