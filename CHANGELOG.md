@@ -6,6 +6,66 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-24 - User Search Filter Match Products Endpoint (`backend#680`)
+
+Adds a new endpoint `GET /api/v1/me/search-filters/{userSearchFilterId}/products` that returns the actual products matched by a user's saved search filter. Results are localized, personalized, and paginated using the same search-after cursor pattern as `GET /api/v1/me/watchlist`.
+
+### Added
+
+- **`GET /api/v1/me/search-filters/{userSearchFilterId}/products`** — Returns a paginated, personalized list of products that have been matched by the given search filter.
+
+  **Path parameters:**
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `userSearchFilterId` | `string (uuid)` | Yes | Unique identifier of the search filter |
+
+  **Query parameters:**
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `language` | `LanguageData` | No | Preferred language for localized content. Defaults to `en`. |
+  | `currency` | `CurrencyData` | No | Currency for price display. |
+  | `sort` | `SortSearchFilterMatchFieldData` | No | Field to sort results by. Defaults to `created`. |
+  | `order` | `string` (`asc` \| `desc`) | No | Sort order. Only valid when `sort` is specified. |
+  | `searchAfter` | `string (date-time)` | No | RFC3339 timestamp cursor for the next page. For `asc` order, returns matches created after this timestamp; for `desc` order, returns matches created before it. |
+  | `size` | `integer` (1–100) | No | Number of products per page. Defaults to 21. |
+
+  **Responses:**
+
+  | Status | Description |
+  |---|---|
+  | `200` | Matched products retrieved successfully. Body: `SearchFilterMatchProductCollectionData`. Response always includes `Cache-Control: no-store`. |
+  | `400` | Bad request — invalid path or query parameter (invalid UUID, unsupported sort field, invalid RFC3339 timestamp, etc.). |
+  | `401` | Unauthorized — missing or invalid JWT token. |
+  | `404` | Search filter not found. |
+  | `500` | Internal server error. |
+
+  **200 Response body (`SearchFilterMatchProductCollectionData`):**
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `items` | `PersonalizedGetProductData[]` | Yes | Personalized matched products for the current page |
+  | `size` | `integer` | Yes | Number of products in the current page |
+  | `searchAfter` | `string (date-time)` | No | RFC3339 cursor for the next page. Omitted when there are no further results. |
+  | `total` | `integer` | No | Total number of matched products |
+
+### New schemas
+
+- **`SortSearchFilterMatchFieldData`** — Enum of fields available for sorting search filter matched products.
+  - `created`: Sort by when the product was matched by the search filter (the only supported value).
+
+- **`SearchFilterMatchProductCollectionData`** — Paginated collection of personalized products matched by a search filter.
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `items` | `PersonalizedGetProductData[]` | Yes | Personalized matched products for the current page |
+  | `size` | `integer` | Yes | Number of products in the current page |
+  | `searchAfter` | `string (date-time)` | No | RFC3339 cursor for the next page. Omitted when there are no further results. |
+  | `total` | `integer` | No | Total number of matched products |
+
+---
+
 ## 2026-03-24 - Watchlist Endpoints Return Personalized Product Data (`backend#678`)
 
 All three mutable watchlist endpoints (GET, POST, PATCH) now return the same `PersonalizedGetProductData` response shape used by every other product endpoint. The previous bespoke watchlist response types (`WatchlistProductData` / `WatchlistProductPatchResponse`) have been removed. Watchlist entry timestamps (`created` / `updated`) are intentionally no longer included in any watchlist response.
