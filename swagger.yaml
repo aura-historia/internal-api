@@ -2206,6 +2206,232 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/search-filters/{userSearchFilterId}/products:
+    get:
+      summary: List products matched by a search filter
+      description: |
+        Retrieves all products that have been matched by the given search filter for the authenticated user.
+        Results are paginated using search-after cursor-based pagination sorted by match creation time.
+        Mirrors the behavior of `GET /api/v1/me/watchlist`.
+        Requires valid Cognito JWT authentication.
+      operationId: getSearchFilterMatchedProducts
+      tags:
+        - Search Filters
+      parameters:
+        - name: userSearchFilterId
+          in: path
+          required: true
+          description: Unique identifier of the search filter
+          schema:
+            type: string
+            format: uuid
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        - name: currency
+          in: query
+          required: false
+          description: Currency for price display
+          schema:
+            $ref: "#/components/schemas/CurrencyData"
+          example: EUR
+        - name: sort
+          in: query
+          required: false
+          description: Field to sort results by
+          schema:
+            $ref: "#/components/schemas/SortSearchFilterMatchFieldData"
+          example: created
+        - name: order
+          in: query
+          required: false
+          description: Sort order (only valid when sort is specified)
+          schema:
+            type: string
+            enum: [asc, desc]
+          example: desc
+        - name: searchAfter
+          in: query
+          required: false
+          description: |
+            RFC3339 timestamp for cursor-based pagination (search-after).
+            Depending on sort-order, returns matched products created either after this timestamp for asc (oldest first) or before this timestamp for desc (latest first).
+            In general you do not have to worry about determining this key. It's given with `searchAfter` in the preceding response if more entries are present.
+          schema:
+            type: string
+            format: date-time
+          example: "2024-01-01T10:00:00Z"
+        - name: size
+          in: query
+          required: false
+          description: Number of products to return per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 21
+          example: 21
+        - name: language
+          in: query
+          required: false
+          description: |
+            Preferred language for localized content.
+            Defaults to `en` when omitted.
+          schema:
+            $ref: "#/components/schemas/LanguageData"
+          example: de
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Matched products retrieved successfully
+          headers:
+            Cache-Control:
+              description: Cache control directive — always set to `no-store`
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchFilterMatchProductCollectionData"
+              example:
+                items:
+                  - item:
+                      productId: "550e8400-e29b-41d4-a716-446655440000"
+                      productSlugId: "smartphone-case-a1b2c3"
+                      shopSlugId: "tech-store"
+                      eventId: "550e8400-e29b-41d4-a716-446655440001"
+                      shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      shopsProductId: "6ba7b810"
+                      shopName: "Tech Store"
+                      shopType: "COMMERCIAL_DEALER"
+                      title:
+                        text: "Smartphone Case"
+                        language: "en"
+                      price:
+                        offer:
+                          currency: "EUR"
+                          amount: 2999
+                        estimate:
+                          min:
+                            currency: "EUR"
+                            amount: 2700
+                          max:
+                            currency: "EUR"
+                            amount: 3300
+                      state: "AVAILABLE"
+                      url: "https://tech-store.com/smartphone-case"
+                      images:
+                        - url: "https://tech-store.com/images/case-1.jpg"
+                          prohibitedContent: "NONE"
+                      authenticity: "ORIGINAL"
+                      condition: "GOOD"
+                      provenance: "PARTIAL"
+                      restoration: "NONE"
+                      created: "2024-01-01T10:00:00Z"
+                      updated: "2024-01-01T12:00:00Z"
+                    userState:
+                      watchlist:
+                        watching: true
+                        notifications: false
+                      prohibitedContent:
+                        consent: false
+                      notification:
+                        seen: true
+                size: 1
+                total: 1
+                searchAfter: null
+        "400":
+          description: Bad request - invalid parameters
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
+                invalid_search_after_timestamp:
+                  summary: Invalid searchAfter timestamp
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_RFC3339_TIMESTAMP"
+                    source:
+                      field: "searchAfter"
+                      sourceType: "query"
+                    detail: "Invalid RFC3339 timestamp format"
+                missing_search_filter_id:
+                  summary: Missing search filter ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "userSearchFilterId"
+                      sourceType: "path"
+                invalid_uuid:
+                  summary: Invalid search filter ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "userSearchFilterId"
+                      sourceType: "path"
+                    detail: "Invalid UUID format"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Search filter not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SEARCH_FILTER_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me/watchlist:
     get:
       summary: List user's watchlist products
@@ -7200,6 +7426,44 @@ components:
         Fields available for sorting watchlist products:
         - created: Sort by when product was added to watchlist
       example: created
+
+    SortSearchFilterMatchFieldData:
+      type: string
+      enum: [created]
+      description: |
+        Fields available for sorting search filter matched products:
+        - created: Sort by when the product was matched by the search filter
+      example: created
+
+    SearchFilterMatchProductCollectionData:
+      type: object
+      description: Paginated collection of personalized products matched by a search filter, using cursor-based pagination
+      required:
+        - items
+        - size
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonalizedGetProductData"
+          description: Array of personalized matched products in the current page
+        size:
+          type: integer
+          minimum: 0
+          description: Number of products in the current page
+          example: 21
+        searchAfter:
+          type: string
+          format: date-time
+          description: Cursor for the next page (RFC3339 timestamp). Present when there are more results.
+          nullable: true
+          example: "2024-01-15T08:00:00Z"
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of matched products
+          nullable: true
+          example: 127
 
     PutProductError:
       type: string
