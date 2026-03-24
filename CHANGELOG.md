@@ -6,6 +6,55 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-24 - Watchlist Endpoints Return Personalized Product Data (`backend#678`)
+
+All three mutable watchlist endpoints (GET, POST, PATCH) now return the same `PersonalizedGetProductData` response shape used by every other product endpoint. The previous bespoke watchlist response types (`WatchlistProductData` / `WatchlistProductPatchResponse`) have been removed. Watchlist entry timestamps (`created` / `updated`) are intentionally no longer included in any watchlist response.
+
+### Changed
+
+- **`GET /api/v1/me/watchlist`** — Response items change from `WatchlistProductData` to `PersonalizedGetProductData`.
+  - Previously each item contained `product` (full product data), `notifications` (bool), `created` (RFC3339), and `updated` (RFC3339).
+  - Now each item is a `PersonalizedGetProductData` with an `item` (full `GetProductData`) and an optional `userState` (`ProductUserStateData`). Watchlist entry timestamps are no longer present.
+
+  Updated `WatchlistCollectionData` schema:
+
+  | Property | Type | Required | Description |
+  |---|---|---|---|
+  | `items` | `PersonalizedGetProductData[]` | Yes | Array of personalized watchlist products in the current page |
+  | `size` | `integer` | Yes | Number of products in the current page |
+  | `searchAfter` | `string (date-time)` | No | Cursor for the next page. Present when more results exist. |
+  | `total` | `integer` | No | Total number of watchlist products |
+
+- **`POST /api/v1/me/watchlist`** — Two new optional query parameters added; response type changed.
+  - New query parameters `language` and `currency` control localization and currency of the returned product data.
+  - Response body changes from `WatchlistProductPatchResponse` to `PersonalizedGetProductData`. Watchlist entry timestamps are no longer present.
+
+  New query parameters:
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `language` | `LanguageData` | No | Preferred language for localized content. Defaults to `en`. |
+  | `currency` | `CurrencyData` | No | Currency for price display. |
+
+- **`PATCH /api/v1/me/watchlist/{shopId}/{shopsProductId}`** — Two new optional query parameters added; response type and headers changed.
+  - New query parameters `language` and `currency` control localization and currency of the returned product data.
+  - The `Last-Modified` response header is no longer present.
+  - Response body changes from `WatchlistProductPatchResponse` to `PersonalizedGetProductData`. Watchlist entry timestamps are no longer present.
+
+  New query parameters:
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `language` | `LanguageData` | No | Preferred language for localized content. Defaults to `en`. |
+  | `currency` | `CurrencyData` | No | Currency for price display. |
+
+### Removed
+
+- **`WatchlistProductData`** schema — replaced by `PersonalizedGetProductData`.
+- **`WatchlistProductPatchResponse`** schema — replaced by `PersonalizedGetProductData`.
+
+---
+
 ## 2026-03-19 - Notification User State `originEventId` (`backend#647`)
 
 This update extends `NotificationUserStateData` with a reference to the event that triggered the latest notification for a product. Clients can use this ID to directly patch a specific notification (e.g. mark it as seen) without an additional lookup.
