@@ -536,7 +536,7 @@ paths:
                           amount: 3000
                         state: "LISTED"
                       timestamp: "2024-01-01T10:00:00Z"
-                    - eventType: "STATE_AVAILABLE"
+                    - eventType: "STATE_CHANGED"
                       productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "650e8400-e29b-41d4-a716-446655440002"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
@@ -545,7 +545,7 @@ paths:
                         oldState: "LISTED"
                         newState: "AVAILABLE"
                       timestamp: "2024-01-02T14:30:00Z"
-                    - eventType: "PRICE_DROPPED"
+                    - eventType: "PRICE_CHANGED"
                       productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "650e8400-e29b-41d4-a716-446655440003"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
@@ -5379,35 +5379,24 @@ components:
         newState:
           $ref: "#/components/schemas/ProductStateData"
 
-    ProductEventPriceDiscoveredPayloadData:
-      type: object
-      description: Payload for price discovered events when a product's price is first detected
-      required:
-        - newPrice
-      properties:
-        newPrice:
-          $ref: "#/components/schemas/PriceData"
-
     ProductEventPriceChangedPayloadData:
       type: object
-      description: Payload for price change events (dropped or increased), containing both old and new price
-      required:
-        - oldPrice
-        - newPrice
+      description: |
+        Payload for price change events. Both `oldPrice` and `newPrice` are optional:
+        - `oldPrice` absent, `newPrice` present: price was first discovered (initial price detection)
+        - `oldPrice` present, `newPrice` present: price changed (dropped or increased)
+        - `oldPrice` present, `newPrice` absent: price was removed
       properties:
         oldPrice:
-          $ref: "#/components/schemas/PriceData"
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: The previous price. Absent when this is the first price discovery.
         newPrice:
-          $ref: "#/components/schemas/PriceData"
-
-    ProductEventPriceRemovedPayloadData:
-      type: object
-      description: Payload for price removed events when a product's price is removed
-      required:
-        - oldPrice
-      properties:
-        oldPrice:
-          $ref: "#/components/schemas/PriceData"
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: The new price. Absent when the price is removed.
 
     GetProductEventData:
       type: object
@@ -5691,34 +5680,26 @@ components:
       enum:
         [
           CREATED,
-          STATE_LISTED,
-          STATE_AVAILABLE,
-          STATE_RESERVED,
-          STATE_SOLD,
-          STATE_REMOVED,
-          STATE_UNKNOWN,
-          PRICE_DISCOVERED,
-          PRICE_DROPPED,
-          PRICE_INCREASED,
-          PRICE_REMOVED,
+          STATE_CHANGED,
+          PRICE_CHANGED,
         ]
-      description: Types of events that can occur for a product
-      example: STATE_AVAILABLE
+      description: |
+        Types of events that can occur for a product:
+        - CREATED: Product was created
+        - STATE_CHANGED: Product state transitioned (e.g. listed → available, available → sold)
+        - PRICE_CHANGED: Product price was discovered, updated, or removed
+      example: STATE_CHANGED
 
     ProductEventPayloadData:
       oneOf:
         - $ref: "#/components/schemas/ProductCreatedEventPayloadData"
         - $ref: "#/components/schemas/ProductEventStateChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventPriceDiscoveredPayloadData"
         - $ref: "#/components/schemas/ProductEventPriceChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventPriceRemovedPayloadData"
       description: |
         Event-specific payload data. The structure varies depending on the event type:
         - CREATED: ProductCreatedEventPayloadData (initial product state and optional price)
-        - STATE_LISTED, STATE_AVAILABLE, STATE_RESERVED, STATE_SOLD, STATE_REMOVED, STATE_UNKNOWN: ProductEventStateChangedPayloadData (old and new state)
-        - PRICE_DISCOVERED: ProductEventPriceDiscoveredPayloadData (new price only, when price is first detected)
-        - PRICE_DROPPED, PRICE_INCREASED: ProductEventPriceChangedPayloadData (old and new price)
-        - PRICE_REMOVED: ProductEventPriceRemovedPayloadData (old price only, when price is removed)
+        - STATE_CHANGED: ProductEventStateChangedPayloadData (old and new state)
+        - PRICE_CHANGED: ProductEventPriceChangedPayloadData (old and/or new price; see schema for semantics)
 
     ApiError:
       type: object

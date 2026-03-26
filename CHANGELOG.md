@@ -6,6 +6,36 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-26 - Unify Product Domain Events: Created, StateChanged, PriceChanged (`backend#707`)
+
+The product event type system has been unified. The previous 11 brittle variants encoding state/price-change semantics in the event type name have been collapsed into 3 generalized event types. This affects the `GET /api/v1/products/{productId}/events` endpoint and any consumer of `GetProductEventData`.
+
+### Changed
+
+- **`ProductEventTypeData`** — Enum reduced from 11 values to 3:
+
+  | Old values (removed) | New value |
+  |---|---|
+  | `STATE_LISTED`, `STATE_AVAILABLE`, `STATE_RESERVED`, `STATE_SOLD`, `STATE_REMOVED`, `STATE_UNKNOWN` | `STATE_CHANGED` |
+  | `PRICE_DISCOVERED`, `PRICE_DROPPED`, `PRICE_INCREASED`, `PRICE_REMOVED` | `PRICE_CHANGED` |
+
+  The 3 remaining values are: `CREATED`, `STATE_CHANGED`, `PRICE_CHANGED`.
+
+- **`ProductEventPriceChangedPayloadData`** — Both `oldPrice` and `newPrice` are now **optional** (nullable). The combination of presence/absence encodes the price change semantic:
+
+  | `oldPrice` | `newPrice` | Meaning |
+  |---|---|---|
+  | absent | present | Price first discovered (initial detection) |
+  | present | present | Price changed (dropped or increased) |
+  | present | absent | Price removed |
+
+### Removed schemas
+
+- **`ProductEventPriceDiscoveredPayloadData`** — Replaced by `ProductEventPriceChangedPayloadData` with `oldPrice: null`.
+- **`ProductEventPriceRemovedPayloadData`** — Replaced by `ProductEventPriceChangedPayloadData` with `newPrice: null`.
+
+---
+
 ## 2026-03-26 - Remove Unused Write Endpoints for Products and Shops (`backend#705`)
 
 Removes four write endpoints that are no longer needed in production:
