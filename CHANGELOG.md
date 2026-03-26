@@ -6,6 +6,34 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-26 - Remove Unused Write Endpoints for Products and Shops (`backend#705`)
+
+Removes four write endpoints that are no longer needed in production:
+`PUT /api/v1/products`, `POST /api/v1/shops`, `PATCH /api/v1/shops/{shopId}`, and `PATCH /api/v1/by-domain/shops/{shopDomain}`.
+
+### Removed
+
+- **`PUT /api/v1/products`** — Bulk create or update products endpoint has been removed. This endpoint accepted a collection of product data and processed them asynchronously with automatic shop enrichment based on the product URL's domain.
+
+- **`POST /api/v1/shops`** — Create a new shop endpoint has been removed. This endpoint created a new shop with name, type, domains, and optional image.
+
+- **`PATCH /api/v1/shops/{shopId}`** — Update shop details by ID endpoint has been removed. This endpoint allowed partial updates (type, domains, image) to an existing shop by its UUID.
+
+- **`PATCH /api/v1/by-domain/shops/{shopDomain}`** — Update shop details by domain endpoint has been removed. This endpoint allowed partial updates (type, domains, image) to an existing shop by one of its domains.
+
+### Removed schemas
+
+The following request/response schemas have been removed as they were exclusively used by the deleted endpoints:
+
+- **`PutProductsCollectionData`** — Request body for `PUT /api/v1/products`. Wrapped an array of `PutProductData` items.
+- **`PutProductData`** — Individual product entry for bulk upsert requests.
+- **`PutProductsResponse`** — Response from bulk product upsert with `skipped`, `unprocessed`, and `failed` fields.
+- **`PutProductError`** — Enum of error codes for failed product processing: `SHOP_NOT_FOUND`, `MONETARY_AMOUNT_OVERFLOW`, `PRODUCT_ENRICHMENT_FAILED`, `NO_DOMAIN`.
+- **`PostShopData`** — Request body for `POST /api/v1/shops`.
+- **`PatchShopData`** — Request body for `PATCH /api/v1/shops/{shopId}` and `PATCH /api/v1/by-domain/shops/{shopDomain}`.
+
+---
+
 ## 2026-03-24 - User Search Filter Match Products Endpoint (`backend#680`)
 
 Adds a new endpoint `GET /api/v1/me/search-filters/{userSearchFilterId}/products` that returns the actual products matched by a user's saved search filter. Results are localized, personalized, and paginated using the same search-after cursor pattern as `GET /api/v1/me/watchlist`.
