@@ -6,6 +6,22 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-27 - Ditch Complex Shop-Domain Logic (`backend#714`)
+
+The shop lookup-by-domain feature has been removed. Shops can no longer be retrieved by their associated domain name — only by shop ID (UUID) or slug. Alongside this, the error code for exceeding the domain limit has been replaced by a new error code for providing no domains at all.
+
+### Removed
+
+- **`GET /api/v1/by-domain/shops/{shopDomain}`** — Endpoint removed entirely. Shops can no longer be looked up by domain name. Use `GET /api/v1/shops/{shopId}` (by UUID) or `GET /api/v1/by-slug/shops/{shopSlugId}` (by slug) instead.
+
+- **`SHOP_TOO_MANY_DOMAINS`** error code — Previously returned as `400 Bad Request` when a shop creation request supplied more than 100 domains. This validation and its error code no longer exist.
+
+### Added
+
+- **`NO_DOMAIN`** error code — Returned as `400 Bad Request` when a shop creation or update request provides an empty domains list. A shop must have at least one domain.
+
+---
+
 ## 2026-03-26 - Unify Product Domain Events: Created, StateChanged, PriceChanged (`backend#707`)
 
 The product event type system has been unified. The previous 11 brittle variants encoding state/price-change semantics in the event type name have been collapsed into 3 generalized event types. This affects the `GET /api/v1/products/{productId}/events` endpoint and any consumer of `GetProductEventData`.
