@@ -6,6 +6,60 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-28 - Introduce User Tiers, Limits & Quotas (`backend#719`)
+
+User accounts now carry a `tier` field that governs the limits applied to a user's watchlist and search filters. The initial release introduces a single tier, `FREE`, which caps both watchlist entries and search filters at 5. Quota enforcement has been tightened: the `POST /api/v1/me/search-filters` endpoint now checks the user's quota before creating a new filter (and surfaces `USER_NOT_FOUND` when the user does not exist), and the `POST /api/v1/me/watchlist` endpoint now correctly returns `404` (instead of `500`) when the requesting user cannot be found.
+
+### Added
+
+- **`UserTierData`** (new schema) — String enum representing the user's subscription tier, which determines limits and quotas.
+
+  | Value | Watchlist limit | Search filter limit |
+  |---|---|---|
+  | `FREE` | 5 | 5 |
+
+- **`tier` field on `GET /api/v1/me/account` response** (`GetUserAccountData`) — The user's current tier is now always present in the account response.
+
+  ```json
+  {
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "prohibitedContentConsent": false,
+    "tier": "FREE",
+    "created": "2024-01-01T10:00:00Z",
+    "updated": "2024-01-01T12:00:00Z"
+  }
+  ```
+
+- **`tier` field on `PATCH /api/v1/me/account` response** (`GetUserAccountData`) — The updated account response now also includes the `tier` field.
+
+- **`404 USER_NOT_FOUND`** on **`POST /api/v1/me/search-filters`** — Returned when the authenticated user does not exist in the system at the time of search filter creation (quota check reads user record first).
+
+  ```json
+  { "status": 404, "title": "Not Found", "error": "USER_NOT_FOUND" }
+  ```
+
+- **`422 SEARCH_FILTER_QUOTA_EXCEEDED`** on **`POST /api/v1/me/search-filters`** — Returned when the user has already reached the maximum number of search filters allowed by their tier.
+
+  ```json
+  {
+    "status": 422,
+    "title": "Unprocessable Content",
+    "error": "SEARCH_FILTER_QUOTA_EXCEEDED",
+    "detail": "Exceeded the maximum amount of search filters. There are already 5/5 search filters occupied."
+  }
+  ```
+
+### Changed
+
+- **`404 USER_NOT_FOUND`** on **`POST /api/v1/me/watchlist`** — The user-not-found case on watchlist creation is now returned as `404 Not Found` instead of the previous `500 Internal Server Error`.
+
+  ```json
+  { "status": 404, "title": "Not Found", "error": "USER_NOT_FOUND" }
+  ```
+
+---
+
 ## 2026-03-27 - Ditch Complex Shop-Domain Logic (`backend#714`)
 
 The shop lookup-by-domain feature has been removed. Shops can no longer be retrieved by their associated domain name — only by shop ID (UUID) or slug. Alongside this, the error code for exceeding the domain limit has been replaced by a new error code for providing no domains at all.
