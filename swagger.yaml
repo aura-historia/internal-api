@@ -179,6 +179,152 @@ paths:
                 status: 500
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Batch update products (Partner API)
+      description: |
+        Updates one or more existing products for a shop using API key authentication.
+        This endpoint is intended for partner shops — shops that have been granted partner status
+        and have an API key configured. It does **not** use Cognito JWT authentication.
+
+        The request body is an array of `PatchProductData` objects. Only the fields provided in
+        each entry are updated; omitted optional fields are left unchanged. Products are processed
+        individually: if some products fail to update, the response still returns HTTP 200 with
+        a partial-failure map in the `errors` field. Only entries that failed are present in the map.
+
+        An empty `errors` map in the response indicates all products were updated successfully.
+      operationId: patchPartnerProducts
+      tags:
+        - Products
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: Unique identifier of the partner shop
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - PartnerApiKeyAuth: []
+      requestBody:
+        required: true
+        description: Array of product updates to apply. Must not be empty.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PatchProductData"
+            example:
+              - shopsProductId: "baroque-violin-001"
+                state: "SOLD"
+              - shopsProductId: "baroque-violin-002"
+                price:
+                  currency: "EUR"
+                  amount: 5000
+                state: "AVAILABLE"
+      responses:
+        "200":
+          description: |
+            Batch update request processed. Returns a map of `shopsProductId` to error key for
+            any products that failed to update. An empty `errors` map means all products
+            were updated successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatchProductsResponse"
+              examples:
+                all_success:
+                  summary: All products updated successfully
+                  value:
+                    errors: {}
+                partial_failure:
+                  summary: Some products failed to update
+                  value:
+                    errors:
+                      "baroque-violin-002": "UPDATE_FAILED"
+        "400":
+          description: Bad request — request body is missing, empty, or contains invalid JSON
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Request body is absent or empty
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty."
+                invalid_json:
+                  summary: Request body is not valid JSON
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_JSON"
+                    detail: "expected value at line 1 column 1"
+        "401":
+          description: |
+            Unauthorized — the `x-api-key` header is missing, malformed, or the API key does not
+            match the key stored for the shop.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_header:
+                  summary: x-api-key header is missing or empty
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-api-key"
+                      sourceType: "header"
+                    detail: "Missing or empty 'x-api-key' header."
+                api_key_mismatch:
+                  summary: API key does not match the shop's stored key
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+        "403":
+          description: Forbidden — the shop exists but has not been granted partner status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "PARTNER_SHOP_NOT_PARTNERED"
+        "404":
+          description: Not found — the specified shop does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops/{shopId}/products/{shopsProductId}:
     get:
@@ -7243,6 +7389,48 @@ components:
             An empty object indicates full success.
           example:
             "baroque-violin-002": "PRODUCT_ALREADY_EXISTS"
+
+    PatchProductData:
+      type: object
+      description: |
+        Data for updating a single existing product via the partner batch-update endpoint.
+        Only `shopsProductId` is required; all other fields are optional and, when omitted,
+        the corresponding product attribute is left unchanged.
+      required:
+        - shopsProductId
+      properties:
+        shopsProductId:
+          type: string
+          description: The shop's own identifier for the product to update. Must reference an existing product within the shop.
+          example: "baroque-violin-001"
+        price:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional updated asking price for the product. Omit to leave the current price unchanged.
+        state:
+          allOf:
+            - $ref: "#/components/schemas/ProductStateData"
+          description: Optional updated product state. Omit to leave the current state unchanged.
+
+    PatchProductsResponse:
+      type: object
+      description: |
+        Response for the batch product-update endpoint.
+        The `errors` map contains entries only for products that failed to update.
+        An empty map indicates that all products were updated successfully.
+      required:
+        - errors
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: |
+            Map of `shopsProductId` to error key for products that failed to update.
+            An empty object indicates full success. The only possible error value is `UPDATE_FAILED`.
+          example:
+            "baroque-violin-002": "UPDATE_FAILED"
 
 tags:
   - name: Products

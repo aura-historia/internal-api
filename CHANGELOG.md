@@ -6,6 +6,70 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-29 - Add Partner API: Batch Product Update (`backend#730`)
+
+Partner shops can now update existing products programmatically via a dedicated batch endpoint that mirrors the existing batch-create endpoint. The endpoint uses API key authentication, requires partner status, and returns HTTP 200 with a partial-failure map even if some updates fail.
+
+### Added
+
+- **`PATCH /api/v1/shops/{shopId}/products`** — New partner batch product-update endpoint.
+
+  **Authentication**: `x-api-key` header (partner API key, no Cognito JWT required).
+
+  **Path parameter**:
+  | Parameter | Type | Description |
+  |---|---|---|
+  | `shopId` | `string (uuid)` | UUID of the partner shop |
+
+  **Request body**: `application/json` — array of [`PatchProductData`](#PatchProductData) objects. Must not be empty.
+
+  **Response `200`**: [`PatchProductsResponse`](#PatchProductsResponse) — map of `shopsProductId → errorKey` for products that failed to update. An empty `errors` map indicates full success.
+
+  ```json
+  { "errors": {} }
+  ```
+
+  **Error responses**:
+  | Status | Error code | Condition |
+  |---|---|---|
+  | `400` | `BAD_BODY_VALUE` | Request body is absent or empty |
+  | `400` | `INVALID_JSON` | Request body is not valid JSON |
+  | `401` | `BAD_HEADER_VALUE` | `x-api-key` header is missing or malformed |
+  | `401` | `PARTNER_SHOP_API_KEY_MISMATCH` | API key does not match the shop's stored key |
+  | `403` | `PARTNER_SHOP_NOT_PARTNERED` | Shop exists but has not been granted partner status |
+  | `404` | `SHOP_NOT_FOUND` | Shop with the given `shopId` does not exist |
+  | `500` | `INTERNAL_SERVER_ERROR` | Unexpected server error |
+
+- **`PatchProductData`** (new schema) — Object describing a single product update via the partner endpoint. Only `shopsProductId` is required; all other fields are optional and leave the current value unchanged when omitted.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `shopsProductId` | `string` | ✓ | Shop's own identifier for the product to update |
+  | `price` | `PriceData` | — | Optional updated asking price |
+  | `state` | `ProductStateData` | — | Optional updated product state |
+
+  Minimal example:
+  ```json
+  { "shopsProductId": "baroque-violin-001", "state": "SOLD" }
+  ```
+
+  Full example:
+  ```json
+  {
+    "shopsProductId": "baroque-violin-001",
+    "price": { "currency": "EUR", "amount": 5000 },
+    "state": "AVAILABLE"
+  }
+  ```
+
+- **`PatchProductsResponse`** (new schema) — Response object for the batch-update endpoint.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `errors` | `object (string → string)` | Map of `shopsProductId` to error key for products that failed to update. The only possible error value is `UPDATE_FAILED`. Empty on full success. |
+
+---
+
 ## 2026-03-29 - Add Partner API: Batch Product Creation (`backend#729`)
 
 Partner shops can now create products programmatically via a dedicated batch endpoint that uses API key authentication instead of Cognito JWTs. A shop must have been granted partner status (with an API key configured) before it can use this endpoint. Products are processed individually — a partial failure does not prevent successful products from being created, and the response always returns HTTP 200 with a breakdown of any errors.
