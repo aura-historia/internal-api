@@ -6,6 +6,87 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-29 - Add Partner API: Batch Product Creation (`backend#729`)
+
+Partner shops can now create products programmatically via a dedicated batch endpoint that uses API key authentication instead of Cognito JWTs. A shop must have been granted partner status (with an API key configured) before it can use this endpoint. Products are processed individually — a partial failure does not prevent successful products from being created, and the response always returns HTTP 200 with a breakdown of any errors.
+
+### Added
+
+- **`POST /api/v1/shops/{shopId}/products`** — New partner batch product-creation endpoint.
+
+  **Authentication**: `x-api-key` header (partner API key, no Cognito JWT required).
+
+  **Path parameter**:
+  | Parameter | Type | Description |
+  |---|---|---|
+  | `shopId` | `string (uuid)` | UUID of the partner shop |
+
+  **Request body**: `application/json` — array of [`PostProductData`](#PostProductData) objects. Must not be empty.
+
+  **Response `200`**: [`PostProductsResponse`](#PostProductsResponse) — map of `shopsProductId → errorKey` for products that failed to create. An empty `errors` map indicates full success.
+
+  ```json
+  { "errors": {} }
+  ```
+
+  **Error responses**:
+  | Status | Error code | Condition |
+  |---|---|---|
+  | `400` | `BAD_BODY_VALUE` | Request body is absent or empty |
+  | `400` | `INVALID_JSON` | Request body is not valid JSON |
+  | `401` | `BAD_HEADER_VALUE` | `x-api-key` header is missing or malformed |
+  | `401` | `PARTNER_SHOP_API_KEY_MISMATCH` | API key does not match the shop's stored key |
+  | `403` | `PARTNER_SHOP_NOT_PARTNERED` | Shop exists but has not been granted partner status |
+  | `404` | `SHOP_NOT_FOUND` | Shop with the given `shopId` does not exist |
+  | `500` | `INTERNAL_SERVER_ERROR` | Unexpected server error |
+
+- **`PostProductData`** (new schema) — Object describing a single product to create via the partner endpoint.
+
+  | Field | Type | Required | Default | Description |
+  |---|---|---|---|---|
+  | `shopsProductId` | `string` | ✓ | — | Shop's own identifier for the product (unique within the shop) |
+  | `title` | `LocalizedTextData` | ✓ | — | Localized product title |
+  | `description` | `LocalizedTextData` | ✓ | — | Localized product description |
+  | `price` | `PriceData` | — | absent | Optional asking price |
+  | `priceEstimateMin` | `PriceData` | — | absent | Optional lower bound of estimated price range |
+  | `priceEstimateMax` | `PriceData` | — | absent | Optional upper bound of estimated price range |
+  | `state` | `ProductStateData` | ✓ | — | Current product state |
+  | `url` | `string (uri)` | ✓ | — | URL to the product on the shop's website |
+  | `images` | `string[] (uri)` | ✓ | — | List of image URLs (may be empty) |
+  | `auctionStart` | `string (date-time)` | — | absent | RFC3339 auction start timestamp (auction houses only) |
+  | `auctionEnd` | `string (date-time)` | — | absent | RFC3339 auction end timestamp (auction houses only) |
+  | `originYear` | `OriginYearData` | — | absent | Origin year information for the antique |
+  | `authenticity` | `AuthenticityData` | — | `UNKNOWN` | Authenticity classification |
+  | `condition` | `ConditionData` | — | `UNKNOWN` | Condition classification |
+  | `provenance` | `ProvenanceData` | — | `UNKNOWN` | Provenance classification |
+  | `restoration` | `RestorationData` | — | `UNKNOWN` | Restoration classification |
+
+  Minimal example:
+  ```json
+  {
+    "shopsProductId": "baroque-violin-001",
+    "title": { "text": "Baroque Violin", "language": "en" },
+    "description": { "text": "18th-century baroque violin.", "language": "en" },
+    "state": "AVAILABLE",
+    "url": "https://my-shop.com/products/baroque-violin",
+    "images": ["https://my-shop.com/images/violin-1.jpg"]
+  }
+  ```
+
+- **`PostProductsResponse`** (new schema) — Response object for the batch-create endpoint.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `errors` | `object (string → string)` | Map of `shopsProductId` to error key for products that failed to create. Empty on full success. |
+
+- **`PARTNER_SHOP_NOT_PARTNERED`** (new error code) — Returned as `403 Forbidden` when the shop exists but has not been granted partner status.
+
+- **`PARTNER_SHOP_API_KEY_MISMATCH`** (new error code) — Returned as `401 Unauthorized` when the provided API key does not match the shop's stored key.
+
+- **`PartnerApiKeyAuth`** (new security scheme) — API key authentication via the `x-api-key` request header, used exclusively by the partner product-creation endpoint.
+
+---
+
 ## 2026-03-28 - Introduce User Tiers, Limits & Quotas (`backend#719`)
 
 User accounts now carry a `tier` field that governs the limits applied to a user's watchlist and search filters. The initial release introduces a single tier, `FREE`, which caps both watchlist entries and search filters at 5. Quota enforcement has been tightened: the `POST /api/v1/me/search-filters` endpoint now checks the user's quota before creating a new filter (and surfaces `USER_NOT_FOUND` when the user does not exist), and the `POST /api/v1/me/watchlist` endpoint now correctly returns `404` (instead of `500`) when the requesting user cannot be found.
