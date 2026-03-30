@@ -6,6 +6,96 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-03-30 - Add Partner API: Batch Product Upsert (`backend#733`)
+
+Partner shops can now upsert products programmatically via a single batch endpoint that intelligently handles both create and update in one call. The endpoint uses API key authentication, requires partner status, and returns HTTP 200 with a partial-failure map even if some upserts fail.
+
+For each item in the request, the backend checks whether the product already exists:
+- **New products** are created using all provided fields.
+- **Existing products** have only their `state` and `price` updated; all other fields are ignored.
+
+### Added
+
+- **`PUT /api/v1/shops/{shopId}/products`** — New partner batch product-upsert endpoint.
+
+  **Authentication**: `x-api-key` header (partner API key, no Cognito JWT required).
+
+  **Path parameter**:
+  | Parameter | Type | Description |
+  |---|---|---|
+  | `shopId` | `string (uuid)` | UUID of the partner shop |
+
+  **Request body**: `application/json` — array of [`PutProductData`](#PutProductData) objects. Must not be empty.
+
+  **Response `200`**: [`PutProductsResponse`](#PutProductsResponse) — map of `shopsProductId → errorKey` for products that failed to upsert. An empty `errors` map indicates full success.
+
+  ```json
+  { "errors": {} }
+  ```
+
+  **Error responses**:
+  | Status | Error code | Condition |
+  |---|---|---|
+  | `400` | `BAD_BODY_VALUE` | Request body is absent or empty |
+  | `400` | `INVALID_JSON` | Request body is not valid JSON |
+  | `401` | `BAD_HEADER_VALUE` | `x-api-key` header is missing or malformed |
+  | `401` | `PARTNER_SHOP_API_KEY_MISMATCH` | API key does not match the shop's stored key |
+  | `403` | `PARTNER_SHOP_NOT_PARTNERED` | Shop exists but has not been granted partner status |
+  | `404` | `SHOP_NOT_FOUND` | Shop with the given `shopId` does not exist |
+  | `500` | `INTERNAL_SERVER_ERROR` | Unexpected server error |
+
+- **`PutProductData`** (new schema) — Object describing a single product upsert via the partner endpoint. Only `shopsProductId` is required. All other fields are optional.
+
+  | Field | Type | Required | Default | Description |
+  |---|---|---|---|---|
+  | `shopsProductId` | `string` | ✓ | — | Shop's own identifier for the product |
+  | `title` | `LocalizedTextData` | — | — | Localized title. Used only on create. |
+  | `description` | `LocalizedTextData` | — | — | Localized description. Used only on create. |
+  | `price` | `PriceData` | — | — | Asking price. Applied on both create and update. |
+  | `priceEstimateMin` | `PriceData` | — | — | Lower bound of estimated price range. Used only on create. |
+  | `priceEstimateMax` | `PriceData` | — | — | Upper bound of estimated price range. Used only on create. |
+  | `state` | `ProductStateData` | — | — | Product state. Applied on both create and update. |
+  | `url` | `string (uri)` | — | — | URL to the product on the shop's website. Used only on create. |
+  | `images` | `array of string (uri)` | — | — | Image URLs. Used only on create. |
+  | `auctionStart` | `string (date-time, RFC3339)` | — | — | Auction start timestamp. Used only on create. |
+  | `auctionEnd` | `string (date-time, RFC3339)` | — | — | Auction end timestamp. Used only on create. |
+  | `originYear` | `OriginYearData` | — | — | Origin year information. Used only on create. |
+  | `authenticity` | `AuthenticityData` | — | `UNKNOWN` | Authenticity classification. Used only on create. |
+  | `condition` | `ConditionData` | — | `UNKNOWN` | Condition classification. Used only on create. |
+  | `provenance` | `ProvenanceData` | — | `UNKNOWN` | Provenance classification. Used only on create. |
+  | `restoration` | `RestorationData` | — | `UNKNOWN` | Restoration classification. Used only on create. |
+
+  Minimal example (update state of existing product):
+  ```json
+  { "shopsProductId": "baroque-violin-001", "state": "SOLD" }
+  ```
+
+  Full example (create a new product):
+  ```json
+  {
+    "shopsProductId": "baroque-violin-001",
+    "title": { "text": "Baroque Violin", "language": "en" },
+    "description": { "text": "A beautiful 18th-century baroque violin.", "language": "en" },
+    "price": { "currency": "EUR", "amount": 4500 },
+    "state": "AVAILABLE",
+    "url": "https://my-shop.com/products/baroque-violin",
+    "images": ["https://my-shop.com/images/violin-1.jpg"],
+    "originYear": { "year": 1740 },
+    "authenticity": "ORIGINAL",
+    "condition": "EXCELLENT",
+    "provenance": "COMPLETE",
+    "restoration": "MINOR"
+  }
+  ```
+
+- **`PutProductsResponse`** (new schema) — Response object for the batch-upsert endpoint.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `errors` | `object (string → string)` | Map of `shopsProductId` to error key for products that failed to upsert. The only possible error value is `UPSERT_FAILED`. Empty on full success. |
+
+---
+
 ## 2026-03-29 - Add Partner API: Batch Product Update (`backend#730`)
 
 Partner shops can now update existing products programmatically via a dedicated batch endpoint that mirrors the existing batch-create endpoint. The endpoint uses API key authentication, requires partner status, and returns HTTP 200 with a partial-failure map even if some updates fail.
