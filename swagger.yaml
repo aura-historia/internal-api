@@ -325,6 +325,179 @@ paths:
                 status: 500
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
+    put:
+      summary: Batch upsert products (Partner API)
+      description: |
+        Creates new products or updates existing ones for a shop in a single batch call,
+        using API key authentication. This endpoint is intended for partner shops — shops
+        that have been granted partner status and have an API key configured. It does **not**
+        use Cognito JWT authentication.
+
+        The request body is an array of `PutProductData` objects. For each entry the backend
+        checks whether a product with the given `shopsProductId` already exists in the shop:
+        - **Existing product** — only `state` and `price` are updated (other fields are ignored).
+        - **New product** — a full product is created using all provided fields.
+
+        Products are processed individually: if some products fail to upsert, the response
+        still returns HTTP 200 with a partial-failure map in the `errors` field. Only entries
+        that failed are present in the map.
+
+        An empty `errors` map in the response indicates all products were upserted successfully.
+
+        All fields except `shopsProductId` are optional. The `authenticity`, `condition`,
+        `provenance`, and `restoration` fields each default to `UNKNOWN` when omitted.
+      operationId: putPartnerProducts
+      tags:
+        - Products
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: Unique identifier of the partner shop
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - PartnerApiKeyAuth: []
+      requestBody:
+        required: true
+        description: Array of products to upsert. Must not be empty.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/PutProductData"
+            examples:
+              create_new:
+                summary: Create a new product
+                value:
+                  - shopsProductId: "baroque-violin-001"
+                    title:
+                      text: "Baroque Violin"
+                      language: "en"
+                    description:
+                      text: "A beautiful 18th-century baroque violin in excellent condition."
+                      language: "en"
+                    price:
+                      currency: "EUR"
+                      amount: 4500
+                    state: "AVAILABLE"
+                    url: "https://my-shop.com/products/baroque-violin"
+                    images:
+                      - "https://my-shop.com/images/violin-1.jpg"
+                    originYear:
+                      year: 1740
+                    authenticity: "ORIGINAL"
+                    condition: "EXCELLENT"
+              update_existing:
+                summary: Update an existing product's state
+                value:
+                  - shopsProductId: "baroque-violin-001"
+                    state: "SOLD"
+      responses:
+        "200":
+          description: |
+            Batch upsert request processed. Returns a map of `shopsProductId` to error key for
+            any products that failed to upsert. An empty `errors` map means all products
+            were upserted successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PutProductsResponse"
+              examples:
+                all_success:
+                  summary: All products upserted successfully
+                  value:
+                    errors: {}
+                partial_failure:
+                  summary: Some products failed to upsert
+                  value:
+                    errors:
+                      "baroque-violin-002": "UPSERT_FAILED"
+        "400":
+          description: Bad request — request body is missing, empty, or contains invalid JSON
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Request body is absent or empty
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty."
+                invalid_json:
+                  summary: Request body is not valid JSON
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_JSON"
+                    detail: "expected value at line 1 column 1"
+        "401":
+          description: |
+            Unauthorized — the `x-api-key` header is missing, malformed, or the API key does not
+            match the key stored for the shop.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_header:
+                  summary: x-api-key header is missing or empty
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-api-key"
+                      sourceType: "header"
+                    detail: "Missing or empty 'x-api-key' header."
+                api_key_mismatch:
+                  summary: API key does not match the shop's stored key
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+        "403":
+          description: Forbidden — the shop exists but has not been granted partner status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "PARTNER_SHOP_NOT_PARTNERED"
+        "404":
+          description: Not found — the specified shop does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops/{shopId}/products/{shopsProductId}:
     get:
@@ -7431,6 +7604,134 @@ components:
             An empty object indicates full success. The only possible error value is `UPDATE_FAILED`.
           example:
             "baroque-violin-002": "UPDATE_FAILED"
+
+    PutProductData:
+      type: object
+      description: |
+        Data for upserting a single product via the partner batch-upsert endpoint.
+        Only `shopsProductId` is required. All other fields are optional.
+
+        - If the product **does not yet exist**, it is created using all provided fields.
+          Omitting `title`, `url`, or `state` will result in placeholder defaults being applied
+          internally (empty title, a placeholder URL, and `LISTED` state respectively).
+        - If the product **already exists**, only `state` and `price` are updated; all other
+          fields are ignored for the update path.
+
+        The `authenticity`, `condition`, `provenance`, and `restoration` fields each default
+        to `UNKNOWN` when omitted.
+      required:
+        - shopsProductId
+      properties:
+        shopsProductId:
+          type: string
+          description: The shop's own identifier for the product. Must be unique within the shop.
+          example: "baroque-violin-001"
+        title:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          nullable: true
+          description: Optional localized title for the product. Used only when creating a new product.
+        description:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          nullable: true
+          description: Optional localized description of the product. Used only when creating a new product.
+        price:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional asking price for the product. Applied on both create and update paths.
+        priceEstimateMin:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional lower bound of the estimated price range. Used only when creating a new product.
+        priceEstimateMax:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional upper bound of the estimated price range. Used only when creating a new product.
+        state:
+          allOf:
+            - $ref: "#/components/schemas/ProductStateData"
+          nullable: true
+          description: Optional product state. Applied on both create and update paths.
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to the product on the shop's website. Used only when creating a new product.
+          example: "https://my-shop.com/products/baroque-violin"
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          nullable: true
+          description: List of image URLs for the product. Used only when creating a new product.
+          example:
+            - "https://my-shop.com/images/violin-1.jpg"
+            - "https://my-shop.com/images/violin-2.jpg"
+        auctionStart:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            RFC3339 timestamp of when the auction for this product starts.
+            Only relevant for auction-house shop types. Used only when creating a new product.
+          example: "2025-05-01T12:00:00Z"
+        auctionEnd:
+          type: string
+          format: date-time
+          nullable: true
+          description: |
+            RFC3339 timestamp of when the auction for this product ends.
+            Only relevant for auction-house shop types. Used only when creating a new product.
+          example: "2025-05-10T12:00:00Z"
+        originYear:
+          allOf:
+            - $ref: "#/components/schemas/OriginYearData"
+          nullable: true
+          description: Optional origin year information for the antique product. Used only when creating a new product.
+        authenticity:
+          allOf:
+            - $ref: "#/components/schemas/AuthenticityData"
+          default: UNKNOWN
+          description: Authenticity classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
+        condition:
+          allOf:
+            - $ref: "#/components/schemas/ConditionData"
+          default: UNKNOWN
+          description: Condition classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
+        provenance:
+          allOf:
+            - $ref: "#/components/schemas/ProvenanceData"
+          default: UNKNOWN
+          description: Provenance classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
+        restoration:
+          allOf:
+            - $ref: "#/components/schemas/RestorationData"
+          default: UNKNOWN
+          description: Restoration classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
+
+    PutProductsResponse:
+      type: object
+      description: |
+        Response for the batch product-upsert endpoint.
+        The `errors` map contains entries only for products that failed to upsert.
+        An empty map indicates that all products were upserted successfully.
+      required:
+        - errors
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+          description: |
+            Map of `shopsProductId` to error key for products that failed to upsert.
+            An empty object indicates full success. The only possible error value is `UPSERT_FAILED`.
+          example:
+            "baroque-violin-002": "UPSERT_FAILED"
 
 tags:
   - name: Products
