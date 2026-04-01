@@ -6,6 +6,122 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-01 - Extend Batch Product Update: Fine-grained field updates (`backend#745`)
+
+The partner batch-update endpoint (`PATCH /api/v1/shops/{shopId}/products`) now accepts 11 additional optional fields per product entry. Previously only `price` and `state` could be updated; any other fields were silently ignored. With this change, partners can independently update `priceEstimateMin`, `priceEstimateMax`, `url`, `images`, `auctionStart`, `auctionEnd`, `originYear`, `authenticity`, `condition`, `provenance`, and `restoration`. Each field remains optional and is only changed when explicitly provided.
+
+Each updated field emits its own dedicated product domain event, which is now also surfaced through the product event history API.
+
+### Changed
+
+- **`PatchProductData`** — 11 new optional fields added. Each field is independently updatable. When omitted, the corresponding product attribute is left unchanged.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `priceEstimateMin` | `PriceData` | Lower bound of the estimated price range |
+  | `priceEstimateMax` | `PriceData` | Upper bound of the estimated price range |
+  | `url` | `string (uri)` | URL to the product on the shop's website |
+  | `images` | `array of string (uri)` | List of image URLs |
+  | `auctionStart` | `string (date-time, RFC3339)` | Auction start timestamp |
+  | `auctionEnd` | `string (date-time, RFC3339)` | Auction end timestamp |
+  | `originYear` | `OriginYearData` | Origin year information |
+  | `authenticity` | `AuthenticityData` | Authenticity classification |
+  | `condition` | `ConditionData` | Condition classification |
+  | `provenance` | `ProvenanceData` | Provenance classification |
+  | `restoration` | `RestorationData` | Restoration classification |
+
+  Extended example:
+  ```json
+  {
+    "shopsProductId": "baroque-violin-001",
+    "priceEstimateMin": { "currency": "EUR", "amount": 3000 },
+    "priceEstimateMax": { "currency": "EUR", "amount": 6000 },
+    "url": "https://my-shop.com/products/baroque-violin-updated",
+    "images": ["https://my-shop.com/images/violin-new.jpg"],
+    "auctionStart": "2026-04-10T10:00:00Z",
+    "auctionEnd": "2026-04-10T12:00:00Z",
+    "originYear": { "year": 1740 },
+    "authenticity": "ORIGINAL",
+    "condition": "EXCELLENT",
+    "provenance": "COMPLETE",
+    "restoration": "MINOR"
+  }
+  ```
+
+### Added
+
+- **`ProductEventTypeData`** — 9 new enum values for the product event history:
+
+  | Value | Description |
+  |---|---|
+  | `ESTIMATE_PRICE_CHANGED` | The estimated price range (min/max) was updated |
+  | `URL_CHANGED` | The product URL was updated |
+  | `IMAGES_CHANGED` | The product image list was updated |
+  | `AUCTION_TIME_CHANGED` | The auction start or end time was updated |
+  | `ORIGIN_YEAR_CHANGED` | The product origin year was updated |
+  | `AUTHENTICITY_CHANGED` | The authenticity classification was updated |
+  | `CONDITION_CHANGED` | The condition classification was updated |
+  | `PROVENANCE_CHANGED` | The provenance classification was updated |
+  | `RESTORATION_CHANGED` | The restoration classification was updated |
+
+- **`ProductEventEstimatePriceChangedPayloadData`** (new schema) — Payload for `ESTIMATE_PRICE_CHANGED` events. Only the fields that changed are present.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `priceEstimateMin` | `PriceData` | Updated lower bound of the estimated price range. Absent if not changed. |
+  | `priceEstimateMax` | `PriceData` | Updated upper bound of the estimated price range. Absent if not changed. |
+
+- **`ProductEventUrlChangedPayloadData`** (new schema) — Payload for `URL_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `url` | `string (uri)` | The new product URL |
+
+- **`ProductEventImagesChangedPayloadData`** (new schema) — Payload for `IMAGES_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `images` | `array of ProductImageData` | The complete updated image list |
+
+- **`ProductEventAuctionTimeChangedPayloadData`** (new schema) — Payload for `AUCTION_TIME_CHANGED` events. Only the fields that changed are present.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `auctionStart` | `string (date-time, RFC3339)` | Updated auction start timestamp. Absent if not changed. |
+  | `auctionEnd` | `string (date-time, RFC3339)` | Updated auction end timestamp. Absent if not changed. |
+
+- **`ProductEventOriginYearChangedPayloadData`** (new schema) — Payload for `ORIGIN_YEAR_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `originYear` | `OriginYearData` | The new origin year |
+
+- **`ProductEventAuthenticityChangedPayloadData`** (new schema) — Payload for `AUTHENTICITY_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `authenticity` | `AuthenticityData` | The new authenticity classification |
+
+- **`ProductEventConditionChangedPayloadData`** (new schema) — Payload for `CONDITION_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `condition` | `ConditionData` | The new condition classification |
+
+- **`ProductEventProvenanceChangedPayloadData`** (new schema) — Payload for `PROVENANCE_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `provenance` | `ProvenanceData` | The new provenance classification |
+
+- **`ProductEventRestorationChangedPayloadData`** (new schema) — Payload for `RESTORATION_CHANGED` events.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `restoration` | `RestorationData` | The new restoration classification |
+
+---
+
 ## 2026-03-30 - Add Partner API: Batch Product Upsert (`backend#733`)
 
 Partner shops can now upsert products programmatically via a single batch endpoint that intelligently handles both create and update in one call. The endpoint uses API key authentication, requires partner status, and returns HTTP 200 with a partial-failure map even if some upserts fail.
