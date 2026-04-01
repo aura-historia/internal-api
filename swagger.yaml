@@ -5819,6 +5819,111 @@ components:
           nullable: true
           description: The new price. Absent when the price is removed.
 
+    ProductEventEstimatePriceChangedPayloadData:
+      type: object
+      description: |
+        Payload for estimate price change events. Both `priceEstimateMin` and `priceEstimateMax` are optional:
+        only the fields that actually changed are present.
+      properties:
+        priceEstimateMin:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: The updated lower bound of the estimated price range. Absent if this field was not changed.
+        priceEstimateMax:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: The updated upper bound of the estimated price range. Absent if this field was not changed.
+
+    ProductEventUrlChangedPayloadData:
+      type: object
+      description: Payload for URL change events, containing the new product URL.
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: The new URL of the product on the shop's website.
+          example: "https://my-shop.com/products/baroque-violin-updated"
+
+    ProductEventImagesChangedPayloadData:
+      type: object
+      description: Payload for image list change events, containing the complete updated image list.
+      required:
+        - images
+      properties:
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImageData"
+          description: The complete updated list of product images.
+
+    ProductEventAuctionTimeChangedPayloadData:
+      type: object
+      description: |
+        Payload for auction time change events. Both `auctionStart` and `auctionEnd` are optional:
+        only the fields that actually changed are present.
+      properties:
+        auctionStart:
+          type: string
+          format: date-time
+          nullable: true
+          description: Updated RFC3339 auction start timestamp. Absent if this field was not changed.
+          example: "2026-04-10T10:00:00Z"
+        auctionEnd:
+          type: string
+          format: date-time
+          nullable: true
+          description: Updated RFC3339 auction end timestamp. Absent if this field was not changed.
+          example: "2026-04-10T12:00:00Z"
+
+    ProductEventOriginYearChangedPayloadData:
+      type: object
+      description: Payload for origin year change events, containing the new origin year.
+      required:
+        - originYear
+      properties:
+        originYear:
+          $ref: "#/components/schemas/OriginYearData"
+
+    ProductEventAuthenticityChangedPayloadData:
+      type: object
+      description: Payload for authenticity change events, containing the new authenticity classification.
+      required:
+        - authenticity
+      properties:
+        authenticity:
+          $ref: "#/components/schemas/AuthenticityData"
+
+    ProductEventConditionChangedPayloadData:
+      type: object
+      description: Payload for condition change events, containing the new condition classification.
+      required:
+        - condition
+      properties:
+        condition:
+          $ref: "#/components/schemas/ConditionData"
+
+    ProductEventProvenanceChangedPayloadData:
+      type: object
+      description: Payload for provenance change events, containing the new provenance classification.
+      required:
+        - provenance
+      properties:
+        provenance:
+          $ref: "#/components/schemas/ProvenanceData"
+
+    ProductEventRestorationChangedPayloadData:
+      type: object
+      description: Payload for restoration change events, containing the new restoration classification.
+      required:
+        - restoration
+      properties:
+        restoration:
+          $ref: "#/components/schemas/RestorationData"
+
     GetProductEventData:
       type: object
       description: Historical event for a product
@@ -6103,12 +6208,30 @@ components:
           CREATED,
           STATE_CHANGED,
           PRICE_CHANGED,
+          ESTIMATE_PRICE_CHANGED,
+          URL_CHANGED,
+          IMAGES_CHANGED,
+          AUCTION_TIME_CHANGED,
+          ORIGIN_YEAR_CHANGED,
+          AUTHENTICITY_CHANGED,
+          CONDITION_CHANGED,
+          PROVENANCE_CHANGED,
+          RESTORATION_CHANGED,
         ]
       description: |
         Types of events that can occur for a product:
         - CREATED: Product was created
         - STATE_CHANGED: Product state transitioned (e.g. listed → available, available → sold)
         - PRICE_CHANGED: Product price was discovered, updated, or removed
+        - ESTIMATE_PRICE_CHANGED: Product estimated price range was updated
+        - URL_CHANGED: Product URL was updated
+        - IMAGES_CHANGED: Product image list was updated
+        - AUCTION_TIME_CHANGED: Product auction start or end time was updated
+        - ORIGIN_YEAR_CHANGED: Product origin year was updated
+        - AUTHENTICITY_CHANGED: Product authenticity classification was updated
+        - CONDITION_CHANGED: Product condition classification was updated
+        - PROVENANCE_CHANGED: Product provenance classification was updated
+        - RESTORATION_CHANGED: Product restoration classification was updated
       example: STATE_CHANGED
 
     ProductEventPayloadData:
@@ -6116,11 +6239,29 @@ components:
         - $ref: "#/components/schemas/ProductCreatedEventPayloadData"
         - $ref: "#/components/schemas/ProductEventStateChangedPayloadData"
         - $ref: "#/components/schemas/ProductEventPriceChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventEstimatePriceChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventUrlChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventImagesChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventAuctionTimeChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventOriginYearChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventAuthenticityChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventConditionChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventProvenanceChangedPayloadData"
+        - $ref: "#/components/schemas/ProductEventRestorationChangedPayloadData"
       description: |
         Event-specific payload data. The structure varies depending on the event type:
         - CREATED: ProductCreatedEventPayloadData (initial product state and optional price)
         - STATE_CHANGED: ProductEventStateChangedPayloadData (old and new state)
         - PRICE_CHANGED: ProductEventPriceChangedPayloadData (old and/or new price; see schema for semantics)
+        - ESTIMATE_PRICE_CHANGED: ProductEventEstimatePriceChangedPayloadData (updated min/max estimate prices)
+        - URL_CHANGED: ProductEventUrlChangedPayloadData (new URL)
+        - IMAGES_CHANGED: ProductEventImagesChangedPayloadData (new image list)
+        - AUCTION_TIME_CHANGED: ProductEventAuctionTimeChangedPayloadData (new auction start/end times)
+        - ORIGIN_YEAR_CHANGED: ProductEventOriginYearChangedPayloadData (new origin year)
+        - AUTHENTICITY_CHANGED: ProductEventAuthenticityChangedPayloadData (new authenticity classification)
+        - CONDITION_CHANGED: ProductEventConditionChangedPayloadData (new condition classification)
+        - PROVENANCE_CHANGED: ProductEventProvenanceChangedPayloadData (new provenance classification)
+        - RESTORATION_CHANGED: ProductEventRestorationChangedPayloadData (new restoration classification)
 
     ApiError:
       type: object
@@ -7585,6 +7726,68 @@ components:
           allOf:
             - $ref: "#/components/schemas/ProductStateData"
           description: Optional updated product state. Omit to leave the current state unchanged.
+        priceEstimateMin:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional updated lower bound of the estimated price range. Omit to leave the current value unchanged.
+        priceEstimateMax:
+          allOf:
+            - $ref: "#/components/schemas/PriceData"
+          nullable: true
+          description: Optional updated upper bound of the estimated price range. Omit to leave the current value unchanged.
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional updated URL to the product on the shop's website. Omit to leave the current URL unchanged.
+          example: "https://my-shop.com/products/baroque-violin"
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          nullable: true
+          description: Optional updated list of image URLs for the product. Omit to leave the current images unchanged.
+          example:
+            - "https://my-shop.com/images/violin-1.jpg"
+        auctionStart:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional updated RFC3339 timestamp of when the auction starts. Omit to leave the current value unchanged.
+          example: "2026-04-10T10:00:00Z"
+        auctionEnd:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional updated RFC3339 timestamp of when the auction ends. Omit to leave the current value unchanged.
+          example: "2026-04-10T12:00:00Z"
+        originYear:
+          allOf:
+            - $ref: "#/components/schemas/OriginYearData"
+          nullable: true
+          description: Optional updated origin year information. Omit to leave the current value unchanged.
+        authenticity:
+          allOf:
+            - $ref: "#/components/schemas/AuthenticityData"
+          nullable: true
+          description: Optional updated authenticity classification. Omit to leave the current value unchanged.
+        condition:
+          allOf:
+            - $ref: "#/components/schemas/ConditionData"
+          nullable: true
+          description: Optional updated condition classification. Omit to leave the current value unchanged.
+        provenance:
+          allOf:
+            - $ref: "#/components/schemas/ProvenanceData"
+          nullable: true
+          description: Optional updated provenance classification. Omit to leave the current value unchanged.
+        restoration:
+          allOf:
+            - $ref: "#/components/schemas/RestorationData"
+          nullable: true
+          description: Optional updated restoration classification. Omit to leave the current value unchanged.
 
     PatchProductsResponse:
       type: object
