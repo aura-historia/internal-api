@@ -6954,6 +6954,7 @@ components:
         - categoryId
         - categoryKey
         - name
+        - products
         - created
         - updated
       properties:
@@ -6970,6 +6971,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/LocalizedTextData"
           description: Localized display name
+        products:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Total number of products associated with this category
+          example: 42
         created:
           type: string
           format: date-time
@@ -6988,7 +6995,7 @@ components:
         - categoryId
         - categoryKey
         - name
-        - description
+        - products
         - created
         - updated
       properties:
@@ -7005,10 +7012,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/LocalizedTextData"
           description: Localized display name
-        description:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized description
+        products:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Total number of products associated with this category
+          example: 42
         created:
           type: string
           format: date-time
@@ -7050,6 +7059,7 @@ components:
         - periodId
         - periodKey
         - name
+        - products
         - created
         - updated
       properties:
@@ -7066,6 +7076,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/LocalizedTextData"
           description: Localized display name
+        products:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Total number of products associated with this period
+          example: 42
         created:
           type: string
           format: date-time
@@ -7084,7 +7100,7 @@ components:
         - periodId
         - periodKey
         - name
-        - description
+        - products
         - created
         - updated
       properties:
@@ -7101,10 +7117,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/LocalizedTextData"
           description: Localized display name
-        description:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized description
+        products:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Total number of products associated with this period
+          example: 42
         created:
           type: string
           format: date-time

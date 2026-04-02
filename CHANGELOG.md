@@ -6,6 +6,86 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-02 - Remove display-description & add product-counts for category and period (`backend#751`)
+
+The `description` (localized display description) field has been removed from the category and period detail responses. In its place, all category and period responses — both detail and summary — now include a `products` field that indicates the total number of products associated with that category or period.
+
+### Changed
+
+- **`GetCategoryData`** — `description` field removed; `products` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `description` | **Removed** | — | Localized display description is no longer part of the response |
+  | `products` | **Added** | `integer` | Total number of products in this category |
+
+  Updated response example (`GET /api/v1/categories/{categoryId}`):
+  ```json
+  {
+    "categoryId": "musical-instruments",
+    "categoryKey": "musical-instruments",
+    "name": { "text": "Musical Instruments", "language": "en" },
+    "products": 42,
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-06-01T00:00:00Z"
+  }
+  ```
+
+- **`GetCategorySummaryData`** — `products` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `products` | **Added** | `integer` | Total number of products in this category |
+
+  Updated response example (`GET /api/v1/categories`, `POST /api/v1/categories/search`):
+  ```json
+  {
+    "categoryId": "musical-instruments",
+    "categoryKey": "musical-instruments",
+    "name": { "text": "Musical Instruments", "language": "en" },
+    "products": 42,
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-06-01T00:00:00Z"
+  }
+  ```
+
+- **`GetPeriodData`** — `description` field removed; `products` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `description` | **Removed** | — | Localized display description is no longer part of the response |
+  | `products` | **Added** | `integer` | Total number of products in this period |
+
+  Updated response example (`GET /api/v1/periods/{periodId}`):
+  ```json
+  {
+    "periodId": "renaissance",
+    "periodKey": "RENAISSANCE",
+    "name": { "text": "Renaissance", "language": "en" },
+    "products": 42,
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-06-01T00:00:00Z"
+  }
+  ```
+
+- **`GetPeriodSummaryData`** — `products` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `products` | **Added** | `integer` | Total number of products in this period |
+
+  Updated response example (`GET /api/v1/periods`, `POST /api/v1/periods/search`):
+  ```json
+  {
+    "periodId": "renaissance",
+    "periodKey": "RENAISSANCE",
+    "name": { "text": "Renaissance", "language": "en" },
+    "products": 42,
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-06-01T00:00:00Z"
+  }
+  ```
+
 ## 2026-04-01 - Extend Batch Product Update: Fine-grained field updates (`backend#745`)
 
 The partner batch-update endpoint (`PATCH /api/v1/shops/{shopId}/products`) now accepts 11 additional optional fields per product entry. Previously only `price` and `state` could be updated; any other fields were silently ignored. With this change, partners can independently update `priceEstimateMin`, `priceEstimateMax`, `url`, `images`, `auctionStart`, `auctionEnd`, `originYear`, `authenticity`, `condition`, `provenance`, and `restoration`. Each field remains optional and is only changed when explicitly provided.
