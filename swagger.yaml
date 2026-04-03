@@ -7682,6 +7682,15 @@ components:
             - $ref: "#/components/schemas/OriginYearData"
           nullable: true
           description: Optional origin year information for the antique product
+        sellerName:
+          type: string
+          nullable: true
+          description: |
+            Optional raw name of the secondary seller for this product.
+            Only applicable for `AUCTION_PLATFORM` and `MARKETPLACE` shop types.
+            When provided, the backend resolves the seller shop by this name and associates the product with that seller.
+            When omitted, or when the shop type is neither `AUCTION_PLATFORM` nor `MARKETPLACE`, the partner shop itself is used as the seller.
+          example: "Christie's London"
         authenticity:
           allOf:
             - $ref: "#/components/schemas/AuthenticityData"
@@ -7914,6 +7923,16 @@ components:
             - $ref: "#/components/schemas/OriginYearData"
           nullable: true
           description: Optional origin year information for the antique product. Used only when creating a new product.
+        sellerName:
+          type: string
+          nullable: true
+          description: |
+            Optional raw name of the secondary seller for this product.
+            Only applicable for `AUCTION_PLATFORM` and `MARKETPLACE` shop types.
+            When provided, the backend resolves the seller shop by this name and associates the product with that seller.
+            When omitted, or when the shop type is neither `AUCTION_PLATFORM` nor `MARKETPLACE`, the partner shop itself is used as the seller.
+            Used only when creating a new product.
+          example: "Christie's London"
         authenticity:
           allOf:
             - $ref: "#/components/schemas/AuthenticityData"

@@ -6,6 +6,56 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-03 - Secondary Shops (`backend#758`)
+
+Partner endpoints for creating and upserting products now support an optional `sellerName` field. This enables `AUCTION_PLATFORM` and `MARKETPLACE` shop types to attribute a product to a secondary seller shop rather than the partner shop itself.
+
+### Changed
+
+- **`PostProductData`** — new optional `sellerName` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string \| null` | Optional raw name of the secondary seller for this product. Only effective for `AUCTION_PLATFORM` and `MARKETPLACE` shop types. |
+
+  When `sellerName` is provided and the authenticating shop's type is `AUCTION_PLATFORM` or `MARKETPLACE`, the backend resolves the seller shop by name and records the product under that seller's identity.
+  When omitted — or when the shop type is anything other than `AUCTION_PLATFORM` or `MARKETPLACE` — the partner shop itself remains the seller (identical to previous behaviour).
+
+  Updated request body example (`POST /api/v1/shops/{shopId}/products`):
+  ```json
+  [
+    {
+      "shopsProductId": "lot-4711",
+      "title": { "text": "Baroque Violin", "language": "en" },
+      "description": { "text": "A fine 18th-century violin.", "language": "en" },
+      "state": "AVAILABLE",
+      "url": "https://auction-platform.com/lots/4711",
+      "images": ["https://auction-platform.com/images/lot-4711.jpg"],
+      "sellerName": "Christie's London"
+    }
+  ]
+  ```
+
+- **`PutProductData`** — new optional `sellerName` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string \| null` | Optional raw name of the secondary seller for this product. Only effective for `AUCTION_PLATFORM` and `MARKETPLACE` shop types. Only used when creating a new product. |
+
+  Same resolution logic as for `PostProductData` — only active for `AUCTION_PLATFORM` and `MARKETPLACE` shop types.
+  On the upsert path the field is only taken into account when the product is being **created**, not when an existing product is updated.
+
+  Updated request body example (`PUT /api/v1/shops/{shopId}/products`):
+  ```json
+  [
+    {
+      "shopsProductId": "lot-4711",
+      "state": "LISTED",
+      "sellerName": "Christie's London"
+    }
+  ]
+  ```
+
 ## 2026-04-02 - Remove display-description & add product-counts for category and period (`backend#751`)
 
 The `description` (localized display description) field has been removed from the category and period detail responses. In its place, all category and period responses — both detail and summary — now include a `products` field that indicates the total number of products associated with that category or period.
