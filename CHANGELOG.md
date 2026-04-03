@@ -6,6 +6,38 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-03 - Seller Fields on Product Responses and Search Filters (`backend#764`)
+
+Products now expose a `sellerName` field in all response types. Additionally, the product search API supports two new dedicated filter fields — `sellerName` and `excludeSellerName` — for keyword-exact inclusion and exclusion filtering by seller name, applied independently from the existing `shopName`/`excludeShopName` filters.
+
+### Changed
+
+- **`GetProductData`** — new required `sellerName` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string` | Display name of the seller associated with the product |
+
+- **`GetProductSummaryData`** — new required `sellerName` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string` | Display name of the seller associated with the product |
+
+- **`ProductSearchData`** — two new optional filter fields added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string[]` | Include only products whose seller name exactly matches one of the given values. Applied independently from `shopName`. Defaults to `[]`. |
+  | `excludeSellerName` | **Added** | `string[]` | Exclude products whose seller name exactly matches one of the given values. Applied independently from `excludeShopName`. Defaults to `[]`. |
+
+- **`PatchProductSearchData`** — two new optional patch fields added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `sellerName` | **Added** | `string[] \| null` | Replace the seller name inclusion filter. `null` leaves it unchanged. |
+  | `excludeSellerName` | **Added** | `string[] \| null` | Replace the seller name exclusion filter. `null` leaves it unchanged. |
+
 ## 2026-04-03 - First Product Image in Notifications (`backend#763`)
 
 Notification payloads now include the first image of the relevant product. Both watchlist and search-filter notification variants expose a new optional `image` field. When the product had no images at the time the notification was generated the field is absent.
