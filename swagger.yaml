@@ -5383,6 +5383,7 @@ components:
         - shopId
         - shopsProductId
         - shopName
+        - sellerName
         - shopType
         - title
         - state
@@ -5426,6 +5427,9 @@ components:
         shopName:
           type: string
           description: Display name of the shop
+        sellerName:
+          type: string
+          description: Display name of the seller associated with the product
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
         categoryId:
@@ -5514,6 +5518,7 @@ components:
         - shopId
         - shopsProductId
         - shopName
+        - sellerName
         - shopType
         - title
         - state
@@ -5553,6 +5558,9 @@ components:
         shopName:
           type: string
           description: Display name of the shop
+        sellerName:
+          type: string
+          description: Display name of the seller associated with the product
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
         categoryId:
@@ -6368,6 +6376,31 @@ components:
           uniqueItems: true
           default: []
           example: ["Heritage Auctions", "Christie's"]
+        sellerName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter by exact seller names (keyword matching).
+            Filters products to only those from sellers with names exactly matching one of the provided values.
+            This is an exact match filter, not a fuzzy text search.
+            Applied independently from `shopName` filters.
+          uniqueItems: true
+          default: []
+          example: ["Sotheby's", "Christie's"]
+        excludeSellerName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter to exclude products from specific seller names (keyword matching).
+            Products from sellers with names exactly matching one of the provided values will be excluded from results.
+            This is an exact match filter, not a fuzzy text search.
+            Applied independently from `excludeShopName` filters.
+            Empty array means no sellers are excluded.
+          uniqueItems: true
+          default: []
+          example: ["Heritage Auctions", "Christie's"]
         shopType:
           type: array
           items:
@@ -6571,6 +6604,30 @@ components:
           uniqueItems: true
           nullable: true
           example: ["Christie's", "Bonhams"]
+        sellerName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter by exact seller names (keyword matching).
+            Filters products to only those from sellers with names exactly matching one of the provided values.
+            This is an exact match filter, not a fuzzy text search.
+            Applied independently from `shopName` filters.
+          uniqueItems: true
+          nullable: true
+          example: ["Heritage Auctions", "Sotheby's"]
+        excludeSellerName:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter to exclude products from specific seller names (keyword matching).
+            Products from sellers with names exactly matching one of the provided values will be excluded from results.
+            This is an exact match filter, not a fuzzy text search.
+            Applied independently from `excludeShopName` filters.
+          uniqueItems: true
+          nullable: true
+          example: ["Sotheby's", "Christie's"]
         shopType:
           type: array
           items:
