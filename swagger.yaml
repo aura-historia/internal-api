@@ -7442,6 +7442,13 @@ components:
           example: "Tech Store"
         title:
           $ref: "#/components/schemas/LocalizedTextData"
+        image:
+          allOf:
+            - $ref: "#/components/schemas/ProductImageData"
+          nullable: true
+          description: |
+            The first image of the product at the time the notification was generated.
+            Absent when the product had no images. The URL is always included (prohibited content filtering is skipped for notifications).
         watchlistPayload:
           $ref: "#/components/schemas/WatchlistPayloadData"
 
@@ -7543,6 +7550,13 @@ components:
           example: "Antique Store"
         title:
           $ref: "#/components/schemas/LocalizedTextData"
+        image:
+          allOf:
+            - $ref: "#/components/schemas/ProductImageData"
+          nullable: true
+          description: |
+            The first image of the product at the time the notification was generated.
+            Absent when the product had no images. The URL is always included (prohibited content filtering is skipped for notifications).
         searchFilterPayload:
           $ref: "#/components/schemas/SearchFilterPayloadData"
 

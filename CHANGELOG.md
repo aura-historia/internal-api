@@ -6,6 +6,71 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-03 - First Product Image in Notifications (`backend#763`)
+
+Notification payloads now include the first image of the relevant product. Both watchlist and search-filter notification variants expose a new optional `image` field. When the product had no images at the time the notification was generated the field is absent.
+
+Note: The image URL is **always** included in notification payloads — prohibited content filtering is intentionally skipped for notifications.
+
+### Changed
+
+- **`WatchlistNotificationPayloadData`** — new optional `image` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `image` | **Added** | `ProductImageData \| null` | First image of the product at notification time. Absent when the product had no images. |
+
+  Updated response example (`GET /api/v1/me/notifications`):
+  ```json
+  {
+    "type": "WATCHLIST",
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "shopsProductId": "ABC123",
+    "shopSlugId": "tech-store",
+    "productSlugId": "amazing-product-fa87c4",
+    "shopName": "Tech Store",
+    "title": { "text": "Amazing Product", "language": "en" },
+    "image": {
+      "url": "https://my-shop.com/images/product-1.jpg",
+      "prohibitedContent": "NONE"
+    },
+    "watchlistPayload": {
+      "type": "STATE_CHANGE",
+      "oldState": "LISTED",
+      "newState": "AVAILABLE"
+    }
+  }
+  ```
+
+- **`SearchFilterNotificationPayloadData`** — new optional `image` field added.
+
+  | Field | Change | Type | Description |
+  |---|---|---|---|
+  | `image` | **Added** | `ProductImageData \| null` | First image of the product at notification time. Absent when the product had no images. |
+
+  Updated response example (`GET /api/v1/me/notifications`):
+  ```json
+  {
+    "type": "SEARCH_FILTER",
+    "productId": "550e8400-e29b-41d4-a716-446655440000",
+    "shopId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "shopsProductId": "ABC123",
+    "shopSlugId": "antique-store",
+    "productSlugId": "baroque-clock-fa87c4",
+    "shopName": "Antique Store",
+    "title": { "text": "Baroque Clock", "language": "en" },
+    "image": {
+      "url": "https://antique-store.com/images/clock-1.jpg",
+      "prohibitedContent": "NONE"
+    },
+    "searchFilterPayload": {
+      "userSearchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "userSearchFilterName": "My Baroque Clock Search"
+    }
+  }
+  ```
+
 ## 2026-04-03 - Secondary Shops (`backend#758`)
 
 Partner endpoints for creating and upserting products now support an optional `sellerName` field. This enables `AUCTION_PLATFORM` and `MARKETPLACE` shop types to attribute a product to a secondary seller shop rather than the partner shop itself.
