@@ -6627,7 +6627,7 @@ components:
             Applied independently from `excludeShopName` filters.
           uniqueItems: true
           nullable: true
-          example: ["Christie's", "Bonhams"]
+          example: ["Sotheby's", "Christie's"]
         shopType:
           type: array
           items:
