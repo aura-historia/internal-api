@@ -2070,6 +2070,11 @@ paths:
         The search filter configuration is provided in the request body.
         Returns the created search filter with generated ID and metadata.
         Requires valid Cognito JWT authentication.
+
+        The number of allowed search filters and the set of usable search filter fields depend on the user's tier:
+        - `FREE`: Up to 1 search filter. Only the following filter fields are allowed: `productQuery`, `categoryId`, `periodId`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
+        - `PRO`: Up to 5 search filters. All filter fields are allowed.
+        - `ULTIMATE`: Unlimited search filters. All filter fields are allowed.
       operationId: createUserSearchFilter
       tags:
         - Search Filters
@@ -2186,16 +2191,26 @@ paths:
                 title: "Not Found"
                 error: "USER_NOT_FOUND"
         "422":
-          description: Unprocessable Entity - search filter quota exceeded
+          description: Unprocessable Entity - search filter quota exceeded or restricted feature used
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 422
-                title: "Unprocessable Content"
-                error: "SEARCH_FILTER_QUOTA_EXCEEDED"
-                detail: "Exceeded the maximum amount of search filters. There are already 5/5 search filters occupied."
+              examples:
+                quota_exceeded:
+                  summary: Search filter quota exceeded
+                  value:
+                    status: 422
+                    title: "Unprocessable Content"
+                    error: "SEARCH_FILTER_QUOTA_EXCEEDED"
+                    detail: "Exceeded the maximum amount of search filters. There are already 1/1 search filters occupied."
+                restricted_feature:
+                  summary: Search filter contains a field not available for the user's tier
+                  value:
+                    status: 422
+                    title: "Unprocessable Content"
+                    error: "SEARCH_FILTER_RESTRICTED_FEATURE"
+                    detail: "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
         "500":
           description: Internal server error
           content:
@@ -2417,6 +2432,11 @@ paths:
         Allows partial updates - only provided fields will be modified.
         If no fields are provided in the request body, returns the existing search filter unchanged.
         Requires valid Cognito JWT authentication.
+
+        The set of usable search filter fields depends on the user's tier:
+        - `FREE`: Only the following filter fields are allowed: `productQuery`, `categoryId`, `periodId`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
+        - `PRO`: All filter fields are allowed.
+        - `ULTIMATE`: All filter fields are allowed.
       operationId: updateUserSearchFilter
       tags:
         - Search Filters
@@ -2560,15 +2580,35 @@ paths:
                 title: "Unauthorized"
                 error: "UNAUTHORIZED"
         "404":
-          description: Search filter not found
+          description: Search filter or user not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                search_filter_not_found:
+                  summary: Search filter not found
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "SEARCH_FILTER_NOT_FOUND"
+                user_not_found:
+                  summary: User not found
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "USER_NOT_FOUND"
+        "422":
+          description: Unprocessable Entity - restricted feature used for the user's tier
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               example:
-                status: 404
-                title: "Not Found"
-                error: "SEARCH_FILTER_NOT_FOUND"
+                status: 422
+                title: "Unprocessable Content"
+                error: "SEARCH_FILTER_RESTRICTED_FEATURE"
+                detail: "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
         "500":
           description: Internal server error
           content:
@@ -2579,8 +2619,6 @@ paths:
                 status: 500
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/me/search-filters/{userSearchFilterId}/products:
     get:
       summary: List products matched by a search filter
       description: |
@@ -7390,10 +7428,14 @@ components:
     UserTierData:
       type: string
       description: |
-        The user's subscription tier, which determines limits and quotas (e.g. max watchlist entries, max search filters).
-        - `FREE`: Default tier for all users. Allows up to 5 watchlist entries and up to 5 search filters.
+        The user's subscription tier, which determines limits and feature access (e.g. max watchlist entries, max search filters, allowed search filter fields).
+        - `FREE`: Default tier for all users. Allows up to 20 watchlist entries, up to 1 search filter (limited to `productQuery`, `categoryId`, `periodId`, `price`, and `state` filter fields), and up to 10 product matches per filter.
+        - `PRO`: Premium tier. Allows up to 100 watchlist entries, up to 5 search filters with access to all filter fields, and unlimited product matches per filter.
+        - `ULTIMATE`: Highest tier. Allows unlimited watchlist entries, unlimited search filters with access to all filter fields, and unlimited product matches per filter.
       enum:
         - FREE
+        - PRO
+        - ULTIMATE
       example: "FREE"
 
     GetNotificationData:

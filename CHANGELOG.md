@@ -6,6 +6,62 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-04 - User Tiers (`backend#765`)
+
+The user subscription tier system has been expanded. Previously only `FREE` was available; two new tiers — `PRO` and `ULTIMATE` — are now possible values on any endpoint that returns or accepts `UserTierData`. This also introduces tier-based feature gating on search filters: certain search filter fields are restricted for `FREE` tier users, and the search filter and watchlist quota limits have been updated across all tiers.
+
+### Changed
+
+- **`UserTierData`** — enum extended with two new values.
+
+  | Value | Change | Description |
+  |---|---|---|
+  | `FREE` | Updated quota | Default tier. Allows up to 20 watchlist entries, up to 1 search filter with a restricted set of filter fields, and up to 10 matched products per filter. |
+  | `PRO` | **Added** | Premium tier. Allows up to 100 watchlist entries, up to 5 search filters with access to all filter fields, and unlimited matched products per filter. |
+  | `ULTIMATE` | **Added** | Highest tier. Allows unlimited watchlist entries, unlimited search filters with access to all filter fields, and unlimited matched products per filter. |
+
+- **`POST /api/v1/me/search-filters`** — tier-based feature restrictions enforced at creation time.
+
+  `FREE` tier users may only use the following filter fields in `productSearch`: `productQuery`, `categoryId`, `periodId`, `price`, `state`. Providing any other field (e.g. `shopName`, `sellerName`, `originYear`, `authenticity`, `condition`, `provenance`, `restoration`, `created`, `updated`, `auctionStart`, `auctionEnd`, ...) results in `HTTP 422` with error code `SEARCH_FILTER_RESTRICTED_FEATURE`.
+
+  Updated 422 response — now returns either `SEARCH_FILTER_QUOTA_EXCEEDED` or `SEARCH_FILTER_RESTRICTED_FEATURE`:
+
+  | Error code | Condition |
+  |---|---|
+  | `SEARCH_FILTER_QUOTA_EXCEEDED` | User has reached the maximum number of allowed search filters for their tier. |
+  | `SEARCH_FILTER_RESTRICTED_FEATURE` | The request body contains a search filter field that is not available for the user's current tier. |
+
+  Example `SEARCH_FILTER_RESTRICTED_FEATURE` response:
+  ```json
+  {
+    "status": 422,
+    "title": "Unprocessable Content",
+    "error": "SEARCH_FILTER_RESTRICTED_FEATURE",
+    "detail": "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
+  }
+  ```
+
+- **`PATCH /api/v1/me/search-filters/{userSearchFilterId}`** — tier-based feature restrictions enforced at update time, and new error responses added.
+
+  `FREE` tier users may only use the same restricted set of filter fields described above. Providing a forbidden field results in `HTTP 422` with error code `SEARCH_FILTER_RESTRICTED_FEATURE`.
+
+  New possible responses:
+
+  | HTTP Status | Error code | Condition |
+  |---|---|---|
+  | `404` | `USER_NOT_FOUND` | The authenticated user no longer exists. |
+  | `422` | `SEARCH_FILTER_RESTRICTED_FEATURE` | The request body contains a search filter field that is not available for the user's current tier. |
+
+  Example `SEARCH_FILTER_RESTRICTED_FEATURE` response:
+  ```json
+  {
+    "status": 422,
+    "title": "Unprocessable Content",
+    "error": "SEARCH_FILTER_RESTRICTED_FEATURE",
+    "detail": "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
+  }
+  ```
+
 ## 2026-04-03 - Seller Fields on Product Responses and Search Filters (`backend#764`)
 
 Products now expose a `sellerName` field in all response types. Additionally, the product search API supports two new dedicated filter fields — `sellerName` and `excludeSellerName` — for keyword-exact inclusion and exclusion filtering by seller name, applied independently from the existing `shopName`/`excludeShopName` filters.
