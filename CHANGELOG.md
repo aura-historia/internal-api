@@ -6,6 +6,30 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-05 - User Deletion (`backend#770`)
+
+Users can now permanently delete their own account via a dedicated DELETE endpoint. The deletion is synchronous and the access token is immediately invalidated upon success.
+
+### Added
+
+- **`DELETE /api/v1/me`** — permanently deletes the authenticated user's account.
+
+  | Aspect | Detail |
+  |---|---|
+  | Authentication | Bearer JWT (Cognito) |
+  | Request body | None |
+  | Success response | `204 No Content` |
+
+  Possible error responses:
+
+  | HTTP Status | Error code | Condition |
+  |---|---|---|
+  | `401` | `UNAUTHORIZED` | Missing or invalid JWT token. |
+  | `404` | `USER_NOT_FOUND` | The authenticated user does not exist. |
+  | `500` | `INTERNAL_SERVER_ERROR` | Unexpected server error (e.g. deletion service not available). |
+
+---
+
 ## 2026-04-04 - User Tiers (`backend#765`)
 
 The user subscription tier system has been expanded. Previously only `FREE` was available; two new tiers — `PRO` and `ULTIMATE` — are now possible values on any endpoint that returns or accepts `UserTierData`. This also introduces tier-based feature gating on search filters: certain search filter fields are restricted for `FREE` tier users, and the search filter and watchlist quota limits have been updated across all tiers.
