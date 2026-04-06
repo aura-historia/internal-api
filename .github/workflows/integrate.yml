@@ -6,8 +6,8 @@ jobs:
     name: Validate OpenAPI definition
 
     steps:
-      - uses: swaggerexpert/apidom-validate@v1
-      - name: Validate OpenAPI definition
-        with:
-        definition-file: "swagger.yaml"
-        fails-on: 2
+      name: Validate OpenAPI definition
+      uses: mbowman100/swagger-validator-action@master
+      with:
+        files: |
+          swagger.yaml
