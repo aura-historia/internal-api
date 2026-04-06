@@ -6596,6 +6596,15 @@ components:
           description: User-defined name for the search filter (max 255 characters, will be truncated if longer)
           maxLength: 255
           example: "My Tech Store Search"
+        enhancedSearchDescription:
+          type: string
+          description: |
+            Optional natural-language description used by the AI-enhanced search filter matching service.
+            When provided, a language model evaluates each matched product against this description and only
+            keeps products that are a true match, attaching a user-facing reason to every confirmed hit.
+            Whitespace is trimmed and the value is silently truncated to 500 characters if longer.
+          maxLength: 500
+          example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         productSearch:
           $ref: "#/components/schemas/ProductSearchData"
 
@@ -6604,7 +6613,7 @@ components:
       description: |
         Partial search filter update data.
         All fields are optional and only provided fields will be updated.
-        Can update the search filter name, notifications preference, and/or the search filter criteria.
+        Can update the search filter name, enhanced search description, notifications preference, and/or the search filter criteria.
       properties:
         name:
           type: string
@@ -6612,6 +6621,17 @@ components:
           maxLength: 255
           nullable: true
           example: "Updated Filter Name"
+        enhancedSearchDescription:
+          type: string
+          description: |
+            Optional natural-language description used by the AI-enhanced search filter matching service.
+            When provided, a language model evaluates each matched product against this description and only
+            keeps products that are a true match, attaching a user-facing reason to every confirmed hit.
+            Whitespace is trimmed and the value is silently truncated to 500 characters if longer.
+            Omit to leave unchanged.
+          maxLength: 500
+          nullable: true
+          example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         notifications:
           type: boolean
           nullable: true
@@ -6831,6 +6851,13 @@ components:
           type: string
           description: User-defined name for the search filter
           example: "My Tech Store Search"
+        enhancedSearchDescription:
+          type: string
+          description: |
+            Optional natural-language description used by the AI-enhanced search filter matching service.
+            Present only when an enhanced search description was set on this filter.
+          maxLength: 500
+          example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         notifications:
           type: boolean
           description: |
