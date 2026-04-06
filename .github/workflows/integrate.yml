@@ -3,11 +3,11 @@ on: [push]
 jobs:
   test_swagger_editor_validator_remote:
     runs-on: ubuntu-latest
-    name: Swagger Editor Validator Remote
+    name: Validate OpenAPI definition
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: swaggerexpert/apidom-validate@v1
       - name: Validate OpenAPI definition
-        uses: swaggerexpert/swagger-editor-validate@v1.5.1
         with:
-          definition-file: swagger.yaml
+        definition-file: "swagger.yaml"
+        fails-on: 2
