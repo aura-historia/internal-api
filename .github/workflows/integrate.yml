@@ -7,7 +7,7 @@ jobs:
 
     steps:
       - name: Validate OpenAPI definition
-      - uses: mbowman100/swagger-validator-action@master
+        uses: mbowman100/swagger-validator-action@master
         with:
           files: |
             swagger.yaml
