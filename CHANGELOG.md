@@ -6,6 +6,56 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-06 - Search Filter Matching Metadata in Product Views (`backend#775`)
+
+Product views now expose whether and why one of the authenticated user's saved search filters matched a product. This is surfaced as a new `searchFilter` field on `ProductUserStateData`, which is returned as `userState` on every personalized product response.
+
+### Added
+
+- **`SearchFilterUserStateData`** — new schema representing the per-product search-filter match state for the authenticated user.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `matched` | `boolean` | Yes | `true` if any of the user's saved search filters matched this product; `false` otherwise. Defaults to `false`. |
+  | `userSearchFilterId` | `string (uuid)` | No | The ID of the matching saved search filter. Present only when `matched` is `true`; omitted otherwise. |
+  | `matchReason` | `string` | No | Human-readable explanation of why the filter matched. Only set for AI-enhanced filters (those with `enhancedSearchDescription`). Omitted when not available. |
+
+  Example — product matched by a saved filter:
+  ```json
+  {
+    "matched": true,
+    "userSearchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "matchReason": "Product matches the vintage Art Deco style described in your search filter."
+  }
+  ```
+
+  Example — product not matched (default):
+  ```json
+  {
+    "matched": false
+  }
+  ```
+
+### Changed
+
+- **`ProductUserStateData`** (the `userState` object on personalized product responses across `GET /api/v1/products/{productId}`, `GET /api/v1/products/{productId}/similar`, `GET /api/v1/products`, `GET /api/v1/me/search-filters/{userSearchFilterId}/products`) — new required field.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `searchFilter` | `SearchFilterUserStateData` | Yes | The authenticated user's search-filter match state for this product. |
+
+  Full `ProductUserStateData` example with the new field:
+  ```json
+  {
+    "watchlist": { "watching": false, "notifications": false },
+    "prohibitedContent": { "consent": false },
+    "notification": { "seen": true },
+    "searchFilter": { "matched": false }
+  }
+  ```
+
+---
+
 ## 2026-04-06 - AI-Instructed Search Filter Matching (`backend#771`)
 
 Search filters can now carry an optional `enhancedSearchDescription` — a free-text, natural-language description of what the user is actually looking for. When set, only products that are genuinely relevant to this description are surfaced as matches. From the REST API perspective this introduces a single new optional field on all search-filter request and response types.
