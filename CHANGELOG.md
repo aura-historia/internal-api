@@ -6,6 +6,66 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-06 - AI-Instructed Search Filter Matching (`backend#771`)
+
+Search filters can now carry an optional `enhancedSearchDescription` — a free-text, natural-language description of what the user is actually looking for. When set, only products that are genuinely relevant to this description are surfaced as matches. From the REST API perspective this introduces a single new optional field on all search-filter request and response types.
+
+### Changed
+
+- **`PostUserSearchFilterData`** (request body of `POST /api/v1/me/search-filters`) — new optional field.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `enhancedSearchDescription` | `string` | No | Natural-language description for AI-enhanced product matching. Whitespace is trimmed; values longer than 500 characters are silently truncated. |
+
+  Example request body with the new field:
+  ```json
+  {
+    "name": "Art Deco cufflinks",
+    "enhancedSearchDescription": "Golden cufflinks from the Art Deco period, preferably from French workshops",
+    "search": {
+      "language": "en",
+      "currency": "EUR",
+      "categoryId": ["jewelry"]
+    }
+  }
+  ```
+
+- **`PatchUserSearchFilterData`** (request body of `PATCH /api/v1/me/search-filters/{userSearchFilterId}`) — new optional field.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `enhancedSearchDescription` | `string` | No | Natural-language description for AI-enhanced product matching. Omit to leave the existing value unchanged. Whitespace is trimmed; values longer than 500 characters are silently truncated. |
+
+  Example patch body setting the description:
+  ```json
+  {
+    "enhancedSearchDescription": "Golden cufflinks from the Art Deco period, preferably from French workshops"
+  }
+  ```
+
+- **`UserSearchFilterData`** (response of `GET /api/v1/me/search-filters`, `GET /api/v1/me/search-filters/{userSearchFilterId}`, `POST /api/v1/me/search-filters`, `PATCH /api/v1/me/search-filters/{userSearchFilterId}`) — new optional field.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `enhancedSearchDescription` | `string` | No | The stored natural-language description for AI-enhanced matching. Omitted from the response when not set. |
+
+  Example response with the new field:
+  ```json
+  {
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "userSearchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "name": "Art Deco cufflinks",
+    "enhancedSearchDescription": "Golden cufflinks from the Art Deco period, preferably from French workshops",
+    "notifications": true,
+    "search": { "language": "en", "currency": "EUR" },
+    "created": "2026-04-06T10:00:00Z",
+    "updated": "2026-04-06T10:00:00Z"
+  }
+  ```
+
+---
+
 ## 2026-04-05 - User Deletion (`backend#770`)
 
 Users can now permanently delete their own account via a dedicated DELETE endpoint. The deletion is synchronous and the access token is immediately invalidated upon success.
