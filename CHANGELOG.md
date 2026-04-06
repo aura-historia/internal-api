@@ -18,6 +18,7 @@ Product views now expose whether and why one of the authenticated user's saved s
   |---|---|---|---|
   | `matched` | `boolean` | Yes | `true` if any of the user's saved search filters matched this product; `false` otherwise. Defaults to `false`. |
   | `userSearchFilterId` | `string (uuid)` | No | The ID of the matching saved search filter. Present only when `matched` is `true`; omitted otherwise. |
+  | `userSearchFilterName` | `string` | No | The user-defined name of the matching saved search filter. Present only when `matched` is `true`; omitted otherwise. |
   | `matchReason` | `string` | No | Human-readable explanation of why the filter matched. Only set for AI-enhanced filters (those with `enhancedSearchDescription`). Omitted when not available. |
 
   Example — product matched by a saved filter:
@@ -25,6 +26,7 @@ Product views now expose whether and why one of the authenticated user's saved s
   {
     "matched": true,
     "userSearchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "userSearchFilterName": "Vintage Art Deco",
     "matchReason": "Product matches the vintage Art Deco style described in your search filter."
   }
   ```

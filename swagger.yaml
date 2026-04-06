@@ -5853,7 +5853,7 @@ components:
       description: |
         User's saved-search-filter match state for a product.
         When `matched` is `true`, at least one of the user's saved search filters matched this product.
-        `userSearchFilterId` and `matchReason` are only present when `matched` is `true`.
+        `userSearchFilterId`, `userSearchFilterName` and `matchReason` are only present when `matched` is `true`.
         Defaults to `matched: false` when the user has no saved search filters or none of them matched.
       required:
         - matched
@@ -5870,6 +5870,12 @@ components:
             The ID of the saved search filter that matched this product.
             Present only when `matched` is `true`; omitted otherwise.
           example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        userSearchFilterName:
+          type: string
+          description: |
+            The user-defined name of the saved search filter that matched this product.
+            Present only when `matched` is `true`; omitted otherwise.
+          example: "Vintage Art Deco"
         matchReason:
           type: string
           description: |
