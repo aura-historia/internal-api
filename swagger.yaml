@@ -5782,6 +5782,7 @@ components:
         - watchlist
         - prohibitedContent
         - notification
+        - searchFilter
       properties:
         watchlist:
           $ref: "#/components/schemas/WatchlistUserStateData"
@@ -5789,6 +5790,8 @@ components:
           $ref: "#/components/schemas/ProhibitedContentUserStateData"
         notification:
           $ref: "#/components/schemas/NotificationUserStateData"
+        searchFilter:
+          $ref: "#/components/schemas/SearchFilterUserStateData"
 
     WatchlistUserStateData:
       type: object
@@ -5844,6 +5847,36 @@ components:
             Present whenever at least one notification exists for the user on this product (seen or unseen).
             Absent (`undefined` / omitted) when no notifications exist for this product.
           example: "550e8400-e29b-41d4-a716-446655440001"
+
+    SearchFilterUserStateData:
+      type: object
+      description: |
+        User's saved-search-filter match state for a product.
+        When `matched` is `true`, at least one of the user's saved search filters matched this product.
+        `userSearchFilterId` and `matchReason` are only present when `matched` is `true`.
+        Defaults to `matched: false` when the user has no saved search filters or none of them matched.
+      required:
+        - matched
+      properties:
+        matched:
+          type: boolean
+          description: Whether any of the user's saved search filters matched this product. Defaults to `false`.
+          default: false
+          example: true
+        userSearchFilterId:
+          type: string
+          format: uuid
+          description: |
+            The ID of the saved search filter that matched this product.
+            Present only when `matched` is `true`; omitted otherwise.
+          example: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+        matchReason:
+          type: string
+          description: |
+            A human-readable explanation of why the saved search filter matched this product.
+            Only set for AI-enhanced filters (i.e. those with an `enhancedSearchDescription`).
+            Present only when `matched` is `true` and an enhanced match reason exists; omitted otherwise.
+          example: "Product matches the vintage Art Deco style described in your search filter."
 
     LocalizedTextData:
       type: object
