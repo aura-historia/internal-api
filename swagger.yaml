@@ -5855,14 +5855,30 @@ components:
         When `matched` is `true`, at least one of the user's saved search filters matched this product.
         `userSearchFilterId`, `userSearchFilterName` and `matchReason` are only present when `matched` is `true`.
         Defaults to `matched: false` when the user has no saved search filters or none of them matched.
+        When `hidden` is `true`, the match exceeds the user's monthly search-filter match quota and the
+        product data is anonymized (nil IDs, placeholder title, unknown enums, nulled timestamps).
+        Only matches ranked beyond the quota (by ascending match creation time) are hidden;
+        the first N matches (where N is the user's tier quota) remain fully visible.
       required:
         - matched
+        - hidden
       properties:
         matched:
           type: boolean
           description: Whether any of the user's saved search filters matched this product. Defaults to `false`.
           default: false
           example: true
+        hidden:
+          type: boolean
+          description: |
+            Whether this match is hidden because the user has exceeded their monthly search-filter match quota.
+            When `true`, the product data in the response is anonymized: the `productId` is set to a nil UUID,
+            the title becomes a language-specific placeholder, `condition` is set to `Unknown`, all other UUID
+            fields are nil, enum fields are set to their unknown variants, optional fields are omitted, and
+            timestamps are set to the Unix epoch.
+            Defaults to `false`.
+          default: false
+          example: false
         userSearchFilterId:
           type: string
           format: uuid

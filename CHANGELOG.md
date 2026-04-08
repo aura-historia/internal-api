@@ -6,6 +6,68 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-08 - Search-Filter Match Quota Enforcement on Product Views (`backend#785`)
+
+Products matched by a user's saved search filters are now subject to the user's monthly search-filter match quota. Matches beyond the quota are marked as hidden and the product data is anonymized so no identifying information leaks to the client.
+
+### Changed
+
+- **`SearchFilterUserStateData`** — new required field `hidden` added.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `matched` | `boolean` | Yes | `true` if any of the user's saved search filters matched this product; `false` otherwise. |
+  | `hidden` | `boolean` | Yes | `true` if this match exceeds the user's monthly search-filter match quota and the product is anonymized; `false` otherwise. Defaults to `false`. |
+  | `userSearchFilterId` | `string (uuid)` | No | The ID of the matching saved search filter. Present only when `matched` is `true`. |
+  | `userSearchFilterName` | `string` | No | The user-defined name of the matching saved search filter. Present only when `matched` is `true`. |
+  | `matchReason` | `string` | No | Human-readable explanation of why the filter matched. Only set for AI-enhanced filters. |
+
+  When `hidden` is `true`, the product data in the same response object is anonymized:
+  - `productId` → nil UUID (`00000000-0000-0000-0000-000000000000`)
+  - `title` → language-specific placeholder string
+  - `condition` → `"Unknown"`
+  - All other UUID fields → nil UUID
+  - All other enum fields → their `Unknown` variant
+  - Optional fields → omitted
+  - Timestamps → Unix epoch (`1970-01-01T00:00:00Z`)
+
+  Only matches ranked beyond the user's tier quota (ordered by ascending match creation time) are hidden. The first N matches (where N is the quota for the user's tier) remain fully visible.
+
+  Example — product matched within quota (visible):
+  ```json
+  {
+    "matched": true,
+    "hidden": false,
+    "userSearchFilterId": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "userSearchFilterName": "Vintage Art Deco",
+    "matchReason": "Product matches the vintage Art Deco style described in your search filter."
+  }
+  ```
+
+  Example — product matched beyond quota (hidden, anonymized):
+  ```json
+  {
+    "matched": true,
+    "hidden": true
+  }
+  ```
+
+  Example — product not matched (default):
+  ```json
+  {
+    "matched": false,
+    "hidden": false
+  }
+  ```
+
+  This field is present on every personalized product response across:
+  - `GET /api/v1/products/{productId}`
+  - `GET /api/v1/products/{productId}/similar`
+  - `GET /api/v1/products`
+  - `GET /api/v1/me/search-filters/{userSearchFilterId}/products`
+
+---
+
 ## 2026-04-06 - Search Filter Matching Metadata in Product Views (`backend#775`)
 
 Product views now expose whether and why one of the authenticated user's saved search filters matched a product. This is surfaced as a new `searchFilter` field on `ProductUserStateData`, which is returned as `userState` on every personalized product response.
