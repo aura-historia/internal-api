@@ -5445,6 +5445,538 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/partner-applications:
+    get:
+      summary: List user's partner shop applications
+      description: |
+        Retrieves all partner shop applications submitted by the authenticated user.
+        Returns an empty array when no applications exist.
+        Requires valid Cognito JWT authentication.
+      operationId: getPartnerApplications
+      tags:
+        - Partner Applications
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Partner shop applications retrieved successfully.
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetPartnerShopApplicationData"
+              examples:
+                empty:
+                  summary: No applications exist yet
+                  value: []
+                existing_application:
+                  summary: One existing application for a new shop
+                  value:
+                    - id: "550e8400-e29b-41d4-a716-446655440000"
+                      state: "SUBMITTED"
+                      payload:
+                        type: "NEW"
+                        shopName: "My Antique Store"
+                        shopType: "COMMERCIAL_DEALER"
+                        shopDomains:
+                          - "my-antique-store.com"
+                        shopImage: "https://my-antique-store.com/logo.png"
+                      created: "2026-04-09T10:00:00Z"
+                      updated: "2026-04-09T10:00:00Z"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    post:
+      summary: Create a partner shop application
+      description: |
+        Submits a new partner shop application for the authenticated user.
+        The application payload specifies either an existing shop (by `shopId`) or a new shop
+        (with name, type, domains, and optional image).
+        The application is created with state `SUBMITTED`.
+        State is read-only and cannot be set by the client.
+        Returns the created application with HTTP 201.
+        Requires valid Cognito JWT authentication.
+      operationId: postPartnerApplication
+      tags:
+        - Partner Applications
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          The partner shop application payload. Must specify either an existing shop (`type: "EXISTING"`)
+          or a new shop (`type: "NEW"`).
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostPartnerShopApplicationPayloadData"
+            examples:
+              existing_shop:
+                summary: Apply for an existing shop
+                value:
+                  type: "EXISTING"
+                  shopId: "550e8400-e29b-41d4-a716-446655440000"
+              new_shop:
+                summary: Apply with a new shop
+                value:
+                  type: "NEW"
+                  shopName: "My Antique Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  shopDomains:
+                    - "my-antique-store.com"
+                  shopImage: "https://my-antique-store.com/logo.png"
+      responses:
+        "201":
+          description: Partner shop application created successfully.
+          headers:
+            Last-Modified:
+              description: When the application was last updated (RFC 7231 HTTP-date)
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 09 Apr 2026 10:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPartnerShopApplicationData"
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                state: "SUBMITTED"
+                payload:
+                  type: "NEW"
+                  shopName: "My Antique Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  shopDomains:
+                    - "my-antique-store.com"
+                  shopImage: "https://my-antique-store.com/logo.png"
+                created: "2026-04-09T10:00:00Z"
+                updated: "2026-04-09T10:00:00Z"
+        "400":
+          description: Bad request – missing or invalid request body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "unknown variant `INVALID`, expected `EXISTING` or `NEW` at line 1 column 20"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/me/partner-applications/{partnerApplicationId}:
+    get:
+      summary: Get a specific partner shop application
+      description: |
+        Retrieves a single partner shop application by its ID for the authenticated user.
+        Returns 404 when no application with the given ID exists for this user.
+        Requires valid Cognito JWT authentication.
+      operationId: getPartnerApplication
+      tags:
+        - Partner Applications
+      parameters:
+        - name: partnerApplicationId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the partner shop application.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Partner shop application found and returned successfully.
+          headers:
+            Last-Modified:
+              description: When the application was last updated (RFC 7231 HTTP-date)
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 09 Apr 2026 10:00:00 GMT"
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPartnerShopApplicationData"
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                state: "IN_REVIEW"
+                payload:
+                  type: "NEW"
+                  shopName: "My Antique Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  shopDomains:
+                    - "my-antique-store.com"
+                  shopImage: "https://my-antique-store.com/logo.png"
+                created: "2026-04-09T10:00:00Z"
+                updated: "2026-04-09T11:00:00Z"
+        "400":
+          description: Bad request – missing or invalid path parameter.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_path_param:
+                  summary: Missing partnerApplicationId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "Missing field 'partnerApplicationId'."
+                invalid_uuid:
+                  summary: Invalid UUID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Not found – no partner shop application with the given ID exists for this user.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "PARTNER_SHOP_APPLICATION_NOT_FOUND"
+                detail: "There exists no PartnerShopApplication for user '...' with id '...'."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update a partner shop application
+      description: |
+        Updates the fields of a specific partner shop application identified by `partnerApplicationId`.
+        Only fields present in the request body are applied; omitted fields are left unchanged.
+        The `state` field is **read-only** and cannot be updated through this endpoint.
+        The request body is required and must not be empty.
+        Returns the updated application.
+        Returns 404 when no application with the given ID exists for this user.
+        Requires valid Cognito JWT authentication.
+      operationId: patchPartnerApplication
+      tags:
+        - Partner Applications
+      parameters:
+        - name: partnerApplicationId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the partner shop application to update.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          Partial update for a partner shop application.
+          Only the provided fields are updated. All fields are optional.
+          Note: `state` is read-only and cannot be set by the client.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchPartnerShopApplicationData"
+            examples:
+              update_name:
+                summary: Update only the shop name
+                value:
+                  shopName: "My Renamed Antique Store"
+              update_multiple:
+                summary: Update shop name and type
+                value:
+                  shopName: "My Renamed Antique Store"
+                  shopType: "AUCTION_HOUSE"
+      responses:
+        "200":
+          description: Partner shop application updated successfully. Returns the updated application.
+          headers:
+            Last-Modified:
+              description: When the application was last updated (RFC 7231 HTTP-date)
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 09 Apr 2026 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPartnerShopApplicationData"
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                state: "SUBMITTED"
+                payload:
+                  type: "NEW"
+                  shopName: "My Renamed Antique Store"
+                  shopType: "AUCTION_HOUSE"
+                  shopDomains:
+                    - "my-antique-store.com"
+                created: "2026-04-09T10:00:00Z"
+                updated: "2026-04-09T12:00:00Z"
+        "400":
+          description: Bad request – missing or invalid path parameter or request body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_path_param:
+                  summary: Missing partnerApplicationId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "Missing field 'partnerApplicationId'."
+                invalid_uuid:
+                  summary: Invalid UUID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Not found – no partner shop application with the given ID exists for this user.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "PARTNER_SHOP_APPLICATION_NOT_FOUND"
+                detail: "There exists no PartnerShopApplication for user '...' with id '...'."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete a partner shop application
+      description: |
+        Deletes the partner shop application identified by `partnerApplicationId` for the authenticated user.
+        Returns 204 No Content on success.
+        Returns 404 when no application with the given ID exists for this user.
+        Requires valid Cognito JWT authentication.
+      operationId: deletePartnerApplication
+      tags:
+        - Partner Applications
+      parameters:
+        - name: partnerApplicationId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the partner shop application to delete.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: Partner shop application deleted successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "400":
+          description: Bad request – missing or invalid path parameter.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_path_param:
+                  summary: Missing partnerApplicationId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "Missing field 'partnerApplicationId'."
+                invalid_uuid:
+                  summary: Invalid UUID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Not found – no partner shop application with the given ID exists for this user.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "PARTNER_SHOP_APPLICATION_NOT_FOUND"
+                detail: "There exists no PartnerShopApplication for user '...' with id '...'."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -8222,6 +8754,212 @@ components:
           example:
             "baroque-violin-002": "UPSERT_FAILED"
 
+    PartnerShopApplicationStateData:
+      type: string
+      enum: [SUBMITTED, IN_REVIEW, REJECTED, APPROVED]
+      description: |
+        The review state of a partner shop application:
+        - `SUBMITTED`: Application has been submitted and is awaiting review.
+        - `IN_REVIEW`: Application is currently being reviewed by the team.
+        - `REJECTED`: Application was reviewed and rejected.
+        - `APPROVED`: Application was reviewed and approved.
+        The state is read-only from the client perspective and can only be changed internally.
+      example: SUBMITTED
+
+    GetPartnerShopApplicationPayloadData:
+      description: |
+        The payload of a partner shop application. Discriminated by the `type` field.
+        - `EXISTING`: The application targets an existing shop identified by `shopId`.
+        - `NEW`: The application targets a new shop described by name, type, domains, and optional image.
+      oneOf:
+        - title: Existing shop payload
+          type: object
+          required:
+            - type
+            - shopId
+          properties:
+            type:
+              type: string
+              enum: [EXISTING]
+              description: Discriminator value indicating this payload targets an existing shop.
+            shopId:
+              type: string
+              format: uuid
+              description: Unique identifier of the existing shop.
+              example: "550e8400-e29b-41d4-a716-446655440000"
+        - title: New shop payload
+          type: object
+          required:
+            - type
+            - shopName
+            - shopType
+            - shopDomains
+          properties:
+            type:
+              type: string
+              enum: [NEW]
+              description: Discriminator value indicating this payload describes a new shop.
+            shopName:
+              type: string
+              description: Display name of the new shop.
+              maxLength: 255
+              example: "My Antique Store"
+            shopType:
+              $ref: "#/components/schemas/ShopTypeData"
+            shopDomains:
+              type: array
+              items:
+                type: string
+              description: |
+                Domains associated with the new shop.
+                Domains are normalized (lowercase, no scheme, no www prefix, no path/query/fragment).
+              minItems: 1
+              uniqueItems: true
+              example:
+                - "my-antique-store.com"
+            shopImage:
+              type: string
+              format: uri
+              nullable: true
+              description: Optional URL to the new shop's logo or image.
+              example: "https://my-antique-store.com/logo.png"
+      discriminator:
+        propertyName: type
+        mapping:
+          EXISTING: "#/components/schemas/GetPartnerShopApplicationPayloadData/oneOf/0"
+          NEW: "#/components/schemas/GetPartnerShopApplicationPayloadData/oneOf/1"
+
+    GetPartnerShopApplicationData:
+      type: object
+      description: Full representation of a partner shop application.
+      required:
+        - id
+        - state
+        - payload
+        - created
+        - updated
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the partner shop application.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        state:
+          $ref: "#/components/schemas/PartnerShopApplicationStateData"
+        payload:
+          $ref: "#/components/schemas/GetPartnerShopApplicationPayloadData"
+        created:
+          type: string
+          format: date-time
+          description: When the application was created (RFC3339 format).
+          example: "2026-04-09T10:00:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the application was last updated (RFC3339 format).
+          example: "2026-04-09T11:00:00Z"
+
+    PostPartnerShopApplicationPayloadData:
+      description: |
+        Request payload for creating a new partner shop application. Discriminated by the `type` field.
+        - `EXISTING`: Apply for partnership for an existing shop identified by `shopId`.
+        - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional image.
+        The application state is always initialized to `SUBMITTED` and cannot be set by the client.
+      oneOf:
+        - title: Existing shop payload
+          type: object
+          required:
+            - type
+            - shopId
+          properties:
+            type:
+              type: string
+              enum: [EXISTING]
+              description: Discriminator value indicating this payload targets an existing shop.
+            shopId:
+              type: string
+              format: uuid
+              description: Unique identifier of the existing shop to apply for.
+              example: "550e8400-e29b-41d4-a716-446655440000"
+        - title: New shop payload
+          type: object
+          required:
+            - type
+            - shopName
+            - shopType
+            - shopDomains
+          properties:
+            type:
+              type: string
+              enum: [NEW]
+              description: Discriminator value indicating this payload describes a new shop.
+            shopName:
+              type: string
+              description: Display name of the new shop.
+              maxLength: 255
+              example: "My Antique Store"
+            shopType:
+              $ref: "#/components/schemas/ShopTypeData"
+            shopDomains:
+              type: array
+              items:
+                type: string
+              description: |
+                Domains associated with the new shop.
+                Domains are normalized (lowercase, no scheme, no www prefix, no path/query/fragment).
+              minItems: 1
+              uniqueItems: true
+              example:
+                - "my-antique-store.com"
+            shopImage:
+              type: string
+              format: uri
+              nullable: true
+              description: Optional URL to the new shop's logo or image.
+              example: "https://my-antique-store.com/logo.png"
+      discriminator:
+        propertyName: type
+        mapping:
+          EXISTING: "#/components/schemas/PostPartnerShopApplicationPayloadData/oneOf/0"
+          NEW: "#/components/schemas/PostPartnerShopApplicationPayloadData/oneOf/1"
+
+    PatchPartnerShopApplicationData:
+      type: object
+      description: |
+        Partial update for a partner shop application.
+        Only the fields present in the request body are applied; omitted fields are left unchanged.
+        All fields are optional. The `state` field is read-only and cannot be modified through this endpoint.
+        Note: These fields only apply to applications with a `NEW` payload type.
+        Sending patch fields for an application with `EXISTING` payload type is accepted but has no effect.
+      properties:
+        shopName:
+          type: string
+          description: Updated display name of the shop.
+          maxLength: 255
+          example: "My Renamed Antique Store"
+        shopType:
+          allOf:
+            - $ref: "#/components/schemas/ShopTypeData"
+          description: Updated shop type classification.
+        shopDomains:
+          type: array
+          items:
+            type: string
+          description: |
+            Updated set of domains for the shop. Replaces the existing domains entirely.
+            Domains are normalized (lowercase, no scheme, no www prefix, no path/query/fragment).
+          minItems: 1
+          uniqueItems: true
+          example:
+            - "my-antique-store.com"
+            - "my-antique-store.de"
+        shopImage:
+          type: string
+          format: uri
+          nullable: true
+          description: Updated URL to the shop's logo or image. Set to `null` to remove the image.
+          example: "https://my-antique-store.com/logo.png"
+
 tags:
   - name: Products
     description: Operations related to product retrieval and search
@@ -8235,3 +8973,5 @@ tags:
     description: Operations for managing user account information
   - name: Watchlist
     description: Operations for managing user's product watchlist
+  - name: Partner Applications
+    description: Operations for managing partner shop applications
