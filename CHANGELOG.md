@@ -6,6 +6,173 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-09 - Partner Shop Application REST API (`backend#795`)
+
+Users can now submit, view, update, and delete partner shop applications. A partner shop application represents a request by a user to have a shop (new or existing) granted partner status. Applications progress through a review lifecycle managed by the backend team; the `state` field is read-only from the client side.
+
+### Added
+
+- **`GET /api/v1/me/partner-applications`** — List all partner shop applications for the authenticated user.
+
+  Returns an array of `GetPartnerShopApplicationData` objects. Returns an empty array when no applications exist.
+
+  **Response headers:**
+  | Header | Value |
+  |---|---|
+  | `Cache-Control` | `no-store` |
+
+  **Response `200`:** `GetPartnerShopApplicationData[]`
+
+  **Error responses:** `401 UNAUTHORIZED`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`POST /api/v1/me/partner-applications`** — Submit a new partner shop application.
+
+  The request body must be a `PostPartnerShopApplicationPayloadData` object specifying either an existing shop or a new shop. The application is created with state `SUBMITTED`.
+
+  **Request body:** `PostPartnerShopApplicationPayloadData` (required)
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+
+  **Response `201`:** `GetPartnerShopApplicationData`
+
+  **Error responses:** `400 BAD_BODY_VALUE`, `401 UNAUTHORIZED`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`GET /api/v1/me/partner-applications/{partnerApplicationId}`** — Get a specific partner shop application by ID.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+  | `Cache-Control` | `no-store` |
+
+  **Response `200`:** `GetPartnerShopApplicationData`
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `401 UNAUTHORIZED`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`PATCH /api/v1/me/partner-applications/{partnerApplicationId}`** — Update a partner shop application.
+
+  Only fields present in the request body are applied. The `state` field is **read-only** and cannot be updated.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Request body:** `PatchPartnerShopApplicationData` (required)
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+
+  **Response `200`:** `GetPartnerShopApplicationData`
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `400 BAD_BODY_VALUE`, `401 UNAUTHORIZED`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`DELETE /api/v1/me/partner-applications/{partnerApplicationId}`** — Delete a partner shop application.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Response `204`:** No content
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `401 UNAUTHORIZED`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`PartnerShopApplicationStateData`** — New schema representing the review state of a partner shop application.
+
+  | Value | Description |
+  |---|---|
+  | `SUBMITTED` | Application has been submitted and is awaiting review |
+  | `IN_REVIEW` | Application is currently being reviewed |
+  | `REJECTED` | Application was reviewed and rejected |
+  | `APPROVED` | Application was reviewed and approved |
+
+  State is **read-only** from the client perspective.
+
+---
+
+- **`GetPartnerShopApplicationPayloadData`** — New schema for the payload portion of a partner shop application response. Discriminated by the `type` field.
+
+  **`type: "EXISTING"`** — Targets an existing shop:
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | `string` | Yes | Always `"EXISTING"` |
+  | `shopId` | `string (uuid)` | Yes | Unique identifier of the existing shop |
+
+  **`type: "NEW"`** — Describes a new shop:
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | `string` | Yes | Always `"NEW"` |
+  | `shopName` | `string` | Yes | Display name of the shop (max 255 chars) |
+  | `shopType` | `ShopTypeData` | Yes | Type of the shop |
+  | `shopDomains` | `string[]` | Yes | Unique set of normalized domains |
+  | `shopImage` | `string (uri)` | No | Optional URL to the shop logo/image |
+
+---
+
+- **`GetPartnerShopApplicationData`** — New schema for a complete partner shop application.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `id` | `string (uuid)` | Yes | Unique identifier of the application |
+  | `state` | `PartnerShopApplicationStateData` | Yes | Current review state (read-only) |
+  | `payload` | `GetPartnerShopApplicationPayloadData` | Yes | Application payload (EXISTING or NEW) |
+  | `created` | `string (date-time)` | Yes | When the application was created (RFC3339) |
+  | `updated` | `string (date-time)` | Yes | When the application was last updated (RFC3339) |
+
+---
+
+- **`PostPartnerShopApplicationPayloadData`** — New schema for creating a partner shop application. Discriminated by the `type` field.
+
+  **`type: "EXISTING"`** — Apply for an existing shop:
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | `string` | Yes | Always `"EXISTING"` |
+  | `shopId` | `string (uuid)` | Yes | Unique identifier of the existing shop |
+
+  **`type: "NEW"`** — Apply for a new shop:
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `type` | `string` | Yes | Always `"NEW"` |
+  | `shopName` | `string` | Yes | Display name of the shop (max 255 chars) |
+  | `shopType` | `ShopTypeData` | Yes | Type of the shop |
+  | `shopDomains` | `string[]` | Yes | Unique set of normalized domains |
+  | `shopImage` | `string (uri)` | No | Optional URL to the shop logo/image |
+
+---
+
+- **`PatchPartnerShopApplicationData`** — New schema for partial updates to a partner shop application. All fields are optional.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `shopName` | `string` | Updated display name of the shop |
+  | `shopType` | `ShopTypeData` | Updated shop type |
+  | `shopDomains` | `string[]` | Updated set of normalized domains (replaces existing) |
+  | `shopImage` | `string (uri)` | Updated shop logo URL (`null` to remove) |
+
+---
+
+- **New error code `PARTNER_SHOP_APPLICATION_NOT_FOUND`** — Returned as `404` when no partner shop application exists for the authenticated user with the requested ID.
+
+---
+
 ## 2026-04-08 - Search-Filter Match Quota Enforcement on Product Views (`backend#785`)
 
 Products matched by a user's saved search filters are now subject to the user's monthly search-filter match quota. Matches beyond the quota are marked as hidden and the product data is anonymized so no identifying information leaks to the client.
