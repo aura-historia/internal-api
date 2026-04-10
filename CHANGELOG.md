@@ -6,6 +6,56 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-10 - Partner Application Notification Payloads (`backend#807`)
+
+Backend PR `#807` extends notification responses with a new partner-application notification variant so clients can distinguish partner application approval and rejection events from watchlist and search-filter notifications.
+
+### Added
+
+- **`PartnerApplicationNotificationPayloadData`** — New notification payload schema for partner application review events.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `type` | `"PARTNER_APPLICATION"` | Yes | Discriminator for partner application notifications |
+  | `shopName` | `string` | Yes | Display name of the shop referenced by the partner application |
+  | `partnerApplicationPayload` | `PartnerApplicationPayloadData` | Yes | Partner-application-specific review result payload |
+
+---
+
+- **`PartnerApplicationPayloadData`** — New nested discriminated union for partner application notification payloads.
+
+  | Variant | Fields | Description |
+  |---|---|---|
+  | `APPROVED` | `partnerApplicationId` (`string (uuid)`) | The referenced partner application was approved |
+  | `REJECTED` | `partnerApplicationId` (`string (uuid)`) | The referenced partner application was rejected |
+
+### Changed
+
+- **`NotificationPayloadData`** — Extended discriminated union; new variant added:
+  - `PARTNER_APPLICATION` → `PartnerApplicationNotificationPayloadData`
+
+  This variant is returned by notification endpoints alongside the existing `WATCHLIST` and `SEARCH_FILTER` payloads.
+
+---
+
+- **Affected endpoints returning notification payloads**:
+  - `GET /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications/{eventId}`
+
+  These responses may now include partner application review notifications with payloads such as:
+
+  ```json
+  {
+    "type": "PARTNER_APPLICATION",
+    "shopName": "Tech Store",
+    "partnerApplicationPayload": {
+      "type": "APPROVED",
+      "partnerApplicationId": "550e8400-e29b-41d4-a716-446655440002"
+    }
+  }
+  ```
+
 ## 2026-04-10 - Admin Partner Shop Application REST API (`backend#803`)
 
 Backend PR `#803` adds admin-only partner shop application management endpoints and extends user account responses with the user's role. These changes are intended for internal frontend/backend coordination and do not introduce a public version bump.
