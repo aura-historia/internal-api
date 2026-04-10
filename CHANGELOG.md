@@ -6,6 +6,103 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-10 - Admin Partner Shop Application REST API (`backend#803`)
+
+Backend PR `#803` adds admin-only partner shop application management endpoints and extends user account responses with the user's role. These changes are intended for internal frontend/backend coordination and do not introduce a public version bump.
+
+### Added
+
+- **`GET /api/v1/partner-applications`** — List all partner shop applications across all users.
+
+  This endpoint requires a valid Cognito JWT **and** the caller's stored user role to be `ADMIN`.
+
+  **Response headers:**
+  | Header | Value |
+  |---|---|
+  | `Cache-Control` | `no-store` |
+
+  **Response `200`:** `GetPartnerShopApplicationData[]`
+
+  **Error responses:** `401 UNAUTHORIZED`, `403 FORBIDDEN`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`GET /api/v1/partner-applications/{partnerApplicationId}`** — Get a specific partner shop application by ID as an admin.
+
+  This lookup is global across all users and does not require the applicant user's ID. The endpoint requires a valid Cognito JWT **and** the caller's stored user role to be `ADMIN`.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+  | `Cache-Control` | `no-store` |
+
+  **Response `200`:** `GetPartnerShopApplicationData`
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`PATCH /api/v1/partner-applications/{partnerApplicationId}`** — Update a specific partner shop application by ID as an admin.
+
+  This endpoint requires a valid Cognito JWT **and** the caller's stored user role to be `ADMIN`. Unlike the user-facing partner application patch endpoint, admins can update the review `state` in addition to payload fields.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Request body:** `AdminPatchPartnerShopApplicationData` (required)
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+
+  **Response `200`:** `GetPartnerShopApplicationData`
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `400 BAD_BODY_VALUE`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`AdminPatchPartnerShopApplicationData`** — New schema for admin-only partial updates to partner shop applications. All fields are optional.
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `state` | `PartnerShopApplicationStateData` | Updated review state |
+  | `shopName` | `string` | Updated display name of the shop |
+  | `shopType` | `ShopTypeData` | Updated shop type |
+  | `shopDomains` | `string[]` | Updated set of normalized domains (replaces existing) |
+  | `shopImage` | `string (uri)` | Updated shop logo URL |
+
+---
+
+### Changed
+
+- **`GetUserAccountData`** — New required field `role` added to user account responses.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `role` | `UserRoleData` | Yes | The authenticated user's role used for API authorization |
+
+  This affects responses from endpoints that return `GetUserAccountData`, including:
+  - `GET /api/v1/me/account`
+  - `PATCH /api/v1/me/account`
+
+  The user account patch request body remains unchanged; clients cannot set `role` through `PATCH /api/v1/me/account`.
+
+---
+
+- **`UserRoleData`** — New enum schema used in user account responses.
+
+  | Value | Description |
+  |---|---|
+  | `USER` | Standard authenticated user |
+  | `ADMIN` | Administrator with access to admin-only endpoints |
+
 ## 2026-04-09 - Partner Shop Application REST API (`backend#795`)
 
 Users can now submit, view, update, and delete partner shop applications. A partner shop application represents a request by a user to have a shop (new or existing) granted partner status. Applications progress through a review lifecycle managed by the backend team; the `state` field is read-only from the client side.
