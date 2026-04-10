@@ -8539,14 +8539,17 @@ components:
         The notification payload. The structure depends on the `type` discriminator field:
         - `WATCHLIST`: Notification triggered by a watchlist event (price change or state change).
         - `SEARCH_FILTER`: Notification triggered when a new product matches a user's search filter.
+        - `PARTNER_APPLICATION`: Notification triggered when a partner shop application is approved or rejected.
       oneOf:
         - $ref: "#/components/schemas/WatchlistNotificationPayloadData"
         - $ref: "#/components/schemas/SearchFilterNotificationPayloadData"
+        - $ref: "#/components/schemas/PartnerApplicationNotificationPayloadData"
       discriminator:
         propertyName: type
         mapping:
           WATCHLIST: "#/components/schemas/WatchlistNotificationPayloadData"
           SEARCH_FILTER: "#/components/schemas/SearchFilterNotificationPayloadData"
+          PARTNER_APPLICATION: "#/components/schemas/PartnerApplicationNotificationPayloadData"
 
     WatchlistNotificationPayloadData:
       type: object
@@ -8728,6 +8731,73 @@ components:
           type: string
           description: User-defined name of the search filter that matched the product.
           example: "My Baroque Clock Search"
+
+    PartnerApplicationNotificationPayloadData:
+      type: object
+      description: Notification payload for a partner shop application review update.
+      required:
+        - type
+        - shopName
+        - partnerApplicationPayload
+      properties:
+        type:
+          type: string
+          enum: [PARTNER_APPLICATION]
+          description: Discriminator field identifying this as a partner application notification.
+        shopName:
+          type: string
+          description: Display name of the shop referenced by the partner application.
+          example: "Tech Store"
+        partnerApplicationPayload:
+          $ref: "#/components/schemas/PartnerApplicationPayloadData"
+
+    PartnerApplicationPayloadData:
+      description: |
+        Partner-application-specific sub-payload. The structure depends on the `type` discriminator field:
+        - `APPROVED`: The partner application was approved.
+        - `REJECTED`: The partner application was rejected.
+      oneOf:
+        - $ref: "#/components/schemas/ApprovedPartnerApplicationPayloadData"
+        - $ref: "#/components/schemas/RejectedPartnerApplicationPayloadData"
+      discriminator:
+        propertyName: type
+        mapping:
+          APPROVED: "#/components/schemas/ApprovedPartnerApplicationPayloadData"
+          REJECTED: "#/components/schemas/RejectedPartnerApplicationPayloadData"
+
+    ApprovedPartnerApplicationPayloadData:
+      type: object
+      description: Partner application payload for an approval notification.
+      required:
+        - type
+        - partnerApplicationId
+      properties:
+        type:
+          type: string
+          enum: [APPROVED]
+          description: Discriminator field identifying this as an approval payload.
+        partnerApplicationId:
+          type: string
+          format: uuid
+          description: Unique identifier of the approved partner shop application.
+          example: "550e8400-e29b-41d4-a716-446655440002"
+
+    RejectedPartnerApplicationPayloadData:
+      type: object
+      description: Partner application payload for a rejection notification.
+      required:
+        - type
+        - partnerApplicationId
+      properties:
+        type:
+          type: string
+          enum: [REJECTED]
+          description: Discriminator field identifying this as a rejection payload.
+        partnerApplicationId:
+          type: string
+          format: uuid
+          description: Unique identifier of the rejected partner shop application.
+          example: "550e8400-e29b-41d4-a716-446655440002"
 
     PatchNotificationData:
       type: object
