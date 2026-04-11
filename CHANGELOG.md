@@ -6,6 +6,118 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-11 - Partner Application Decision Workflow (`backend#812`)
+
+Backend PR `#812` introduces a dedicated admin decision endpoint for partner shop applications and changes partner-application response schemas to expose separate business and workflow execution states.
+
+### Added
+
+- **`POST /api/v1/partner-applications/{partnerApplicationId}/decision`** — Submit an admin review decision for a partner shop application.
+
+  This endpoint requires a valid Cognito JWT **and** the caller's stored user role to be `ADMIN`.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerApplicationId` | `string (uuid)` | Unique identifier of the partner shop application |
+
+  **Request body:** `PostPartnerShopApplicationDecisionData` (required)
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `decision` | `PartnerShopApplicationDecisionData` | Yes | Review decision to apply. Allowed values: `APPROVE`, `REJECT` |
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the application was last updated |
+
+  **Response `200`:** `GetPartnerShopApplicationData`
+
+  The response keeps `businessState` at `IN_REVIEW` and sets `executionState` to `PROCESSING` while the asynchronous approval/rejection workflow continues.
+
+  **Example request / response:**
+
+  ```json
+  {
+    "decision": "APPROVE"
+  }
+  ```
+
+  ```json
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "businessState": "IN_REVIEW",
+    "executionState": "PROCESSING",
+    "payload": {
+      "type": "NEW",
+      "shopName": "My Antique Store",
+      "shopType": "COMMERCIAL_DEALER",
+      "shopDomains": ["my-antique-store.com"],
+      "shopImage": "https://my-antique-store.com/logo.png"
+    },
+    "created": "2026-04-09T10:00:00Z",
+    "updated": "2026-04-11T12:00:00Z"
+  }
+  ```
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `400 BAD_BODY_VALUE`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `404 PARTNER_SHOP_APPLICATION_NOT_FOUND`, `409 CONFLICT`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`ExecutionStateData`** — New enum schema describing the workflow progress of a partner shop application.
+
+  | Value | Description |
+  |---|---|
+  | `PROCESSING` | The backend workflow is actively processing the application |
+  | `WAITING` | The workflow is paused and waiting for an admin decision |
+  | `COMPLETED` | The workflow has finished processing the application |
+
+---
+
+- **`PartnerShopApplicationDecisionData`** — New enum schema used by admin decision requests.
+
+  | Value | Description |
+  |---|---|
+  | `APPROVE` | Resume the review workflow with an approval decision |
+  | `REJECT` | Resume the review workflow with a rejection decision |
+
+### Changed
+
+- **`GetPartnerShopApplicationData`** — Partner application responses now expose separate business and execution states.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `businessState` | `PartnerShopApplicationStateData` | Yes | Review/business state of the application (`SUBMITTED`, `IN_REVIEW`, `REJECTED`, `APPROVED`) |
+  | `executionState` | `ExecutionStateData` | Yes | Workflow execution state (`PROCESSING`, `WAITING`, `COMPLETED`) |
+
+  This schema change affects every endpoint returning partner applications:
+  - `GET /api/v1/me/partner-applications`
+  - `POST /api/v1/me/partner-applications`
+  - `GET /api/v1/me/partner-applications/{partnerApplicationId}`
+  - `PATCH /api/v1/me/partner-applications/{partnerApplicationId}`
+  - `GET /api/v1/partner-applications`
+  - `GET /api/v1/partner-applications/{partnerApplicationId}`
+  - `PATCH /api/v1/partner-applications/{partnerApplicationId}`
+  - `POST /api/v1/partner-applications/{partnerApplicationId}/decision`
+
+---
+
+- **`POST /api/v1/me/partner-applications`** — Creation responses now return `businessState: SUBMITTED` together with `executionState: PROCESSING`.
+
+  Newly created applications immediately enter backend workflow processing instead of exposing only a single review-state field.
+
+### Removed
+
+- **`AdminPatchPartnerShopApplicationData.state`** — Admin patch requests can no longer update review state directly.
+
+  Review transitions must now be triggered through `POST /api/v1/partner-applications/{partnerApplicationId}/decision`. The admin patch schema still supports payload-only updates such as `shopName`, `shopType`, `shopDomains`, and `shopImage`.
+
+---
+
+- **`GetPartnerShopApplicationData.state`** — Removed from partner-application responses.
+
+  Clients must now read `businessState` for the review outcome and `executionState` for workflow progress.
+
 ## 2026-04-10 - Partner Application Notification Payloads (`backend#807`)
 
 Backend PR `#807` extends notification responses with a new partner-application notification variant so clients can distinguish partner application approval and rejection events from watchlist and search-filter notifications.

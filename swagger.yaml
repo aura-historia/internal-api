@@ -5488,7 +5488,8 @@ paths:
                   summary: One existing application for a new shop
                   value:
                     - id: "550e8400-e29b-41d4-a716-446655440000"
-                      state: "SUBMITTED"
+                      businessState: "IN_REVIEW"
+                      executionState: "WAITING"
                       payload:
                         type: "NEW"
                         shopName: "My Antique Store"
@@ -5524,8 +5525,8 @@ paths:
         Submits a new partner shop application for the authenticated user.
         The application payload specifies either an existing shop (by `shopId`) or a new shop
         (with name, type, domains, and optional image).
-        The application is created with state `SUBMITTED`.
-        State is read-only and cannot be set by the client.
+        The application is created with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
+        Both state fields are read-only and cannot be set by the client.
         Returns the created application with HTTP 201.
         Requires valid Cognito JWT authentication.
       operationId: postPartnerApplication
@@ -5578,7 +5579,8 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
-                state: "SUBMITTED"
+                businessState: "SUBMITTED"
+                executionState: "PROCESSING"
                 payload:
                   type: "NEW"
                   shopName: "My Antique Store"
@@ -5677,7 +5679,8 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
-                state: "IN_REVIEW"
+                businessState: "IN_REVIEW"
+                executionState: "WAITING"
                 payload:
                   type: "NEW"
                   shopName: "My Antique Store"
@@ -5750,7 +5753,7 @@ paths:
       description: |
         Updates the fields of a specific partner shop application identified by `partnerApplicationId`.
         Only fields present in the request body are applied; omitted fields are left unchanged.
-        The `state` field is **read-only** and cannot be updated through this endpoint.
+        The `businessState` and `executionState` fields are **read-only** and cannot be updated through this endpoint.
         The request body is required and must not be empty.
         Returns the updated application.
         Returns 404 when no application with the given ID exists for this user.
@@ -5774,7 +5777,7 @@ paths:
         description: |
           Partial update for a partner shop application.
           Only the provided fields are updated. All fields are optional.
-          Note: `state` is read-only and cannot be set by the client.
+          Note: `businessState` and `executionState` are managed by the backend workflow and cannot be set by the client.
         content:
           application/json:
             schema:
@@ -5810,7 +5813,8 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
-                state: "SUBMITTED"
+                businessState: "SUBMITTED"
+                executionState: "PROCESSING"
                 payload:
                   type: "NEW"
                   shopName: "My Renamed Antique Store"
@@ -6020,7 +6024,8 @@ paths:
                   summary: Applications submitted by different users
                   value:
                     - id: "550e8400-e29b-41d4-a716-446655440000"
-                      state: "SUBMITTED"
+                      businessState: "SUBMITTED"
+                      executionState: "PROCESSING"
                       payload:
                         type: "NEW"
                         shopName: "My Antique Store"
@@ -6030,7 +6035,8 @@ paths:
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
                     - id: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
-                      state: "APPROVED"
+                      businessState: "APPROVED"
+                      executionState: "COMPLETED"
                       payload:
                         type: "EXISTING"
                         shopId: "1b0ef61a-a4e1-4667-a7e6-bce7eb4f8c1a"
@@ -6114,7 +6120,8 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
-                state: "IN_REVIEW"
+                businessState: "IN_REVIEW"
+                executionState: "WAITING"
                 payload:
                   type: "NEW"
                   shopName: "My Antique Store"
@@ -6198,7 +6205,8 @@ paths:
       description: |
         Updates a specific partner shop application by ID across all users.
         This endpoint is restricted to authenticated users with the `ADMIN` role.
-        In addition to payload fields, admins can update the application's `state`.
+        Admins can update payload fields, but review decisions must be submitted through
+        `POST /api/v1/partner-applications/{partnerApplicationId}/decision`.
         The request body is required and must not be empty.
       operationId: adminPatchPartnerApplication
       tags:
@@ -6219,20 +6227,20 @@ paths:
         description: |
           Partial update for a partner shop application.
           All fields are optional, but the request body itself must be present and non-empty.
-          Admins may update both review state and payload fields.
+          Admins may update payload fields only. `businessState` and `executionState`
+          remain workflow-controlled.
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/AdminPatchPartnerShopApplicationData"
             examples:
-              approve_application:
-                summary: Approve an application
+              update_name:
+                summary: Update the shop name
                 value:
-                  state: "APPROVED"
-              reject_and_update_payload:
-                summary: Reject and correct shop metadata
+                  shopName: "My Corrected Antique Store"
+              update_payload:
+                summary: Correct shop metadata
                 value:
-                  state: "REJECTED"
                   shopName: "My Antique Store"
                   shopType: "AUCTION_HOUSE"
       responses:
@@ -6256,7 +6264,8 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
-                state: "APPROVED"
+                businessState: "IN_REVIEW"
+                executionState: "WAITING"
                 payload:
                   type: "NEW"
                   shopName: "My Antique Store"
@@ -6338,6 +6347,172 @@ paths:
                 title: "Not Found"
                 error: "PARTNER_SHOP_APPLICATION_NOT_FOUND"
                 detail: "There exists no PartnerShopApplication with id '...'."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/partner-applications/{partnerApplicationId}/decision:
+    post:
+      summary: Submit a partner shop application decision as admin
+      description: |
+        Submits an `APPROVE` or `REJECT` decision for a specific partner shop application across all users.
+        This endpoint is restricted to authenticated users with the `ADMIN` role.
+        The targeted application must currently have `businessState` `IN_REVIEW`; otherwise the request fails with `409 Conflict`.
+        On success, the workflow resumes asynchronously and the returned application has `executionState` `PROCESSING`
+        while the decision is being applied.
+      operationId: adminPostPartnerApplicationDecision
+      tags:
+        - Partner Applications
+      parameters:
+        - name: partnerApplicationId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the partner shop application to decide.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Decision payload indicating whether the application should be approved or rejected.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostPartnerShopApplicationDecisionData"
+            examples:
+              approve:
+                summary: Approve an application
+                value:
+                  decision: "APPROVE"
+              reject:
+                summary: Reject an application
+                value:
+                  decision: "REJECT"
+      responses:
+        "200":
+          description: Decision accepted successfully. Returns the application while the workflow continues processing.
+          headers:
+            Last-Modified:
+              description: When the application was last updated (RFC 7231 HTTP-date)
+              schema:
+                type: string
+                format: http-date
+              example: "Thu, 11 Apr 2026 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetPartnerShopApplicationData"
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                businessState: "IN_REVIEW"
+                executionState: "PROCESSING"
+                payload:
+                  type: "NEW"
+                  shopName: "My Antique Store"
+                  shopType: "COMMERCIAL_DEALER"
+                  shopDomains:
+                    - "my-antique-store.com"
+                  shopImage: "https://my-antique-store.com/logo.png"
+                created: "2026-04-09T10:00:00Z"
+                updated: "2026-04-11T12:00:00Z"
+        "400":
+          description: Bad request – missing or invalid path parameter or request body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_path_param:
+                  summary: Missing partnerApplicationId path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "Missing field 'partnerApplicationId'."
+                invalid_uuid:
+                  summary: Invalid UUID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "partnerApplicationId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "unknown variant `INVALID`, expected `APPROVE` or `REJECT` at line 1 column 21"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden – this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "404":
+          description: Not found – no partner shop application with the given ID exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "PARTNER_SHOP_APPLICATION_NOT_FOUND"
+                detail: "There exists no PartnerShopApplication with id '...'."
+        "409":
+          description: Conflict – the application is not currently in review and cannot accept a decision.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 409
+                title: "Conflict"
+                error: "CONFLICT"
+                detail: "Application not in review state - cannot resume step function for id '...'."
         "500":
           description: Internal server error.
           content:
@@ -9213,13 +9388,24 @@ components:
       type: string
       enum: [SUBMITTED, IN_REVIEW, REJECTED, APPROVED]
       description: |
-        The review state of a partner shop application:
+        The business review state of a partner shop application:
         - `SUBMITTED`: Application has been submitted and is awaiting review.
         - `IN_REVIEW`: Application is currently being reviewed by the team.
         - `REJECTED`: Application was reviewed and rejected.
         - `APPROVED`: Application was reviewed and approved.
         The state is read-only from the client perspective and can only be changed internally.
       example: SUBMITTED
+
+    ExecutionStateData:
+      type: string
+      enum: [PROCESSING, WAITING, COMPLETED]
+      description: |
+        The workflow execution state of a partner shop application:
+        - `PROCESSING`: The backend workflow is actively processing the application.
+        - `WAITING`: The workflow is paused and waiting for an admin decision.
+        - `COMPLETED`: The workflow has finished processing the application.
+        This state is read-only from the client perspective and is fully managed by the backend workflow.
+      example: WAITING
 
     GetPartnerShopApplicationPayloadData:
       description: |
@@ -9289,7 +9475,8 @@ components:
       description: Full representation of a partner shop application.
       required:
         - id
-        - state
+        - businessState
+        - executionState
         - payload
         - created
         - updated
@@ -9299,8 +9486,14 @@ components:
           format: uuid
           description: Unique identifier of the partner shop application.
           example: "550e8400-e29b-41d4-a716-446655440000"
-        state:
-          $ref: "#/components/schemas/PartnerShopApplicationStateData"
+        businessState:
+          allOf:
+            - $ref: "#/components/schemas/PartnerShopApplicationStateData"
+          description: Review/business state of the application.
+        executionState:
+          allOf:
+            - $ref: "#/components/schemas/ExecutionStateData"
+          description: Workflow execution state of the application.
         payload:
           $ref: "#/components/schemas/GetPartnerShopApplicationPayloadData"
         created:
@@ -9319,7 +9512,7 @@ components:
         Request payload for creating a new partner shop application. Discriminated by the `type` field.
         - `EXISTING`: Apply for partnership for an existing shop identified by `shopId`.
         - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional image.
-        The application state is always initialized to `SUBMITTED` and cannot be set by the client.
+        The created application always starts with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
       oneOf:
         - title: Existing shop payload
           type: object
@@ -9383,7 +9576,8 @@ components:
       description: |
         Partial update for a partner shop application.
         Only the fields present in the request body are applied; omitted fields are left unchanged.
-        All fields are optional. The `state` field is read-only and cannot be modified through this endpoint.
+        All fields are optional.
+        The `businessState` and `executionState` fields are backend-managed and cannot be modified through this endpoint.
         Note: These fields only apply to applications with a `NEW` payload type.
         Sending patch fields for an application with `EXISTING` payload type is accepted but has no effect.
       properties:
@@ -9420,10 +9614,9 @@ components:
       description: |
         Partial update for a partner shop application performed by an administrator.
         Only the fields present in the request body are applied; omitted fields are left unchanged.
-        All fields are optional, including the review `state`.
+        All fields are optional.
+        Review decisions are handled exclusively through `POST /api/v1/partner-applications/{partnerApplicationId}/decision`.
       properties:
-        state:
-          $ref: "#/components/schemas/PartnerShopApplicationStateData"
         shopName:
           type: string
           description: Updated display name of the shop.
@@ -9449,8 +9642,23 @@ components:
           type: string
           format: uri
           nullable: true
-          description: Updated URL to the shop's logo or image.
+          description: Updated URL to the shop's logo or image. Set to `null` to remove the image.
           example: "https://my-antique-store.com/logo.png"
+
+    PartnerShopApplicationDecisionData:
+      type: string
+      enum: [APPROVE, REJECT]
+      description: Allowed admin decision values for a partner shop application review.
+      example: APPROVE
+
+    PostPartnerShopApplicationDecisionData:
+      type: object
+      description: Request body for submitting an admin review decision for a partner shop application.
+      required:
+        - decision
+      properties:
+        decision:
+          $ref: "#/components/schemas/PartnerShopApplicationDecisionData"
 
 tags:
   - name: Products
