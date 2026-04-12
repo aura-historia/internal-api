@@ -6,6 +6,130 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-12 - Partner Shop Management and Partner Shop Listing (`backend#816`)
+
+Backend PR `#816` adds Cognito-authenticated partner/admin shop-management endpoints, a partner-scoped shop listing endpoint, and updates shop response semantics so `partnerStatus` reflects partner ownership independently of partner API-key creation.
+
+### Added
+
+- **`PATCH /api/v1/shops/{shopId}`** — Update mutable shop metadata as the shop's partner user or as an admin.
+
+  **Authentication:** Requires a valid Cognito JWT. Authorized for:
+  - the shop's assigned partner user, or
+  - any user with the `ADMIN` role.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `shopId` | `string (uuid)` | Unique identifier of the shop to update |
+
+  **Request body:** `PatchShopData` (required)
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `shopType` | `ShopTypeData \| null` | No | Replace the shop type when provided |
+  | `domains` | `string[] \| null` | No | Replace the complete shop-domain set when provided |
+  | `image` | `string (uri) \| null` | No | Replace the shop image URL when provided |
+
+  Notes:
+  - The HTTP body itself must not be empty.
+  - Omitted or `null` fields leave the current value unchanged.
+  - `{}` is accepted as a no-op update.
+
+  **Response headers:**
+  | Header | Description |
+  |---|---|
+  | `Last-Modified` | RFC 7231 HTTP-date of when the shop was last updated |
+
+  **Response `200`:** `GetShopData`
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `400 BAD_BODY_VALUE`, `401 UNAUTHORIZED`, `403 PARTNER_SHOP_NOT_PARTNERED`, `404 SHOP_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`PUT /api/v1/shops/{shopId}/api-key`** — Create or overwrite the partner API key for a shop.
+
+  **Authentication:** Requires a valid Cognito JWT. Authorized for:
+  - the shop's assigned partner user, or
+  - any user with the `ADMIN` role.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `shopId` | `string (uuid)` | Unique identifier of the shop whose partner API key should be generated |
+
+  **Request body:** None
+
+  **Response `200`:** `PartnerShopApiKeyResponse`
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `apiKey` | `string` | Yes | Newly generated plaintext partner API key. Returned only in this response |
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `401 UNAUTHORIZED`, `403 PARTNER_SHOP_NOT_PARTNERED`, `404 SHOP_NOT_FOUND`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`GET /api/v1/partner/{partnerId}/shops`** — List all shops linked to a partner user.
+
+  **Authentication:** Requires a valid Cognito JWT. Authorized for:
+  - the partner user referenced by `partnerId`, or
+  - any user with the `ADMIN` role.
+
+  | Path parameter | Type | Description |
+  |---|---|---|
+  | `partnerId` | `string (uuid)` | User ID of the partner whose shops should be returned |
+
+  **Response `200`:** `GetShopData[]`
+
+  Returns an empty array when the partner currently has no shops.
+
+  **Error responses:** `400 BAD_PATH_PARAMETER_VALUE`, `400 INVALID_UUID`, `401 UNAUTHORIZED`, `403 FORBIDDEN`, `500 INTERNAL_SERVER_ERROR`
+
+---
+
+- **`PatchShopData`** — New request schema for partial shop updates.
+
+  | Field | Type | Required | Description |
+  |---|---|---|---|
+  | `shopType` | `ShopTypeData \| null` | No | Optional new shop type |
+  | `domains` | `string[] \| null` | No | Optional full replacement set of normalized shop domains |
+  | `image` | `string (uri) \| null` | No | Optional new shop image URL |
+
+---
+
+- **`PartnerShopApiKeyResponse`** — New response schema for partner API-key creation.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `apiKey` | `string` | Yes | Newly generated plaintext partner API key |
+
+### Changed
+
+- **`GetShopData.partnerStatus`** — Shop responses now explicitly document the partner relationship status.
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `partnerStatus` | `ShopPartnerStatusData` | Yes | `SCRAPED` when no partner user is linked to the shop; `PARTNERED` when a partner user is linked |
+
+  This affects every documented endpoint returning `GetShopData`, including:
+  - `GET /api/v1/shops/{shopId}`
+  - `GET /api/v1/by-slug/shops/{shopSlugId}`
+  - `POST /api/v1/shops/search`
+  - `PATCH /api/v1/shops/{shopId}`
+  - `GET /api/v1/partner/{partnerId}/shops`
+
+---
+
+- **Partner status semantics** — A shop can now be `PARTNERED` before any partner API key has been created.
+
+  Frontend implication:
+  - `partnerStatus: PARTNERED` means the shop is linked to a partner user.
+  - It does **not** guarantee that a partner API key already exists.
+  - API-key-protected partner product endpoints still require a valid `x-api-key` header.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-11 - Partner Application Decision Workflow (`backend#812`)
 
 Backend PR `#812` introduces a dedicated admin decision endpoint for partner shop applications and changes partner-application response schemas to expose separate business and workflow execution states.
