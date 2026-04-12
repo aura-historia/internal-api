@@ -4449,6 +4449,7 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
+                partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         "400":
@@ -4478,6 +4479,266 @@ paths:
                       field: "shopId"
                       sourceType: "path"
                     detail: "Invalid UUID format"
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update shop details
+      description: |
+        Updates mutable shop metadata for the specified shop.
+
+        Requires a valid Cognito JWT. The caller must either:
+        - be the partner user assigned to the shop, or
+        - have the `ADMIN` role.
+
+        The request body uses `PatchShopData`. Only fields present in the JSON body are applied;
+        omitted or `null` fields are left unchanged. The HTTP request body itself must not be absent
+        or an empty string; `{}` is valid.
+      operationId: patchShopById
+      tags:
+        - Shops
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: Unique identifier of the shop (UUID format)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        description: Partial shop update payload. Send only the fields that should change.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchShopData"
+            example:
+              image: "https://tech-store-premium.com/new-logo.svg"
+      responses:
+        "200":
+          description: Shop updated successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  [
+                    "tech-store-premium.com",
+                    "tech-store-premium.de",
+                    "apple.tech-store-premium.com",
+                  ]
+                image: "https://tech-store-premium.com/new-logo.svg"
+                partnerStatus: "PARTNERED"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing shop ID, empty body, or invalid JSON
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_id:
+                  summary: Missing shop ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Missing field 'shopId'."
+                invalid_shop_id:
+                  summary: Invalid shop ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Invalid UUID format"
+                missing_body:
+                  summary: HTTP request body is absent or an empty string
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_json:
+                  summary: Request body is not valid JSON
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden – caller is not allowed to update this shop.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "PARTNER_SHOP_NOT_PARTNERED"
+                detail: "User '550e8400-e29b-41d4-a716-446655440111' is not the partner of shop '550e8400-e29b-41d4-a716-446655440000'"
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+  /api/v1/shops/{shopId}/api-key:
+    put:
+      summary: Create or overwrite a partner shop API key
+      description: |
+        Creates a new partner API key for the specified shop and returns the plaintext key in the response.
+        If a key already exists for the shop, it is overwritten.
+
+        Requires a valid Cognito JWT. The caller must either:
+        - be the partner user assigned to the shop, or
+        - have the `ADMIN` role.
+
+        The returned key is only available in this response. The backend stores only a hash.
+      operationId: putShopApiKey
+      tags:
+        - Shops
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: Unique identifier of the shop (UUID format)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: API key created successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerShopApiKeyResponse"
+              example:
+                apiKey: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
+        "400":
+          description: Bad request - invalid or missing shop ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_id:
+                  summary: Missing shop ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Missing field 'shopId'."
+                invalid_shop_id:
+                  summary: Invalid shop ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Invalid UUID format"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden – caller is not allowed to manage an API key for this shop.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "PARTNER_SHOP_NOT_PARTNERED"
+                detail: "User '550e8400-e29b-41d4-a716-446655440111' is not the partner of shop '550e8400-e29b-41d4-a716-446655440000'"
         "404":
           description: Shop not found
           content:
@@ -4556,6 +4817,7 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
+                partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         "400":
@@ -4685,6 +4947,7 @@ paths:
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
+                    partnerStatus: "PARTNERED"
                     created: "2024-01-15T10:00:00Z"
                     updated: "2024-06-15T12:00:00Z"
                   - shopId: "660f9500-f39c-42e5-b827-556766550001"
@@ -4692,6 +4955,7 @@ paths:
                     name: "Tech Store Basic"
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-basic.com"]
+                    partnerStatus: "SCRAPED"
                     created: "2024-02-01T08:30:00Z"
                     updated: "2024-07-01T14:20:00Z"
                 size: 2
@@ -5437,6 +5701,115 @@ paths:
                       field: "order"
                       sourceType: "query"
                     detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/partner/{partnerId}/shops:
+    get:
+      summary: List shops for a partner user
+      description: |
+        Returns all shops whose `partner_user_id` matches the requested `partnerId`.
+
+        Requires a valid Cognito JWT. The caller may request:
+        - their own shops (`partnerId` equals the JWT `sub`), or
+        - another partner's shops when the caller has the `ADMIN` role.
+
+        Returns an empty array when the partner currently has no shops.
+      operationId: getPartnerShops
+      tags:
+        - Shops
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: partnerId
+          in: path
+          required: true
+          description: Unique identifier of the partner user
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440222"
+      responses:
+        "200":
+          description: Partner shops retrieved successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetShopData"
+              example:
+                - shopId: "550e8400-e29b-41d4-a716-446655440000"
+                  shopSlugId: "tech-store-premium"
+                  name: "Tech Store Premium"
+                  shopType: "COMMERCIAL_DEALER"
+                  domains: ["tech-store-premium.com"]
+                  image: "https://tech-store-premium.com/logo.svg"
+                  partnerStatus: "PARTNERED"
+                  created: "2024-01-15T10:00:00Z"
+                  updated: "2024-06-15T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing partner ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_partner_id:
+                  summary: Missing partner ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "partnerId"
+                      sourceType: "path"
+                    detail: "Missing field 'partnerId'."
+                invalid_partner_id:
+                  summary: Invalid partner ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "partnerId"
+                      sourceType: "path"
+                    detail: "Invalid UUID format"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden – this endpoint requires the `ADMIN` role when requesting another partner's shops.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
         "500":
           description: Internal server error
           content:
@@ -7402,6 +7775,15 @@ components:
         - MARKETPLACE: Marketplace platform connecting buyers and sellers
       example: COMMERCIAL_DEALER
 
+    ShopPartnerStatusData:
+      type: string
+      enum: [SCRAPED, PARTNERED]
+      description: |
+        Partner relationship status of a shop:
+        - SCRAPED: Shop data exists without a linked partner user
+        - PARTNERED: Shop is linked to a partner user
+      example: PARTNERED
+
     ProductImageData:
       type: object
       description: |
@@ -8104,6 +8486,7 @@ components:
         - name
         - shopType
         - domains
+        - partnerStatus
         - created
         - updated
       properties:
@@ -8148,6 +8531,8 @@ components:
           nullable: true
           description: Optional URL to the shop's logo or image
           example: "https://tech-store-premium.com/logo.svg"
+        partnerStatus:
+          $ref: "#/components/schemas/ShopPartnerStatusData"
         created:
           type: string
           format: date-time
@@ -8186,6 +8571,52 @@ components:
             - $ref: "#/components/schemas/RangeQueryDateTime"
           nullable: true
           description: Optional filter by shop last updated date range
+
+    PatchShopData:
+      type: object
+      description: |
+        Partial update for a shop.
+        Only the fields present in the request body are applied; omitted or `null` fields are left unchanged.
+        All fields are optional, so `{}` is accepted as a no-op update when sent as the JSON request body.
+      properties:
+        shopType:
+          allOf:
+            - $ref: "#/components/schemas/ShopTypeData"
+          nullable: true
+          description: Optional updated shop type classification.
+        domains:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: |
+            Optional updated set of domains for the shop.
+            When provided, this replaces the existing domains entirely.
+            Domains are normalized (lowercase, no scheme, no www prefix, no path/query/fragment).
+          example:
+            - "tech-store-premium.com"
+            - "tech-store-premium.de"
+        image:
+          type: string
+          format: uri
+          nullable: true
+          description: |
+            Optional updated URL to the shop's logo or image.
+            When omitted or set to `null`, the current image is left unchanged.
+          example: "https://tech-store-premium.com/new-logo.svg"
+
+    PartnerShopApiKeyResponse:
+      type: object
+      description: Response body returned after creating or overwriting a partner shop API key.
+      required:
+        - apiKey
+      properties:
+        apiKey:
+          type: string
+          description: |
+            Plaintext partner shop API key.
+            Returned only when the key is created; subsequent verification uses the `x-api-key` request header.
+          example: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
 
     SortShopFieldData:
       type: string
