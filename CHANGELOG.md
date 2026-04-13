@@ -6,6 +6,63 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-13 - Expanded Currency Support (`backend#822`)
+
+Backend PR `#822` expands the shared `CurrencyData` contract from 6 to 18 ISO 4217 currencies. No endpoint paths changed, but every query parameter and schema field typed as `CurrencyData`, plus every `PriceData.amount` and price-range filter interpreted in minor units, is affected by this update.
+
+### Added
+
+- **`CurrencyData`** — Added 12 new canonical enum values:
+
+  | Value | Currency |
+  |---|---|
+  | `CNY` | Chinese Yuan |
+  | `BRL` | Brazilian Real |
+  | `PLN` | Polish Złoty |
+  | `TRY` | Turkish Lira |
+  | `JPY` | Japanese Yen |
+  | `CZK` | Czech Koruna |
+  | `RUB` | Russian Ruble |
+  | `AED` | UAE Dirham |
+  | `SAR` | Saudi Riyal |
+  | `HKD` | Hong Kong Dollar |
+  | `SGD` | Singapore Dollar |
+  | `CHF` | Swiss Franc |
+
+### Changed
+
+- **`CurrencyData`** — The full supported value set is now:
+  - `EUR`, `GBP`, `USD`, `AUD`, `CAD`, `NZD`, `CNY`, `BRL`, `PLN`, `TRY`, `JPY`, `CZK`, `RUB`, `AED`, `SAR`, `HKD`, `SGD`, `CHF`
+
+- **`PriceData.amount` and price-range filter semantics** — Monetary values remain expressed in minor currency units, but the supported set now includes a zero-decimal currency:
+  - `JPY` amounts are whole yen (for example, `{"currency":"JPY","amount":1234}` means `¥1234`)
+  - all other currently supported currencies use 2 decimal minor units
+
+- **Endpoints with `currency` query parameters** — The `currency` query parameter now accepts all 18 supported `CurrencyData` values on:
+  - `GET /api/v1/shops/{shopId}/products/{shopsProductId}`
+  - `GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`
+  - `GET /api/v1/shops/{shopId}/products/{shopsProductId}/history`
+  - `GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar`
+  - `GET /api/v1/products`
+  - `GET /api/v1/me/search-filters/{userSearchFilterId}/products`
+  - `GET /api/v1/me/watchlist`
+  - `POST /api/v1/me/watchlist/{shopId}/{shopsProductId}`
+  - `PATCH /api/v1/me/watchlist/{shopId}/{shopsProductId}`
+  - `GET /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications/{eventId}`
+
+- **Schemas with `currency: CurrencyData` fields** — These request/response bodies now accept or return the expanded currency set:
+  - `PriceData`
+  - `ProductSearchData`
+  - `PatchProductSearchData`
+  - `GetUserAccountData`
+  - `PatchUserAccountData`
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-13 - Ingestion-Only Languages (`backend#820`)
 
 Backend PR `#820` expands the shared `LanguageData` contract with additional ISO 639-1 language codes for product ingestion and stored/native content. No endpoint paths changed, but every query parameter, request field, and response field typed as `LanguageData` is affected by this schema expansion.
