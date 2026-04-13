@@ -32,7 +32,7 @@ Backend PR `#820` expands the shared `LanguageData` contract with additional ISO
   - `de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`
 
 - **English alias documentation** — Corrected the documented accepted English regional alias to match the backend implementation exactly:
-  - accepted aliases are `en-US`, `en-GB`, `en-AU`, `en-CA`, `en-NZ`, and `en_IE`
+  - accepted aliases are `en-US`, `en-GB`, `en-AU`, `en-CA`, `en-NZ`, and the backend-specific accepted alias `en_IE`
 
 - **Localization semantics for the new languages** — The newly added values are ingestion-only languages.
   - They may be accepted anywhere `LanguageData` is used and may appear in stored/native content returned by the API.
