@@ -7568,14 +7568,28 @@ components:
 
     LanguageData:
       type: string
-      enum: [de, en, fr, es, it]
+      enum: [de, en, fr, es, it, zh, pt, pl, tr, nl, cs, ja, ru, ar]
       description: |
-        Supported languages (ISO 639-1 codes):
+        Supported language codes (ISO 639-1 canonical values):
         - de: German (includes de-DE, de-AT, de-CH, de-LU, de-LI)
-        - en: English (includes en-US, en-GB, en-AU, en-CA, en-NZ, en-IE)
+        - en: English (includes en-US, en-GB, en-AU, en-CA, en-NZ, and backend-specific accepted alias en_IE)
         - fr: French (includes fr-FR, fr-CA, fr-BE, fr-CH, fr-LU)
         - es: Spanish (includes es-ES, es-MX, es-AR, es-CO, es-CL, es-PE, es-VE)
         - it: Italian (includes it-IT, it-CH)
+        - zh: Chinese (Simplified) (includes zh-CN, zh-Hans)
+        - pt: Portuguese (includes pt-PT, pt-BR)
+        - pl: Polish (includes pl-PL)
+        - tr: Turkish (includes tr-TR)
+        - nl: Dutch (includes nl-NL, nl-BE)
+        - cs: Czech (includes cs-CZ)
+        - ja: Japanese (includes ja-JP)
+        - ru: Russian (includes ru-RU)
+        - ar: Arabic (includes ar-SA, ar-EG, ar-AE)
+
+        `de`, `en`, `fr`, `es`, and `it` are fully supported localization/translation-target languages.
+        `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, and `ar` are ingestion-only languages:
+        they can appear in stored/native content and are accepted anywhere `LanguageData` is used,
+        but backend-generated translations and fallback localized strings are not produced in these languages.
       default: en
       example: de
 
