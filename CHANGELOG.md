@@ -6,6 +6,43 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-13 - Ingestion-Only Languages (`backend#820`)
+
+Backend PR `#820` expands the shared `LanguageData` contract with additional ISO 639-1 language codes for product ingestion and stored/native content. No endpoint paths changed, but every query parameter, request field, and response field typed as `LanguageData` is affected by this schema expansion.
+
+### Added
+
+- **`LanguageData`** — Added new canonical enum values and documented accepted input aliases.
+
+  | Canonical value | Language | Accepted aliases |
+  |---|---|---|
+  | `zh` | Chinese (Simplified) | `zh-CN`, `zh-Hans` |
+  | `pt` | Portuguese | `pt-PT`, `pt-BR` |
+  | `pl` | Polish | `pl-PL` |
+  | `tr` | Turkish | `tr-TR` |
+  | `nl` | Dutch | `nl-NL`, `nl-BE` |
+  | `cs` | Czech | `cs-CZ` |
+  | `ja` | Japanese | `ja-JP` |
+  | `ru` | Russian | `ru-RU` |
+  | `ar` | Arabic | `ar-SA`, `ar-EG`, `ar-AE` |
+
+### Changed
+
+- **`LanguageData`** — The full canonical value set is now:
+  - `de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`
+
+- **English alias documentation** — Corrected the documented accepted English regional alias to match the backend implementation exactly:
+  - accepted aliases are `en-US`, `en-GB`, `en-AU`, `en-CA`, `en-NZ`, and `en_IE`
+
+- **Localization semantics for the new languages** — The newly added values are ingestion-only languages.
+  - They may be accepted anywhere `LanguageData` is used and may appear in stored/native content returned by the API.
+  - Backend-generated translation targets remain limited to `de`, `en`, `fr`, `es`, and `it`.
+  - Where the backend has no dedicated localized fallback string for one of the new language values, it falls back to English.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-12 - Partner Shop Management and Partner Shop Listing (`backend#816`)
 
 Backend PR `#816` adds Cognito-authenticated partner/admin shop-management endpoints, a partner-scoped shop listing endpoint, and updates shop response semantics so `partnerStatus` reflects partner ownership independently of partner API-key creation.
