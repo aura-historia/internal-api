@@ -1443,7 +1443,7 @@ paths:
           in: query
           required: false
           description: |
-            Optional price range filter in minor currency units (e.g. cents).
+            Optional price range filter in minor currency units (e.g. cents for most supported currencies, whole yen for JPY).
             Use `price[min]` and/or `price[max]` to specify the range bounds.
           style: deepObject
           explode: true
@@ -1453,12 +1453,12 @@ paths:
               min:
                 type: integer
                 minimum: 0
-                description: Minimum price (inclusive) in minor currency units
+                description: Minimum price (inclusive) in minor currency units for the selected/requested currency
                 example: 1000
               max:
                 type: integer
                 minimum: 0
-                description: Maximum price (inclusive) in minor currency units
+                description: Maximum price (inclusive) in minor currency units for the selected/requested currency
                 example: 50000
         - name: state
           in: query
@@ -7375,7 +7375,7 @@ components:
           $ref: "#/components/schemas/CurrencyData"
         amount:
           type: integer
-          description: Price amount in minor currency units (e.g., cents for EUR/USD)
+          description: Price amount in minor currency units (e.g., cents for most supported currencies, whole yen for JPY)
           minimum: 0
           example: 2999
 
@@ -7595,7 +7595,7 @@ components:
 
     CurrencyData:
       type: string
-      enum: [EUR, GBP, USD, AUD, CAD, NZD]
+      enum: [EUR, GBP, USD, AUD, CAD, NZD, CNY, BRL, PLN, TRY, JPY, CZK, RUB, AED, SAR, HKD, SGD, CHF]
       description: |
         Supported currencies (ISO 4217 codes):
         - EUR: Euro
@@ -7604,6 +7604,18 @@ components:
         - AUD: Australian Dollar
         - CAD: Canadian Dollar
         - NZD: New Zealand Dollar
+        - CNY: Chinese Yuan
+        - BRL: Brazilian Real
+        - PLN: Polish Złoty
+        - TRY: Turkish Lira
+        - JPY: Japanese Yen
+        - CZK: Czech Koruna
+        - RUB: Russian Ruble
+        - AED: UAE Dirham
+        - SAR: Saudi Riyal
+        - HKD: Hong Kong Dollar
+        - SGD: Singapore Dollar
+        - CHF: Swiss Franc
       default: EUR
       example: EUR
 
@@ -8035,7 +8047,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/RangeQueryUInt64"
           nullable: true
-          description: Optional price range filter in minor currency units
+          description: Optional price range filter in minor currency units for the selected/requested currency
         state:
           type: array
           items:
@@ -8281,7 +8293,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/RangeQueryUInt64"
           nullable: true
-          description: Optional price range filter in minor currency units
+          description: Optional price range filter in minor currency units for the selected/requested currency
         state:
           type: array
           items:
@@ -8410,7 +8422,7 @@ components:
 
     RangeQueryUInt64:
       type: object
-      description: Range query for numeric values (prices in minor currency units)
+      description: Range query for numeric values (prices in minor currency units for the selected/requested currency)
       properties:
         min:
           type: integer
