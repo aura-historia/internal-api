@@ -6,6 +6,50 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-14 - Product Search Slug-ID Filters and Shop Partner-Status Filter (`backend#844`)
+
+Backend PR `#844` extends the shared search-filter contracts used by product search, saved user search filters, and shop search. No endpoint paths changed, but affected request/query schemas now support additional include/exclude filters based on slug identifiers and shop partner status.
+
+### Added
+
+- **`ProductSearchData`** — Added four new optional slug-based filter fields:
+
+  | Field | Type | Description |
+  |---|---|---|
+  | `shopSlugId` | `string[]` | Include only products whose `shopSlugId` matches one of the provided kebab-case shop slug IDs |
+  | `excludeShopSlugId` | `string[]` | Exclude products whose `shopSlugId` matches one of the provided kebab-case shop slug IDs |
+  | `sellerSlugId` | `string[]` | Include only products whose seller slug ID matches one of the provided kebab-case slug IDs |
+  | `excludeSellerSlugId` | `string[]` | Exclude products whose seller slug ID matches one of the provided kebab-case slug IDs |
+
+- **`PatchProductSearchData`** — Added the same four optional nullable slug-based filter fields for partial search-filter updates.
+
+- **`ShopSearchData`** — Added a new optional `partnerStatus` filter field.
+
+  | Field | Type | Allowed values | Description |
+  |---|---|---|---|
+  | `partnerStatus` | `ShopPartnerStatusData[]` | `SCRAPED`, `PARTNERED` | Restrict shop search results to one or more partner relationship statuses |
+
+### Changed
+
+- **`GET /api/v1/products`** — The simple product-search query interface now documents the new slug-based include/exclude filters:
+  - `shopSlugId`
+  - `excludeShopSlugId`
+  - `sellerSlugId`
+  - `excludeSellerSlugId`
+
+- **`POST /api/v1/products/search`** — The complex product-search request body now supports the same four slug-based filter fields through `ProductSearchData`.
+
+- **Saved search-filter payloads** — Because they embed `ProductSearchData` / `PatchProductSearchData`, the following request/response bodies now support the new slug-based product filters:
+  - `PostUserSearchFilterData`
+  - `PatchUserSearchFilterData`
+  - `UserSearchFilterData`
+
+- **`GET /api/v1/shops`** and **`POST /api/v1/shops/search`** — Shop search now supports filtering by `partnerStatus` with the allowed values `SCRAPED` and `PARTNERED`.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-13 - Expanded Currency Support (`backend#822`)
 
 Backend PR `#822` expands the shared `CurrencyData` contract from 6 to 18 ISO 4217 currencies. No endpoint paths changed, but every query parameter and schema field typed as `CurrencyData`, plus every `PriceData.amount` and price-range filter interpreted in minor units, is affected by this update.
