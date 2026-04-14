@@ -1331,6 +1331,10 @@ paths:
         - `periodId`
         - `shopName`
         - `excludeShopName`
+        - `shopSlugId`
+        - `excludeShopSlugId`
+        - `sellerSlugId`
+        - `excludeSellerSlugId`
         - `shopType`
         - `price[min]`, `price[max]`
         - `state`
@@ -1427,6 +1431,66 @@ paths:
               type: string
             uniqueItems: true
           example: ["Heritage Auctions"]
+        - name: shopSlugId
+          in: query
+          required: false
+          description: |
+            Optional filter by exact shop slug identifiers.
+            Products are filtered to those whose `shopSlugId` exactly matches one of the provided kebab-case values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["imperial-antiques", "heritage-gallery"]
+        - name: excludeShopSlugId
+          in: query
+          required: false
+          description: |
+            Optional filter to exclude products from specific shop slug identifiers.
+            Products whose `shopSlugId` exactly matches one of the provided kebab-case values are excluded from results.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["other-antique-shop"]
+        - name: sellerSlugId
+          in: query
+          required: false
+          description: |
+            Optional filter by exact seller slug identifiers.
+            Products are filtered to those whose seller slug ID exactly matches one of the provided kebab-case values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["imperial-antiques", "vintage-seller"]
+        - name: excludeSellerSlugId
+          in: query
+          required: false
+          description: |
+            Optional filter to exclude products from specific seller slug identifiers.
+            Products whose seller slug ID exactly matches one of the provided kebab-case values are excluded from results.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            uniqueItems: true
+          example: ["other-seller-shop"]
         - name: shopType
           in: query
           required: false
@@ -2001,7 +2065,7 @@ paths:
                     userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     name: "My Tech Store Search"
                     notifications: true
-                    productSearch:
+                    search:
                       language: "en"
                       currency: "USD"
                       productQuery: "antique clock"
@@ -2089,7 +2153,7 @@ paths:
               $ref: "#/components/schemas/PostUserSearchFilterData"
             example:
               name: "My Tech Store Search"
-              productSearch:
+              search:
                 language: "en"
                 currency: "USD"
                 productQuery: "antique clock"
@@ -2137,7 +2201,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
-                productSearch:
+                search:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
@@ -2272,7 +2336,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
-                productSearch:
+                search:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
@@ -2465,7 +2529,7 @@ paths:
                 summary: Update specific fields
                 value:
                   name: "Updated Filter Name"
-                  productSearch:
+                  search:
                     shopName: ["Updated Store"]
                     categoryId: ["antique-clocks"]
                     periodId: ["baroque"]
@@ -2487,7 +2551,7 @@ paths:
               update_filter_only:
                 summary: Update only the filter criteria
                 value:
-                  productSearch:
+                  search:
                     language: "de"
                     currency: "EUR"
                     categoryId: ["antique-clocks"]
@@ -2524,7 +2588,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "Updated Filter Name"
                 notifications: true
-                productSearch:
+                search:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
@@ -4289,6 +4353,7 @@ paths:
         using the same field names:
         - `shopNameQuery`
         - `shopType`
+        - `partnerStatus`
         - `created[min]`, `created[max]`
         - `updated[min]`, `updated[max]`
       operationId: simpleSearchShops
@@ -4302,6 +4367,18 @@ paths:
           schema:
             type: string
           example: house
+        - name: partnerStatus
+          in: query
+          required: false
+          description: Optional filter by shop partner relationship status
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ShopPartnerStatusData"
+            uniqueItems: true
+          example: ["PARTNERED"]
         - name: sort
           in: query
           required: false
@@ -4921,6 +4998,7 @@ paths:
               $ref: "#/components/schemas/ShopSearchData"
             example:
               shopNameQuery: "tech store"
+              partnerStatus: ["PARTNERED"]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -8034,6 +8112,50 @@ components:
           uniqueItems: true
           default: []
           example: ["Heritage Auctions", "Christie's"]
+        shopSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter by exact shop slug identifiers.
+            Filters products to only those whose `shopSlugId` exactly matches one of the provided kebab-case values.
+          uniqueItems: true
+          default: []
+          example: ["imperial-antiques", "heritage-gallery"]
+        excludeShopSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter to exclude products from specific shop slug identifiers.
+            Products whose `shopSlugId` exactly matches one of the provided kebab-case values are excluded from results.
+          uniqueItems: true
+          default: []
+          example: ["other-antique-shop"]
+        sellerSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter by exact seller slug identifiers.
+            Filters products to only those whose seller slug ID exactly matches one of the provided kebab-case values.
+          uniqueItems: true
+          default: []
+          example: ["imperial-antiques", "vintage-seller"]
+        excludeSellerSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter to exclude products from specific seller slug identifiers.
+            Products whose seller slug ID exactly matches one of the provided kebab-case values are excluded from results.
+          uniqueItems: true
+          default: []
+          example: ["other-seller-shop"]
         shopType:
           type: array
           items:
@@ -8130,7 +8252,7 @@ components:
       description: Request body for creating a new search filter
       required:
         - name
-        - productSearch
+        - search
       properties:
         name:
           type: string
@@ -8146,7 +8268,7 @@ components:
             Whitespace is trimmed and the value is silently truncated to 500 characters if longer.
           maxLength: 500
           example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
-        productSearch:
+        search:
           $ref: "#/components/schemas/ProductSearchData"
 
     PatchUserSearchFilterData:
@@ -8182,7 +8304,7 @@ components:
             When `false`, no notifications are sent for this filter.
             Omit to leave unchanged.
           example: true
-        productSearch:
+        search:
           allOf:
             - $ref: "#/components/schemas/PatchProductSearchData"
           nullable: true
@@ -8281,6 +8403,50 @@ components:
           uniqueItems: true
           nullable: true
           example: ["Sotheby's", "Christie's"]
+        shopSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter by exact shop slug identifiers.
+            Filters products to only those whose `shopSlugId` exactly matches one of the provided kebab-case values.
+          uniqueItems: true
+          nullable: true
+          example: ["imperial-antiques", "heritage-gallery"]
+        excludeShopSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter to exclude products from specific shop slug identifiers.
+            Products whose `shopSlugId` exactly matches one of the provided kebab-case values are excluded from results.
+          uniqueItems: true
+          nullable: true
+          example: ["other-antique-shop"]
+        sellerSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter by exact seller slug identifiers.
+            Filters products to only those whose seller slug ID exactly matches one of the provided kebab-case values.
+          uniqueItems: true
+          nullable: true
+          example: ["imperial-antiques", "vintage-seller"]
+        excludeSellerSlugId:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: |
+            Optional filter to exclude products from specific seller slug identifiers.
+            Products whose seller slug ID exactly matches one of the provided kebab-case values are excluded from results.
+          uniqueItems: true
+          nullable: true
+          example: ["other-seller-shop"]
         shopType:
           type: array
           items:
@@ -8374,7 +8540,7 @@ components:
         - userSearchFilterId
         - name
         - notifications
-        - productSearch
+        - search
         - created
         - updated
       properties:
@@ -8407,7 +8573,7 @@ components:
             When `false`, no notifications are sent for this filter.
             Defaults to `true` for newly created filters.
           example: true
-        productSearch:
+        search:
           $ref: "#/components/schemas/ProductSearchData"
         created:
           type: string
@@ -8587,6 +8753,17 @@ components:
           default: []
           nullable: true
           example: ["AUCTION_HOUSE"]
+        partnerStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopPartnerStatusData"
+          description: |
+            Optional filter by shop partner relationship status.
+            When provided, only shops with one of the given partner-status values are returned.
+          uniqueItems: true
+          default: []
+          nullable: true
+          example: ["PARTNERED"]
         created:
           allOf:
             - $ref: "#/components/schemas/RangeQueryDateTime"
