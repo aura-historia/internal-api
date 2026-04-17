@@ -4342,6 +4342,82 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/newsletter-subscriptions:
+    put:
+      summary: Upsert newsletter subscription
+      description: |
+        Subscribes an email address to the Aura Historia newsletter mailing list.
+
+        The endpoint accepts anonymous requests.
+        An optional Cognito bearer token may be supplied for authenticated calls.
+        When authenticated, omitted optional profile fields (`firstName`, `lastName`, `language`, `currency`)
+        fall back to the authenticated user's stored account values; explicitly provided request values take precedence.
+      operationId: putNewsletterSubscription
+      tags:
+        - Newsletter
+      security:
+        - BearerAuth: []
+        - {}
+      requestBody:
+        required: true
+        description: Newsletter subscription data.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PutNewsletterSubscriptionData"
+            examples:
+              minimal:
+                summary: Subscribe with email only
+                value:
+                  email: "collector@example.com"
+              complete:
+                summary: Subscribe with explicit profile values
+                value:
+                  email: "collector@example.com"
+                  firstName: "Ada"
+                  lastName: "Lovelace"
+                  language: "en"
+                  currency: "EUR"
+      responses:
+        "204":
+          description: Newsletter subscription synced successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "400":
+          description: Bad request - empty body, malformed JSON, or invalid body field values
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+        "500":
+          description: Internal server error while syncing the newsletter subscription
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/shops:
     get:
       summary: Simple shop search via query parameters
@@ -9276,6 +9352,42 @@ components:
           description: New consent state for displaying prohibited content
           example: true
 
+    PutNewsletterSubscriptionData:
+      type: object
+      description: |
+        Request body for creating or updating a newsletter subscription.
+        `email` is required; all other fields are optional and may be omitted or set to `null`.
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address to subscribe to the newsletter
+          example: "collector@example.com"
+        firstName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: Optional first name to sync with the subscription
+          example: "Ada"
+        lastName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: Optional last name to sync with the subscription
+          example: "Lovelace"
+        language:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: Optional preferred language to sync with the subscription
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: Optional preferred currency to sync with the subscription
+
     UserTierData:
       type: string
       description: |
@@ -10303,6 +10415,8 @@ tags:
     description: Operations for managing user search filters
   - name: Shops
     description: Operations related to shop retrieval and search
+  - name: Newsletter
+    description: Operations for creating or updating newsletter subscriptions
   - name: User Account
     description: Operations for managing user account information
   - name: Watchlist

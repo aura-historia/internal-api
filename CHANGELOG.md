@@ -6,6 +6,59 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-17 - Newsletter Subscription Sync Endpoint (`backend#854`)
+
+Backend PR `#854` adds a new public newsletter subscription endpoint. The endpoint accepts anonymous requests or optional Cognito-authenticated requests and syncs newsletter contacts using the shared language and currency contracts already documented elsewhere in the API.
+
+### Added
+
+- **New endpoint: `PUT /api/v1/newsletter-subscriptions`**
+  - **Authentication**: Optional Bearer JWT. Anonymous requests are allowed. When a valid authenticated user calls the endpoint and omits optional profile fields, the backend falls back to the user's stored `firstName`, `lastName`, `language`, and `currency`. Explicit request values take precedence over fallback values.
+  - **Request body**: `PutNewsletterSubscriptionData`
+
+    | Field | Type | Required | Description |
+    |---|---|---|---|
+    | `email` | `string (email)` | Yes | Email address to subscribe. |
+    | `firstName` | `string \| null` | No | Optional first name to sync with the subscription. |
+    | `lastName` | `string \| null` | No | Optional last name to sync with the subscription. |
+    | `language` | `LanguageData \| null` | No | Optional preferred language to sync with the subscription. |
+    | `currency` | `CurrencyData \| null` | No | Optional preferred currency to sync with the subscription. |
+
+  - **Responses**:
+    - `204 No Content` — Newsletter subscription synced successfully.
+    - `400 Bad Request` — Invalid request body, including empty body, malformed JSON, or invalid field values. Error code: `BAD_BODY_VALUE`.
+    - `500 Internal Server Error` — Unexpected failure while syncing the newsletter subscription. Error code: `INTERNAL_SERVER_ERROR`.
+
+  - **Example requests**:
+
+    ```json
+    {
+      "email": "collector@example.com"
+    }
+    ```
+
+    ```json
+    {
+      "email": "collector@example.com",
+      "firstName": "Ada",
+      "lastName": "Lovelace",
+      "language": "en",
+      "currency": "EUR"
+    }
+    ```
+
+- **New schema: `PutNewsletterSubscriptionData`**
+  - Introduced a dedicated request-body contract for newsletter subscription upserts.
+  - Reuses existing `LanguageData` and `CurrencyData` enums for optional preference fields.
+
+### Changed
+
+- No existing documented endpoints or schemas changed in this update.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-14 - Product Search Slug-ID Filters and Shop Partner-Status Filter (`backend#844`)
 
 Backend PR `#844` extends the shared search-filter contracts used by product search, saved user search filters, and shop search. No endpoint paths changed, but affected request/query schemas now support additional include/exclude filters based on slug identifiers and shop partner status.
