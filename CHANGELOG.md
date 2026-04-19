@@ -6,6 +6,32 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-19 - Newsletter Invalid Email Error Mapping (`backend#869`)
+
+Backend PR `#869` changes how newsletter subscription failures from Zoho Campaigns are exposed through the REST API. The endpoint path, request body, authentication model, and success response remain unchanged, but specific upstream email validation failures are now reported as client errors instead of internal server errors.
+
+### Added
+
+- **New error code: `INVALID_EMAIL`**
+  - Returned by `PUT /api/v1/newsletter-subscriptions` when Zoho Campaigns rejects the submitted address with one of the documented provider error codes below:
+    - `2004` — invalid contact email address
+    - `2005` — group email address
+
+### Changed
+
+- **`PUT /api/v1/newsletter-subscriptions`**
+  - **Response behavior**:
+    - `204 No Content` remains unchanged for successful newsletter subscription syncs
+    - `400 Bad Request` now also covers provider-level invalid email rejections and returns error code `INVALID_EMAIL`
+    - `500 Internal Server Error` is now reserved for unexpected newsletter sync failures, including Zoho Campaigns error responses other than codes `2004` and `2005`
+  - **400 error variants**:
+    - `BAD_BODY_VALUE` — request body missing, empty, malformed JSON, or invalid request-field value
+    - `INVALID_EMAIL` — submitted address was rejected by the newsletter provider as invalid or as a group/distribution email address
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-17 - Newsletter Subscription Sync Endpoint (`backend#854`)
 
 Backend PR `#854` adds a new public newsletter subscription endpoint. The endpoint accepts anonymous requests or optional Cognito-authenticated requests and syncs newsletter contacts using the shared language and currency contracts already documented elsewhere in the API.

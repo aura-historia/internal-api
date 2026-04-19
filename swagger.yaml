@@ -4388,7 +4388,9 @@ paths:
                 type: string
               example: "*"
         "400":
-          description: Bad request - empty body, malformed JSON, or invalid body field values
+          description: |
+            Bad request — the request body is missing, malformed, contains invalid field values,
+            or the newsletter provider rejects the submitted email address as invalid.
           content:
             application/problem+json:
               schema:
@@ -4407,8 +4409,14 @@ paths:
                     status: 400
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
+                invalid_email:
+                  summary: Newsletter provider rejected the email address
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_EMAIL"
         "500":
-          description: Internal server error while syncing the newsletter subscription
+          description: Internal server error while syncing the newsletter subscription after an unexpected upstream failure
           content:
             application/problem+json:
               schema:
