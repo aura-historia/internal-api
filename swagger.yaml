@@ -3511,6 +3511,187 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/billing/checkout:
+    post:
+      summary: Create Stripe checkout session
+      description: |
+        Creates a hosted Stripe Checkout session for the authenticated user to start a subscription.
+        The request body selects the desired subscription plan and billing cycle.
+        The backend first creates and persists a Stripe customer for the user, then creates a
+        subscription-mode Checkout session for that customer.
+        This endpoint can only be used when the user does not already have a `stripe_customer_id`.
+        Requires valid Cognito JWT authentication.
+      operationId: postBillingCheckout
+      tags:
+        - Billing
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Desired subscription plan and billing cycle for the new Stripe checkout session.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostBillingCheckoutData"
+            examples:
+              pro_monthly:
+                summary: Create a monthly Pro checkout session
+                value:
+                  plan: "PRO"
+                  cycle: "MONTHLY"
+              ultimate_yearly:
+                summary: Create a yearly Ultimate checkout session
+                value:
+                  plan: "ULTIMATE"
+                  cycle: "YEARLY"
+      responses:
+        "201":
+          description: Checkout session created successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSessionUrlData"
+              example:
+                url: "https://checkout.stripe.com/c/pay/cs_test_123"
+        "400":
+          description: Bad request - request body is missing, empty, malformed JSON, or contains unsupported enum values
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Request body is absent or empty
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_plan:
+                  summary: Unsupported billing plan
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "unknown variant `ENTERPRISE`, expected `PRO` or `ULTIMATE` at line 1 column 20"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "409":
+          description: Conflict - the authenticated user already has a Stripe customer record
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 409
+                title: "Conflict"
+                error: "STRIPE_CUSTOMER_ALREADY_EXISTS"
+                detail: "User has already created a Stripe customer; use the customer-portal endpoint instead"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/me/billing/portal:
+    post:
+      summary: Create Stripe billing portal session
+      description: |
+        Creates a hosted Stripe customer-portal session for the authenticated user.
+        This endpoint does not accept a request body.
+        It can only be used when the user already has a persisted `stripe_customer_id`.
+        Requires valid Cognito JWT authentication.
+      operationId: postBillingPortal
+      tags:
+        - Billing
+      security:
+        - BearerAuth: []
+      responses:
+        "201":
+          description: Billing portal session created successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSessionUrlData"
+              example:
+                url: "https://billing.stripe.com/p/session/test_123"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "422":
+          description: Unprocessable Content - the authenticated user has no Stripe customer record yet
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 422
+                title: "Unprocessable Content"
+                error: "STRIPE_CUSTOMER_DOES_NOT_EXIST"
+                detail: "User has never had a Stripe subscription; no customer-portal session can be created"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me/watchlist/{shopId}/{shopsProductId}:
     delete:
       summary: Remove product from watchlist
@@ -9359,6 +9540,46 @@ components:
           nullable: true
           description: New consent state for displaying prohibited content
           example: true
+
+    PostBillingCheckoutData:
+      type: object
+      description: Request body for creating a Stripe checkout session for a subscription purchase
+      required:
+        - plan
+        - cycle
+      properties:
+        plan:
+          $ref: "#/components/schemas/BillingPlanData"
+        cycle:
+          $ref: "#/components/schemas/BillingCycleData"
+
+    BillingPlanData:
+      type: string
+      description: Subscription plan that should be purchased through Stripe Checkout
+      enum:
+        - PRO
+        - ULTIMATE
+      example: "PRO"
+
+    BillingCycleData:
+      type: string
+      description: Billing interval that should be used for the subscription purchase
+      enum:
+        - MONTHLY
+        - YEARLY
+      example: "MONTHLY"
+
+    BillingSessionUrlData:
+      type: object
+      description: Hosted Stripe session URL returned by the billing endpoints
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: Hosted Stripe URL that the frontend should redirect the authenticated user to
+          example: "https://checkout.stripe.com/c/pay/cs_test_123"
 
     PutNewsletterSubscriptionData:
       type: object

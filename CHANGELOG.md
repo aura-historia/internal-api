@@ -6,6 +6,104 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-20 - Stripe Billing Checkout and Portal Endpoints (`backend#871`)
+
+Backend PR `#871` adds authenticated Stripe billing endpoints for starting a subscription checkout flow and for opening the Stripe customer portal. The update also introduces dedicated billing request/response schemas and two new Stripe-specific error codes.
+
+### Added
+
+- **New endpoint: `POST /api/v1/me/billing/checkout`**
+  - **Authentication**: Required Bearer JWT.
+  - **Request body**: `PostBillingCheckoutData`
+
+    | Field | Type | Required | Allowed values | Description |
+    |---|---|---|---|---|
+    | `plan` | `BillingPlanData` | Yes | `PRO`, `ULTIMATE` | Subscription tier to purchase. |
+    | `cycle` | `BillingCycleData` | Yes | `MONTHLY`, `YEARLY` | Billing interval for the subscription. |
+
+  - **Responses**:
+    - `201 Created` — Returns `BillingSessionUrlData` with the hosted Stripe Checkout URL.
+    - `400 Bad Request` — Missing, empty, malformed, or enum-invalid request body. Error code: `BAD_BODY_VALUE`.
+    - `401 Unauthorized` — Missing or invalid Cognito JWT. Error code: `UNAUTHORIZED`.
+    - `404 Not Found` — Authenticated user record does not exist. Error code: `USER_NOT_FOUND`.
+    - `409 Conflict` — User already has a persisted Stripe customer record. Error code: `STRIPE_CUSTOMER_ALREADY_EXISTS`.
+    - `500 Internal Server Error` — Unexpected Stripe/session creation or server-side configuration failure. Error code: `INTERNAL_SERVER_ERROR`.
+
+  - **Example request**:
+
+    ```json
+    {
+      "plan": "PRO",
+      "cycle": "MONTHLY"
+    }
+    ```
+
+  - **Example response**:
+
+    ```json
+    {
+      "url": "https://checkout.stripe.com/c/pay/cs_test_123"
+    }
+    ```
+
+- **New endpoint: `POST /api/v1/me/billing/portal`**
+  - **Authentication**: Required Bearer JWT.
+  - **Request body**: None.
+  - **Responses**:
+    - `201 Created` — Returns `BillingSessionUrlData` with the hosted Stripe customer-portal URL.
+    - `401 Unauthorized` — Missing or invalid Cognito JWT. Error code: `UNAUTHORIZED`.
+    - `404 Not Found` — Authenticated user record does not exist. Error code: `USER_NOT_FOUND`.
+    - `422 Unprocessable Content` — User has no persisted Stripe customer record yet. Error code: `STRIPE_CUSTOMER_DOES_NOT_EXIST`.
+    - `500 Internal Server Error` — Unexpected Stripe/session creation failure. Error code: `INTERNAL_SERVER_ERROR`.
+
+  - **Example response**:
+
+    ```json
+    {
+      "url": "https://billing.stripe.com/p/session/test_123"
+    }
+    ```
+
+- **New schemas**
+  - **`PostBillingCheckoutData`** — Request body for Stripe checkout-session creation.
+
+    | Field | Type | Required | Description |
+    |---|---|---|---|
+    | `plan` | `BillingPlanData` | Yes | Requested subscription plan. |
+    | `cycle` | `BillingCycleData` | Yes | Requested billing interval. |
+
+  - **`BillingPlanData`** — Enum of supported subscription plans.
+
+    | Value |
+    |---|
+    | `PRO` |
+    | `ULTIMATE` |
+
+  - **`BillingCycleData`** — Enum of supported billing intervals.
+
+    | Value |
+    |---|
+    | `MONTHLY` |
+    | `YEARLY` |
+
+  - **`BillingSessionUrlData`** — Response body returned by both billing endpoints.
+
+    | Field | Type | Required | Description |
+    |---|---|---|---|
+    | `url` | `string (uri)` | Yes | Hosted Stripe URL the frontend should redirect the authenticated user to. |
+
+- **New error codes**
+  - `STRIPE_CUSTOMER_ALREADY_EXISTS` — Returned by `POST /api/v1/me/billing/checkout` when the authenticated user already has a `stripe_customer_id` and must use the portal endpoint instead.
+  - `STRIPE_CUSTOMER_DOES_NOT_EXIST` — Returned by `POST /api/v1/me/billing/portal` when the authenticated user has never had a Stripe customer record persisted.
+
+### Changed
+
+- No existing documented endpoints or schemas changed in this update.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-19 - Newsletter Invalid Email Error Mapping (`backend#869`)
 
 Backend PR `#869` changes how newsletter subscription failures from Zoho Campaigns are exposed through the REST API. The endpoint path, request body, authentication model, and success response remain unchanged, but specific upstream email validation failures are now reported as client errors instead of internal server errors.
