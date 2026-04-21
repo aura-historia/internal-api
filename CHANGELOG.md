@@ -6,6 +6,47 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-21 - Smart Stripe Billing Management Endpoint (`backend#876`)
+
+Backend PR `#876` adds a single authenticated Stripe billing endpoint that chooses between Checkout and Customer Portal based on the persisted user tier. The existing `/api/v1/me/billing/checkout` and `/api/v1/me/billing/portal` endpoints remain unchanged.
+
+### Added
+
+- **New endpoint: `POST /api/v1/me/billing/manage`**
+  - **Authentication**: Required Bearer JWT.
+  - **Request body**: `PostBillingCheckoutData`
+
+    | Field | Type | Required | Allowed values | Description |
+    |---|---|---|---|---|
+    | `plan` | `BillingPlanData` | Yes | `PRO`, `ULTIMATE` | Requested subscription plan. Required for all callers. |
+    | `cycle` | `BillingCycleData` | Yes | `MONTHLY`, `YEARLY` | Requested billing interval. Required for all callers. |
+
+  - **Behavior**:
+    - Stored tier `FREE` → returns a Stripe Checkout session URL for the requested `plan` + `cycle`.
+    - Stored tier `PRO` / `ULTIMATE` → returns a Stripe Customer Portal session URL instead.
+    - For free users, an existing persisted Stripe customer is reused; otherwise the backend creates and stores one before creating the checkout session.
+    - For paid users, a valid request body is still required even though the response is a portal session.
+
+  - **Responses**:
+    - `201 Created` — Returns `BillingSessionUrlData`.
+      - Checkout example:
+        ```json
+        {
+          "url": "https://checkout.stripe.com/c/pay/cs_test_manage_free"
+        }
+        ```
+      - Portal example:
+        ```json
+        {
+          "url": "https://billing.stripe.com/p/session/manage_paid"
+        }
+        ```
+    - `400 Bad Request` — Missing, empty, malformed, or enum-invalid request body. Error code: `BAD_BODY_VALUE`.
+    - `401 Unauthorized` — Missing or invalid Cognito JWT. Error code: `UNAUTHORIZED`.
+    - `404 Not Found` — Authenticated user record does not exist. Error code: `USER_NOT_FOUND`.
+    - `422 Unprocessable Content` — Paid user has no persisted Stripe customer record. Error code: `STRIPE_CUSTOMER_DOES_NOT_EXIST`.
+    - `500 Internal Server Error` — Unexpected Stripe/session creation or missing server-side Stripe price configuration. Error code: `INTERNAL_SERVER_ERROR`.
+
 ## 2026-04-20 - Stripe Billing Checkout and Portal Endpoints (`backend#871`)
 
 Backend PR `#871` adds authenticated Stripe billing endpoints for starting a subscription checkout flow and for opening the Stripe customer portal. The update also introduces dedicated billing request/response schemas and two new Stripe-specific error codes.
