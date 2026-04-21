@@ -3692,6 +3692,129 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/billing/manage:
+    post:
+      summary: Create Stripe billing management session
+      description: |
+        Creates a hosted Stripe billing session for the authenticated user through a single entrypoint.
+        - Users with tier `FREE` receive a Stripe Checkout session for the requested `plan` and `cycle`.
+        - Users with tier `PRO` or `ULTIMATE` receive a Stripe customer-portal session instead.
+
+        The request body is required for all callers and must contain supported billing enum values.
+        For free users, the backend uses the provided `plan` and `cycle` to select the configured Stripe
+        price and creates a Stripe customer first when none exists yet. For paid users, the backend still
+        validates that the body is present and well-formed, but returns a portal session based on the
+        stored Stripe customer rather than purchasing a new plan.
+
+        Requires valid Cognito JWT authentication.
+      operationId: postBillingManage
+      tags:
+        - Billing
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Desired subscription plan and billing cycle. Required for all callers.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostBillingCheckoutData"
+            examples:
+              pro_monthly:
+                summary: Valid request body for a free user upgrading to Pro monthly
+                value:
+                  plan: "PRO"
+                  cycle: "MONTHLY"
+              ultimate_yearly:
+                summary: Valid request body for a free user upgrading to Ultimate yearly
+                value:
+                  plan: "ULTIMATE"
+                  cycle: "YEARLY"
+      responses:
+        "201":
+          description: Billing management session created successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingSessionUrlData"
+              examples:
+                checkout_session:
+                  summary: Free user receives a Stripe Checkout session URL
+                  value:
+                    url: "https://checkout.stripe.com/c/pay/cs_test_manage_free"
+                portal_session:
+                  summary: Paid user receives a Stripe customer-portal session URL
+                  value:
+                    url: "https://billing.stripe.com/p/session/manage_paid"
+        "400":
+          description: Bad request - request body is missing, empty, malformed JSON, or contains unsupported enum values
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Request body is absent or empty
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_plan:
+                  summary: Unsupported billing plan
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "unknown variant `ENTERPRISE`, expected `PRO` or `ULTIMATE` at line 1 column 20"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "422":
+          description: Unprocessable Content - the authenticated paid user has no Stripe customer record yet
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 422
+                title: "Unprocessable Content"
+                error: "STRIPE_CUSTOMER_DOES_NOT_EXIST"
+                detail: "User has never had a Stripe subscription; no customer-portal session can be created"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me/watchlist/{shopId}/{shopsProductId}:
     delete:
       summary: Remove product from watchlist
@@ -9496,6 +9619,10 @@ components:
           $ref: "#/components/schemas/UserTierData"
         role:
           $ref: "#/components/schemas/UserRoleData"
+        stripeCustomerId:
+          type: string
+          description: Persisted Stripe customer identifier for the user, omitted when the user has never been linked to a Stripe customer
+          example: "cus_mocked_550e8400e29b41d4a716446655440000"
         created:
           type: string
           format: date-time
