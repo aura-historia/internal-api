@@ -6,6 +6,28 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-22 - Shop Search `shopType` Filter Documentation
+
+The backend `develop` branch already exposes `shopType` as part of `ShopSearchData`. This update brings the internal API documentation in line with the implemented shop-search contract so frontend and backend teams can rely on the same documented filter set.
+
+### Added
+
+- **`GET /api/v1/shops`** — The simple shop-search query interface now explicitly documents the repeated `shopType` query parameter.
+
+  | Parameter | Type | Allowed values | Description |
+  |---|---|---|---|
+  | `shopType` | `ShopTypeData[]` | `AUCTION_HOUSE`, `AUCTION_PLATFORM`, `COMMERCIAL_DEALER`, `MARKETPLACE` | Filter returned shops to one or more shop types. Repeated query parameter. |
+
+### Changed
+
+- **`ShopSearchData`** — The schema description and examples now explicitly show `shopType` alongside the existing name, partner-status, and date-range filters.
+
+- **`POST /api/v1/shops/search`** — The request-body documentation and example now explicitly include the optional `shopType` filter.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-21 - Smart Stripe Billing Management Endpoint (`backend#876`)
 
 Backend PR `#876` adds a single authenticated Stripe billing endpoint that chooses between Checkout and Customer Portal based on the persisted user tier. The existing `/api/v1/me/billing/checkout` and `/api/v1/me/billing/portal` endpoints remain unchanged.

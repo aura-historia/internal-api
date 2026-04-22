@@ -4755,6 +4755,18 @@ paths:
           schema:
             type: string
           example: house
+        - name: shopType
+          in: query
+          required: false
+          description: Optional filter by shop type
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ShopTypeData"
+            uniqueItems: true
+          example: ["AUCTION_HOUSE", "MARKETPLACE"]
         - name: partnerStatus
           in: query
           required: false
@@ -5329,7 +5341,8 @@ paths:
       description: |
         Performs an advanced search for shops using comprehensive filtering criteria.
         This endpoint accepts a ShopSearchData object in the request body,
-        allowing for complex filtering by shop name and date ranges.
+        allowing for complex filtering by shop name, shop type, partner status,
+        and creation/update date ranges.
         Returns a paginated collection of shops matching the search criteria.
       operationId: searchShops
       tags:
@@ -5378,7 +5391,8 @@ paths:
         required: true
         description: |
           Shop search filter configuration with all filtering criteria.
-          Allows filtering by shop name and creation/update date ranges.
+          Allows filtering by shop name, shop type, partner status,
+          and creation/update date ranges.
           If you do not want to restrict the search, supply an empty JSON-Object '{}' as body.
         content:
           application/json:
@@ -5386,6 +5400,7 @@ paths:
               $ref: "#/components/schemas/ShopSearchData"
             example:
               shopNameQuery: "tech store"
+              shopType: ["COMMERCIAL_DEALER"]
               partnerStatus: ["PARTNERED"]
               created:
                 min: "2024-01-01T00:00:00Z"
@@ -9126,7 +9141,7 @@ components:
 
     ShopSearchData:
       type: object
-      description: Search filter configuration for shops with query parameters and filtering options
+      description: Search filter configuration for shops with optional name, type, partner-status, and date-range filters
       properties:
         shopNameQuery:
           type: string
