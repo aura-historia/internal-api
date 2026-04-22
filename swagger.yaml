@@ -1009,6 +1009,7 @@ paths:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "650e8400-e29b-41d4-a716-446655440001"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      sellerId: "750e8400-e29b-41d4-a716-446655440010"
                       shopsProductId: "6ba7b810"
                       payload:
                         price:
@@ -1020,6 +1021,7 @@ paths:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "650e8400-e29b-41d4-a716-446655440002"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      sellerId: "750e8400-e29b-41d4-a716-446655440010"
                       shopsProductId: "6ba7b810"
                       payload:
                         oldState: "LISTED"
@@ -1029,6 +1031,7 @@ paths:
                       productId: "550e8400-e29b-41d4-a716-446655440000"
                       eventId: "650e8400-e29b-41d4-a716-446655440003"
                       shopId: "550e8400-e29b-41d4-a716-446655440000"
+                      sellerId: "750e8400-e29b-41d4-a716-446655440010"
                       shopsProductId: "6ba7b810"
                       payload:
                         oldPrice:
@@ -1159,10 +1162,6 @@ paths:
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
-                        categoryId: "musical-instruments"
-                        category:
-                          text: "Antique Musical Instruments"
-                          language: "en"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -1191,10 +1190,6 @@ paths:
                         shopsProductId: "6ba7b812"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
-                        categoryId: "musical-instruments"
-                        category:
-                          text: "Antique Musical Instruments"
-                          language: "en"
                         title:
                           text: "Another Similar Item"
                           language: "en"
@@ -1224,10 +1219,6 @@ paths:
                         shopsProductId: "6ba7b811"
                         shopName: "My Shop"
                         shopType: "COMMERCIAL_DEALER"
-                        categoryId: "musical-instruments"
-                        category:
-                          text: "Antique Musical Instruments"
-                          language: "en"
                         title:
                           text: "Similar Product"
                           language: "en"
@@ -1906,10 +1897,6 @@ paths:
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           shopType: "COMMERCIAL_DEALER"
-                          categoryId: "musical-instruments"
-                          category:
-                            text: "Antique Musical Instruments"
-                            language: "en"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
@@ -1945,10 +1932,6 @@ paths:
                           shopsProductId: "6ba7b810"
                           shopName: "Tech Store"
                           shopType: "COMMERCIAL_DEALER"
-                          categoryId: "musical-instruments"
-                          category:
-                            text: "Antique Musical Instruments"
-                            language: "en"
                           title:
                             text: "Premium Smartphone Case"
                             language: "en"
@@ -7470,6 +7453,20 @@ components:
           description: |
             Optional localized display name for the product's level-one category.
             Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
+        periodId:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          nullable: true
+          description: |
+            Optional kebab-case identifier for the level-one period the product has been classified into.
+            Periods are automatically classified by the system. Examples: "renaissance", "baroque", "art-deco"
+        period:
+          allOf:
+            - $ref: "#/components/schemas/LocalizedTextData"
+          nullable: true
+          description: |
+            Optional localized display name for the product's level-one period.
+            Language matches the product's primary content language. Examples: "Barock" (de), "Renaissance" (en)
         title:
           $ref: "#/components/schemas/LocalizedTextData"
         description:
@@ -7587,20 +7584,6 @@ components:
           description: Display name of the seller associated with the product
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
-        categoryId:
-          type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
-          nullable: true
-          description: |
-            Optional kebab-case identifier for the level-one category the product has been classified into.
-            Categories are automatically classified by the system. Examples: "musical-instruments", "antique-furniture", "antique-clocks"
-        category:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          nullable: true
-          description: |
-            Optional localized display name for the product's level-one category.
-            Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
         title:
           $ref: "#/components/schemas/LocalizedTextData"
         price:
@@ -7870,10 +7853,6 @@ components:
           $ref: "#/components/schemas/ProductStateData"
         price:
           $ref: "#/components/schemas/PriceData"
-        priceEstimateMin:
-          $ref: "#/components/schemas/PriceData"
-        priceEstimateMax:
-          $ref: "#/components/schemas/PriceData"
 
     ProductEventStateChangedPayloadData:
       type: object
@@ -8019,6 +7998,7 @@ components:
         - productId
         - eventId
         - shopId
+        - sellerId
         - shopsProductId
         - payload
         - timestamp
@@ -8037,6 +8017,10 @@ components:
           type: string
           format: uuid
           description: Unique identifier of the shop
+        sellerId:
+          type: string
+          format: uuid
+          description: Unique identifier of the seller associated with the product event
         shopsProductId:
           type: string
           description: Shop's unique identifier for the product. Can be any arbitrary string.

@@ -6,6 +6,28 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-22 - Product DTO Drift Repair
+
+The backend `develop` branch currently exposes additional product period and seller identifier fields, while several previously documented product-summary and product-history fields no longer exist in the Rust REST DTOs. This update realigns the internal OpenAPI spec with the implemented backend contract.
+
+### Added
+
+- **`GetProductData.periodId`** — Optional kebab-case identifier for the product's classified period.
+- **`GetProductData.period`** — Optional localized display name for the product's classified period.
+- **`GetProductEventData.sellerId`** — Required UUID of the seller associated with each product history event.
+
+### Changed
+
+- **`GET /api/v1/shops/{shopId}/products/{shopsProductId}/history`** — Response examples now include `sellerId` on every `GetProductEventData` item.
+- **`GetProductSummaryData` examples** — Similar-product and product-search examples now match the actual summary DTO shape and no longer show category fields that are absent from the backend response.
+
+### Removed
+
+- **`GetProductSummaryData.categoryId`** — Removed from the schema because the backend summary DTO no longer serializes a category identifier.
+- **`GetProductSummaryData.category`** — Removed from the schema because the backend summary DTO no longer serializes a localized category label.
+- **`ProductCreatedEventPayloadData.priceEstimateMin`** — Removed from the schema because the backend creation-event payload only includes `price` and `state`.
+- **`ProductCreatedEventPayloadData.priceEstimateMax`** — Removed from the schema because the backend creation-event payload only includes `price` and `state`.
+
 ## 2026-04-22 - Shop Search `shopType` Filter Documentation
 
 The backend `develop` branch already exposes `shopType` as part of `ShopSearchData`. This update brings the internal API documentation in line with the implemented shop-search contract so frontend and backend teams can rely on the same documented filter set.
