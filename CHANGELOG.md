@@ -6,6 +6,32 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-23 - CamelCase Notification and Partner Application DTO Enforcement (`backend#898`)
+
+Backend PR `#898` makes the backend explicitly enforce the camelCase JSON field names that frontend consumers already rely on for notification DTOs and partner shop application DTOs. Enum discriminator values remain unchanged (`WATCHLIST`, `SEARCH_FILTER`, `PARTNER_APPLICATION`, `PRICE_CHANGE`, `STATE_CHANGE`, `APPROVED`, `REJECTED`, `EXISTING`, `NEW`, `APPROVE`, `REJECT`).
+
+### Added
+
+- No new endpoints or documented fields were added in this update.
+
+### Changed
+
+- **Notification payload DTOs** — Responses returned by `GET /api/v1/me/notifications`, `PATCH /api/v1/me/notifications`, and `PATCH /api/v1/me/notifications/{eventId}` now have explicit backend guarantees for camelCase nested field names.
+  - `NotificationPayloadData` variant fields are serialized/deserialized as `productId`, `shopId`, `shopsProductId`, `shopSlugId`, `productSlugId`, `shopName`, `watchlistPayload`, `searchFilterPayload`, and `partnerApplicationPayload`.
+  - `WatchlistPayloadData` variant fields are serialized/deserialized as `oldPrice`, `newPrice`, `oldState`, and `newState`.
+  - `SearchFilterPayloadData` fields are serialized/deserialized as `userSearchFilterId` and `userSearchFilterName`.
+  - `PartnerApplicationPayloadData` fields are serialized/deserialized as `partnerApplicationId`.
+
+- **Partner shop application DTOs** — Request and response bodies used by `POST /api/v1/me/partner-applications`, `GET /api/v1/me/partner-applications/{partnerApplicationId}`, `PATCH /api/v1/me/partner-applications/{partnerApplicationId}`, `GET /api/v1/partner-applications`, `GET /api/v1/partner-applications/{partnerApplicationId}`, `PATCH /api/v1/partner-applications/{partnerApplicationId}`, and `POST /api/v1/partner-applications/{partnerApplicationId}/decision` now have explicit backend guarantees for camelCase field names.
+  - `PostPartnerShopApplicationPayloadData` and `GetPartnerShopApplicationPayloadData` use `shopId` for `EXISTING` payloads and `shopName`, `shopType`, `shopDomains`, and `shopImage` for `NEW` payloads.
+  - `PatchPartnerShopApplicationData` and `AdminPatchPartnerShopApplicationData` accept `shopName`, `shopType`, `shopDomains`, and `shopImage`.
+  - `GetPartnerShopApplicationData` continues to expose top-level camelCase fields `businessState` and `executionState`.
+  - `PostPartnerShopApplicationDecisionData` continues to use the camelCase field name `decision`, while `PartnerShopApplicationDecisionData` and `PartnerShopApplicationStateData` continue to use SCREAMING_SNAKE_CASE enum values.
+
+### Removed
+
+- No endpoints or documented fields were removed in this update.
+
 ## 2026-04-22 - Product DTO Drift Repair
 
 The backend `develop` branch currently exposes additional product period and seller identifier fields, while several previously documented product-summary and product-history fields no longer exist in the Rust REST DTOs. This update realigns the internal OpenAPI spec with the implemented backend contract.
