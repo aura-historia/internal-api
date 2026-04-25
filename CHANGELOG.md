@@ -19,9 +19,9 @@ Backend PR `#906` adds admin-only user-management endpoints backed by the shared
     | Parameter | Type | Required | Allowed values / format | Description |
     |---|---|---|---|---|
     | `query` | `string` | No | any string | Fuzzy full-text query across `email`, `firstName`, `lastName`, and `stripeCustomerId`. |
-    | `emailQuery` | `string` | No | any string | Fuzzy email-only search term. |
-    | `firstNameQuery` | `string` | No | any string | Fuzzy first-name search term. |
-    | `lastNameQuery` | `string` | No | any string | Fuzzy last-name search term. |
+    | `email` | `string` | No | any string | Fuzzy email-only search term. |
+    | `firstName` | `string` | No | any string | Fuzzy first-name search term. |
+    | `lastName` | `string` | No | any string | Fuzzy last-name search term. |
     | `tier` | `UserTierData[]` | No | `FREE`, `PRO`, `ULTIMATE` | Repeated query parameter filtering users by one or more tiers. |
     | `role` | `UserRoleData[]` | No | `USER`, `ADMIN` | Repeated query parameter filtering users by one or more roles. |
     | `created[min]`, `created[max]` | `string` | No | RFC3339 date-time | Inclusive created-at range filters. |
@@ -91,7 +91,7 @@ Backend PR `#906` adds admin-only user-management endpoints backed by the shared
 
 - **New schemas**
   - **`UserCollectionData`** — Cursor-paginated admin user-search response with `items`, `size`, optional `total`, and optional heterogeneous `searchAfter` cursor.
-  - **`UserSearchData`** — Query model covering full-text filters, per-field filters, repeated `tier` / `role` filters, and RFC3339 `created` / `updated` ranges.
+  - **`UserSearchData`** — Query model covering full-text filters, per-field filters (`email`, `firstName`, `lastName`), repeated `tier` / `role` filters, and RFC3339 `created` / `updated` ranges.
   - **`PatchAdminUserData`** — Admin-only partial update payload for profile fields, preferences, consent, tier, role, and `stripeCustomerId`.
   - **`SortUserFieldData`** — Sort enum for admin user search: `score`, `email`, `firstName`, `lastName`, `tier`, `role`, `updated`, `created`.
 
