@@ -7030,6 +7030,7 @@ paths:
                   summary: One existing application for a new shop
                   value:
                     - id: "550e8400-e29b-41d4-a716-446655440000"
+                      applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                       businessState: "IN_REVIEW"
                       executionState: "WAITING"
                       payload:
@@ -7121,6 +7122,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "SUBMITTED"
                 executionState: "PROCESSING"
                 payload:
@@ -7221,6 +7223,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "IN_REVIEW"
                 executionState: "WAITING"
                 payload:
@@ -7355,6 +7358,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "SUBMITTED"
                 executionState: "PROCESSING"
                 payload:
@@ -7566,6 +7570,7 @@ paths:
                   summary: Applications submitted by different users
                   value:
                     - id: "550e8400-e29b-41d4-a716-446655440000"
+                      applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                       businessState: "SUBMITTED"
                       executionState: "PROCESSING"
                       payload:
@@ -7577,6 +7582,7 @@ paths:
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
                     - id: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
+                      applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f2"
                       businessState: "APPROVED"
                       executionState: "COMPLETED"
                       payload:
@@ -7662,6 +7668,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "IN_REVIEW"
                 executionState: "WAITING"
                 payload:
@@ -7806,6 +7813,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "IN_REVIEW"
                 executionState: "WAITING"
                 payload:
@@ -7960,6 +7968,7 @@ paths:
                 $ref: "#/components/schemas/GetPartnerShopApplicationData"
               example:
                 id: "550e8400-e29b-41d4-a716-446655440000"
+                applicantUserId: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                 businessState: "IN_REVIEW"
                 executionState: "PROCESSING"
                 payload:
@@ -11485,6 +11494,7 @@ components:
       description: Full representation of a partner shop application.
       required:
         - id
+        - applicantUserId
         - businessState
         - executionState
         - payload
@@ -11496,6 +11506,11 @@ components:
           format: uuid
           description: Unique identifier of the partner shop application.
           example: "550e8400-e29b-41d4-a716-446655440000"
+        applicantUserId:
+          type: string
+          format: uuid
+          description: Unique identifier of the user who submitted the partner shop application.
+          example: "0196580c-e4ca-723f-a7e0-1a73588380f1"
         businessState:
           allOf:
             - $ref: "#/components/schemas/PartnerShopApplicationStateData"
