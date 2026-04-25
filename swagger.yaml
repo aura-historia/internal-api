@@ -3241,6 +3241,590 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/users:
+    get:
+      summary: Search users as admin
+      description: |
+        Searches users across all accounts for authenticated administrators.
+        Omitting all filters lists users using the default `email` ascending order.
+        Supplying any of `query`, `email`, `firstName`, or `lastName`
+        switches the default ordering to relevance (`score`) descending unless
+        both `sort` and `order` are explicitly provided.
+
+        The generic `query` performs fuzzy matching across `email`, `firstName`,
+        `lastName`, and `stripeCustomerId`.
+      operationId: adminSearchUsers
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Optional fuzzy full-text query across email, first name, last name, and Stripe customer ID.
+          schema:
+            type: string
+          example: "ada"
+        - name: email
+          in: query
+          required: false
+          description: Optional fuzzy email-only search term.
+          schema:
+            type: string
+          example: "ada@example.com"
+        - name: firstName
+          in: query
+          required: false
+          description: Optional fuzzy first-name search term.
+          schema:
+            type: string
+          example: "Ada"
+        - name: lastName
+          in: query
+          required: false
+          description: Optional fuzzy last-name search term.
+          schema:
+            type: string
+          example: "Lovelace"
+        - name: tier
+          in: query
+          required: false
+          description: Optional filter by one or more user subscription tiers.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/UserTierData"
+            uniqueItems: true
+          example: ["PRO", "ULTIMATE"]
+        - name: role
+          in: query
+          required: false
+          description: Optional filter by one or more user roles.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/UserRoleData"
+            uniqueItems: true
+          example: ["ADMIN"]
+        - name: created[min]
+          in: query
+          required: false
+          description: Optional lower bound for the user's `created` timestamp (RFC3339).
+          schema:
+            type: string
+            format: date-time
+          example: "2026-01-01T00:00:00Z"
+        - name: created[max]
+          in: query
+          required: false
+          description: Optional upper bound for the user's `created` timestamp (RFC3339).
+          schema:
+            type: string
+            format: date-time
+          example: "2026-12-31T23:59:59Z"
+        - name: updated[min]
+          in: query
+          required: false
+          description: Optional lower bound for the user's `updated` timestamp (RFC3339).
+          schema:
+            type: string
+            format: date-time
+          example: "2026-04-01T00:00:00Z"
+        - name: updated[max]
+          in: query
+          required: false
+          description: Optional upper bound for the user's `updated` timestamp (RFC3339).
+          schema:
+            type: string
+            format: date-time
+          example: "2026-04-25T23:59:59Z"
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Field used for ordering results.
+            To override the backend default ordering, provide both `sort` and `order`.
+          schema:
+            $ref: "#/components/schemas/SortUserFieldData"
+          example: email
+        - name: order
+          in: query
+          required: false
+          description: |
+            Sort direction for `sort`.
+            Ignored unless `sort` is also provided.
+          schema:
+            type: string
+            enum: [asc, desc]
+          example: asc
+        - name: searchAfter
+          in: query
+          required: false
+          description: |
+            Cursor for keyset pagination.
+            Pass the `searchAfter` array returned by the previous response to fetch the next page.
+          schema:
+            type: array
+            items: {}
+          example: '["ada.admin@example.com", "550e8400-e29b-41d4-a716-446655440000"]'
+        - name: size
+          in: query
+          required: false
+          description: Maximum number of users the backend should request from OpenSearch for the current page.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 100
+            default: 21
+          example: 21
+      responses:
+        "200":
+          description: Users returned successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserCollectionData"
+              example:
+                items:
+                  - userId: "550e8400-e29b-41d4-a716-446655440000"
+                    email: "ada.admin@example.com"
+                    firstName: "Ada"
+                    lastName: "Lovelace"
+                    language: "en"
+                    currency: "EUR"
+                    prohibitedContentConsent: true
+                    tier: "ULTIMATE"
+                    role: "ADMIN"
+                    stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                    created: "2026-01-10T09:00:00Z"
+                    updated: "2026-04-25T08:00:00Z"
+                  - userId: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
+                    email: "grace.user@example.com"
+                    firstName: "Grace"
+                    lastName: "Hopper"
+                    language: "en"
+                    currency: "USD"
+                    prohibitedContentConsent: false
+                    tier: "PRO"
+                    role: "USER"
+                    created: "2026-02-01T12:00:00Z"
+                    updated: "2026-04-20T07:30:00Z"
+                size: 2
+                total: 42
+                searchAfter:
+                  - "grace.user@example.com"
+                  - "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
+        "400":
+          description: Bad request - invalid query parameters.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_query:
+                  summary: Invalid filter payload
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                invalid_sort_field:
+                  summary: Invalid sort field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_SORT_VALUE"
+                    source:
+                      field: "sort"
+                      sourceType: "query"
+                    detail: "Expected any of: 'score', 'email', 'firstName', 'lastName', 'tier', 'role', 'updated', 'created'. Got: 'invalid'"
+                invalid_order:
+                  summary: Invalid sort order
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_ORDER_VALUE"
+                    source:
+                      field: "order"
+                      sourceType: "query"
+                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
+                invalid_search_after:
+                  summary: Invalid searchAfter cursor
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_JSON"
+                    source:
+                      field: "searchAfter"
+                      sourceType: "query"
+                invalid_size:
+                  summary: Invalid page size
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PAGE_SIZE_VALUE"
+                    source:
+                      field: "size"
+                      sourceType: "query"
+                    detail: "invalid digit found in string"
+        "401":
+          description: Unauthorized - invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden - this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "404":
+          description: User not found - the authenticated requester does not have a persisted user record.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/users/{userId}:
+    get:
+      summary: Get a user as admin
+      description: |
+        Retrieves a single user account by user ID for authenticated administrators.
+        The response includes `Last-Modified` and `Cache-Control: no-store` headers.
+      operationId: adminGetUser
+      tags:
+        - User Account
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the user to retrieve.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: User returned successfully.
+          headers:
+            Last-Modified:
+              description: When the user account was last updated.
+              schema:
+                type: string
+                format: http-date
+              example: "Fri, 25 Apr 2026 08:00:00 GMT"
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserAccountData"
+              example:
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+                email: "ada.admin@example.com"
+                firstName: "Ada"
+                lastName: "Lovelace"
+                language: "en"
+                currency: "EUR"
+                prohibitedContentConsent: true
+                tier: "ULTIMATE"
+                role: "ADMIN"
+                stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                created: "2026-01-10T09:00:00Z"
+                updated: "2026-04-25T08:00:00Z"
+        "401":
+          description: Unauthorized - invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden - this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "404":
+          description: User not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+                detail: "User with UserId '550e8400-e29b-41d4-a716-446655440000' not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update a user as admin
+      description: |
+        Partially updates a user account for authenticated administrators.
+        All request fields are optional, but the request body itself must be present and non-empty.
+        An empty JSON object (`{}`) is accepted and returns the existing user unchanged.
+      operationId: adminPatchUser
+      tags:
+        - User Account
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the user to update.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Partial admin-only user update payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchAdminUserData"
+            examples:
+              update_access:
+                summary: Promote a user and upgrade the tier
+                value:
+                  tier: "ULTIMATE"
+                  role: "ADMIN"
+              update_profile_and_billing:
+                summary: Update profile settings and Stripe customer mapping
+                value:
+                  firstName: "Ada"
+                  lastName: "Lovelace"
+                  language: "en"
+                  currency: "EUR"
+                  prohibitedContentConsent: true
+                  stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+      responses:
+        "200":
+          description: User updated successfully.
+          headers:
+            Last-Modified:
+              description: When the user account was last updated.
+              schema:
+                type: string
+                format: http-date
+              example: "Fri, 25 Apr 2026 09:15:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserAccountData"
+              example:
+                userId: "550e8400-e29b-41d4-a716-446655440000"
+                email: "ada.admin@example.com"
+                firstName: "Ada"
+                lastName: "Lovelace"
+                language: "en"
+                currency: "EUR"
+                prohibitedContentConsent: true
+                tier: "ULTIMATE"
+                role: "ADMIN"
+                stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                created: "2026-01-10T09:00:00Z"
+                updated: "2026-04-25T09:15:00Z"
+        "400":
+          description: Bad request - missing or invalid request body.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+        "401":
+          description: Unauthorized - invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden - this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "404":
+          description: User not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+                detail: "User with UserId '550e8400-e29b-41d4-a716-446655440000' not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete a user as admin
+      description: |
+        Deletes a user account for authenticated administrators.
+        The backend first removes the user from Cognito and then deletes the persisted user record.
+      operationId: adminDeleteUser
+      tags:
+        - User Account
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: Unique identifier (UUID) of the user to delete.
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      security:
+        - BearerAuth: []
+      responses:
+        "204":
+          description: User deleted successfully.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "401":
+          description: Unauthorized - invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden - this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "404":
+          description: User not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+                detail: "User with UserId '550e8400-e29b-41d4-a716-446655440000' not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me:
     delete:
       summary: Delete authenticated user
@@ -9536,6 +10120,21 @@ components:
         - created: Sort by when the product was matched by the search filter
       example: created
 
+    SortUserFieldData:
+      type: string
+      enum: [score, email, firstName, lastName, tier, role, updated, created]
+      description: |
+        Fields available for sorting admin user-search results:
+        - score: Relevance score returned by OpenSearch
+        - email: User email address
+        - firstName: User first name
+        - lastName: User last name
+        - tier: User subscription tier
+        - role: User role
+        - updated: Last update timestamp
+        - created: Creation timestamp
+      example: email
+
     SearchFilterMatchProductCollectionData:
       type: object
       description: Paginated collection of personalized products matched by a search filter, using cursor-based pagination
@@ -9565,6 +10164,109 @@ components:
           description: Total number of matched products
           nullable: true
           example: 127
+
+    UserCollectionData:
+      type: object
+      description: |
+        Cursor-paginated collection of users for the admin search endpoint.
+        `searchAfter` is the OpenSearch sort cursor for the next page and typically contains
+        the primary sort value followed by the `userId` tie-breaker.
+      required:
+        - items
+        - size
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/GetUserAccountData"
+          description: Users returned in the current page.
+        size:
+          type: integer
+          minimum: 0
+          description: Number of users in the current page.
+          example: 21
+        searchAfter:
+          type: array
+          items: {}
+          nullable: true
+          description: |
+            Cursor for the next page.
+            Present only when more results are available.
+            Pass this value back as the `searchAfter` query parameter.
+          example:
+            - "grace.user@example.com"
+            - "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
+        total:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Total number of users matching the current search.
+          example: 42
+
+    UserSearchData:
+      type: object
+      description: |
+        Query model supported by `GET /api/v1/users`.
+        All fields are optional. When omitted, the admin endpoint lists users without filtering.
+      properties:
+        query:
+          type: string
+          description: Fuzzy full-text query across email, first name, last name, and Stripe customer ID.
+          example: "ada"
+        email:
+          type: string
+          description: Fuzzy email-only query.
+          example: "ada@example.com"
+        firstName:
+          type: string
+          description: Fuzzy first-name query.
+          example: "Ada"
+        lastName:
+          type: string
+          description: Fuzzy last-name query.
+          example: "Lovelace"
+        tier:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserTierData"
+          uniqueItems: true
+          description: Filter matching users to one or more tiers.
+          example: ["PRO", "ULTIMATE"]
+        role:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRoleData"
+          uniqueItems: true
+          description: Filter matching users to one or more roles.
+          example: ["ADMIN"]
+        created:
+          type: object
+          description: Optional created-at range filter (RFC3339 timestamps).
+          properties:
+            min:
+              type: string
+              format: date-time
+              description: Inclusive lower bound.
+              example: "2026-01-01T00:00:00Z"
+            max:
+              type: string
+              format: date-time
+              description: Inclusive upper bound.
+              example: "2026-12-31T23:59:59Z"
+        updated:
+          type: object
+          description: Optional updated-at range filter (RFC3339 timestamps).
+          properties:
+            min:
+              type: string
+              format: date-time
+              description: Inclusive lower bound.
+              example: "2026-04-01T00:00:00Z"
+            max:
+              type: string
+              format: date-time
+              description: Inclusive upper bound.
+              example: "2026-04-25T23:59:59Z"
 
     GetUserAccountData:
       type: object
@@ -9632,6 +10334,55 @@ components:
           format: date-time
           description: When the user account was last updated (RFC3339 format)
           example: "2024-01-01T12:00:00Z"
+
+    PatchAdminUserData:
+      type: object
+      description: |
+        Partial admin-only user update payload.
+        All fields are optional. Omitted fields remain unchanged.
+      properties:
+        firstName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: New first name.
+          example: "Ada"
+        lastName:
+          type: string
+          maxLength: 64
+          nullable: true
+          description: New last name.
+          example: "Lovelace"
+        language:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: New preferred language.
+        currency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: New preferred currency.
+        prohibitedContentConsent:
+          type: boolean
+          nullable: true
+          description: New consent state for displaying prohibited content.
+          example: true
+        tier:
+          allOf:
+            - $ref: "#/components/schemas/UserTierData"
+          nullable: true
+          description: New subscription tier.
+        role:
+          allOf:
+            - $ref: "#/components/schemas/UserRoleData"
+          nullable: true
+          description: New user role.
+        stripeCustomerId:
+          type: string
+          nullable: true
+          description: New Stripe customer identifier to persist for the user.
+          example: "cus_admin_550e8400e29b41d4a716446655440000"
 
     PatchUserAccountData:
       type: object

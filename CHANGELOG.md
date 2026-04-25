@@ -6,6 +6,103 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-25 - Admin User Management REST API (`backend#906`)
+
+Backend PR `#906` adds admin-only user-management endpoints backed by the shared user account DTOs and a new OpenSearch-powered search contract. This update documents the new admin paths, their query interface, and the admin-only patch payload used to manage tier, role, and Stripe customer mappings.
+
+### Added
+
+- **New endpoint: `GET /api/v1/users`**
+  - **Authentication**: Required Bearer JWT with persisted user account and `ADMIN` role.
+  - **Query parameters**:
+
+    | Parameter | Type | Required | Allowed values / format | Description |
+    |---|---|---|---|---|
+    | `query` | `string` | No | any string | Fuzzy full-text query across `email`, `firstName`, `lastName`, and `stripeCustomerId`. |
+    | `email` | `string` | No | any string | Fuzzy email-only search term. |
+    | `firstName` | `string` | No | any string | Fuzzy first-name search term. |
+    | `lastName` | `string` | No | any string | Fuzzy last-name search term. |
+    | `tier` | `UserTierData[]` | No | `FREE`, `PRO`, `ULTIMATE` | Repeated query parameter filtering users by one or more tiers. |
+    | `role` | `UserRoleData[]` | No | `USER`, `ADMIN` | Repeated query parameter filtering users by one or more roles. |
+    | `created[min]`, `created[max]` | `string` | No | RFC3339 date-time | Inclusive created-at range filters. |
+    | `updated[min]`, `updated[max]` | `string` | No | RFC3339 date-time | Inclusive updated-at range filters. |
+    | `sort` | `SortUserFieldData` | No | `score`, `email`, `firstName`, `lastName`, `tier`, `role`, `updated`, `created` | Sort field. Only applied when `order` is also supplied. |
+    | `order` | `string` | No | `asc`, `desc` | Sort direction. Only applied when `sort` is also supplied. |
+    | `searchAfter` | heterogeneous JSON array | No | OpenSearch sort cursor | Cursor returned by the previous response. |
+    | `size` | `integer` | No | `0`–`100` | Maximum number of results requested from OpenSearch. Defaults to `21`. |
+
+  - **Query encoding note**: `created[min]`, `created[max]`, `updated[min]`, and `updated[max]` are the literal query parameter names expected by the API.
+  - **Behavior**:
+    - Omitting every filter lists users.
+    - Without explicit `sort` + `order`, the backend defaults to `email` ascending for list-all queries and `score` descending when any text query is present.
+  - **Response**: `200 OK` with `UserCollectionData`.
+  - **Errors**:
+    - `400 Bad Request` — invalid query payload, sort/order, cursor, or page size (`BAD_BODY_VALUE`, `BAD_SORT_VALUE`, `BAD_ORDER_VALUE`, `INVALID_JSON`, `BAD_PAGE_SIZE_VALUE`)
+    - `401 Unauthorized` — missing or invalid JWT (`UNAUTHORIZED`)
+    - `403 Forbidden` — authenticated requester is not an admin (`FORBIDDEN`)
+    - `404 Not Found` — authenticated requester has no persisted user record (`USER_NOT_FOUND`)
+
+- **New endpoint: `GET /api/v1/users/{userId}`**
+  - **Authentication**: Required Bearer JWT with `ADMIN` role.
+  - **Path parameters**:
+
+    | Parameter | Type | Required | Description |
+    |---|---|---|---|
+    | `userId` | `UUID` | Yes | Target user identifier. |
+
+  - **Response**: `200 OK` with `GetUserAccountData`, `Last-Modified`, and `Cache-Control: no-store`.
+  - **Errors**:
+    - `401 Unauthorized` — missing or invalid JWT (`UNAUTHORIZED`)
+    - `403 Forbidden` — requester is not an admin (`FORBIDDEN`)
+    - `404 Not Found` — requester or target user record does not exist (`USER_NOT_FOUND`)
+
+- **New endpoint: `PATCH /api/v1/users/{userId}`**
+  - **Authentication**: Required Bearer JWT with `ADMIN` role.
+  - **Request body**: `PatchAdminUserData`
+
+    | Field | Type | Required | Allowed values / format | Description |
+    |---|---|---|---|---|
+    | `firstName` | `string \| null` | No | max length `64` | Updates the user's first name. |
+    | `lastName` | `string \| null` | No | max length `64` | Updates the user's last name. |
+    | `language` | `LanguageData \| null` | No | documented `LanguageData` enum | Updates the preferred language. |
+    | `currency` | `CurrencyData \| null` | No | documented `CurrencyData` enum | Updates the preferred currency. |
+    | `prohibitedContentConsent` | `boolean \| null` | No | `true`, `false` | Updates the prohibited-content consent flag. |
+    | `tier` | `UserTierData \| null` | No | `FREE`, `PRO`, `ULTIMATE` | Updates the subscription tier. |
+    | `role` | `UserRoleData \| null` | No | `USER`, `ADMIN` | Updates the user role. |
+    | `stripeCustomerId` | `string \| null` | No | any string | Persists a Stripe customer identifier for the user. |
+
+  - **Behavior**:
+    - The body itself must be present and non-empty.
+    - An empty JSON object (`{}`) is accepted and returns the existing user unchanged.
+  - **Response**: `200 OK` with updated `GetUserAccountData` and `Last-Modified`.
+  - **Errors**:
+    - `400 Bad Request` — missing or invalid JSON body (`BAD_BODY_VALUE`)
+    - `401 Unauthorized` — missing or invalid JWT (`UNAUTHORIZED`)
+    - `403 Forbidden` — requester is not an admin (`FORBIDDEN`)
+    - `404 Not Found` — requester or target user record does not exist (`USER_NOT_FOUND`)
+
+- **New endpoint: `DELETE /api/v1/users/{userId}`**
+  - **Authentication**: Required Bearer JWT with `ADMIN` role.
+  - **Response**: `204 No Content`.
+  - **Errors**:
+    - `401 Unauthorized` — missing or invalid JWT (`UNAUTHORIZED`)
+    - `403 Forbidden` — requester is not an admin (`FORBIDDEN`)
+    - `404 Not Found` — requester or target user record does not exist (`USER_NOT_FOUND`)
+
+- **New schemas**
+  - **`UserCollectionData`** — Cursor-paginated admin user-search response with `items`, `size`, optional `total`, and optional heterogeneous `searchAfter` cursor.
+  - **`UserSearchData`** — Query model covering full-text filters, per-field filters (`email`, `firstName`, `lastName`), repeated `tier` / `role` filters, and RFC3339 `created` / `updated` ranges.
+  - **`PatchAdminUserData`** — Admin-only partial update payload for profile fields, preferences, consent, tier, role, and `stripeCustomerId`.
+  - **`SortUserFieldData`** — Sort enum for admin user search: `score`, `email`, `firstName`, `lastName`, `tier`, `role`, `updated`, `created`.
+
+### Changed
+
+- No previously documented endpoints or schemas changed in this update.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-22 - Product DTO Drift Repair
 
 The backend `develop` branch currently exposes additional product period and seller identifier fields, while several previously documented product-summary and product-history fields no longer exist in the Rust REST DTOs. This update realigns the internal OpenAPI spec with the implemented backend contract.
