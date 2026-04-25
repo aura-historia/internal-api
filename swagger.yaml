@@ -5298,6 +5298,127 @@ paths:
                 error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/shops:
+    post:
+      summary: Create a shop
+      description: |
+        Creates a new shop record and returns the created shop.
+
+        Requires a valid Cognito JWT and the `ADMIN` role.
+
+        The request body uses `PostShopData`. The backend derives `shopSlugId` from `name`
+        and initializes newly created shops with `partnerStatus` set to `SCRAPED`.
+      operationId: postShop
+      tags:
+        - Shops
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Complete payload for creating a new shop.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostShopData"
+            example:
+              name: "Tech Store Premium"
+              shopType: "COMMERCIAL_DEALER"
+              domains:
+                - "tech-store-premium.com"
+                - "tech-store-premium.de"
+              image: "https://tech-store-premium.com/logo.svg"
+      responses:
+        "201":
+          description: Shop created successfully
+          headers:
+            Last-Modified:
+              description: When the created shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 10:00:00 GMT"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  - "tech-store-premium.com"
+                  - "tech-store-premium.de"
+                image: "https://tech-store-premium.com/logo.svg"
+                partnerStatus: "SCRAPED"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T10:00:00Z"
+        "400":
+          description: Bad request - body is missing, empty, malformed JSON, or contains invalid field values
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: HTTP request body is absent or an empty string
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_json:
+                  summary: Request body is not valid JSON
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+        "401":
+          description: Unauthorized – invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden – this endpoint requires the `ADMIN` role.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+        "409":
+          description: Conflict – a shop with the same derived slug already exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 409
+                title: "Conflict"
+                error: "SHOP_EXISTS_ALREADY"
+                detail: "Shop with name 'Tech Store Premium' exists already - the shop-slug 'tech-store-premium' is already registered."
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
     get:
       summary: Simple shop search via query parameters
       description: |
@@ -9778,6 +9899,43 @@ components:
             Optional updated URL to the shop's logo or image.
             When omitted or set to `null`, the current image is left unchanged.
           example: "https://tech-store-premium.com/new-logo.svg"
+
+    PostShopData:
+      type: object
+      description: |
+        Payload for creating a new shop.
+        The backend derives `shopSlugId` from `name`, stores `domains` as a unique normalized set,
+        and initializes the created shop with `partnerStatus` set to `SCRAPED`.
+      required:
+        - name
+        - shopType
+        - domains
+      properties:
+        name:
+          type: string
+          description: Display name of the shop. Used to derive the human-readable `shopSlugId`.
+          maxLength: 255
+          example: "Tech Store Premium"
+        shopType:
+          $ref: "#/components/schemas/ShopTypeData"
+        domains:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          description: |
+            Unique set of domains associated with the shop.
+            Input values are normalized by stripping any `http://` or `https://` scheme, optional `www.` prefix,
+            and any port, path, query, or fragment, then lowercasing the remaining domain.
+          example:
+            - "tech-store-premium.com"
+            - "tech-store-premium.de"
+        image:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional URL to the shop's logo or image.
+          example: "https://tech-store-premium.com/logo.svg"
 
     PartnerShopApiKeyResponse:
       type: object
