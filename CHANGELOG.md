@@ -6,6 +6,36 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-25 - Partner Shop Application Applicant User ID (`backend#913`)
+
+Backend PR `#913` extends the partner shop application response DTO with the submitting user's identifier. This update documents the new required response field on `GetPartnerShopApplicationData` across every partner-application endpoint that returns that schema.
+
+### Added
+
+- **`GetPartnerShopApplicationData.applicantUserId`** — New required response field exposing the user who submitted the partner shop application.
+
+  | Field | Type | Always present | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `applicantUserId` | `string` | Yes | UUID | Unique identifier of the applicant user. |
+
+  **Affected endpoints:**
+  - `GET /api/v1/me/partner-applications`
+  - `POST /api/v1/me/partner-applications`
+  - `GET /api/v1/me/partner-applications/{partnerApplicationId}`
+  - `PATCH /api/v1/me/partner-applications/{partnerApplicationId}`
+  - `GET /api/v1/partner-applications`
+  - `GET /api/v1/partner-applications/{partnerApplicationId}`
+  - `PATCH /api/v1/partner-applications/{partnerApplicationId}`
+  - `POST /api/v1/partner-applications/{partnerApplicationId}/decision`
+
+### Changed
+
+- No previously documented endpoints or schemas changed in this update.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-25 - Admin Shop Creation REST API (`backend#911`)
 
 Backend PR `#911` adds an admin-only shop-creation endpoint to the existing shop administration surface. This update documents the new authenticated path, the create payload, and the new conflict case when the slug derived from the requested shop name already exists.
