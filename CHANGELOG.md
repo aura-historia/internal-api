@@ -31,6 +31,7 @@ Backend PR `#906` adds admin-only user-management endpoints backed by the shared
     | `searchAfter` | heterogeneous JSON array | No | OpenSearch sort cursor | Cursor returned by the previous response. |
     | `size` | `integer` | No | `0`–`100` | Maximum number of results requested from OpenSearch. Defaults to `21`. |
 
+  - **Query encoding note**: `created[min]`, `created[max]`, `updated[min]`, and `updated[max]` are the literal query parameter names expected by the API.
   - **Behavior**:
     - Omitting every filter lists users.
     - Without explicit `sort` + `order`, the backend defaults to `email` ascending for list-all queries and `score` descending when any text query is present.
