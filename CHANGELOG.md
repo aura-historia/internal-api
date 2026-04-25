@@ -6,6 +6,45 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-25 - Admin Shop Creation REST API (`backend#911`)
+
+Backend PR `#911` adds an admin-only shop-creation endpoint to the existing shop administration surface. This update documents the new authenticated path, the create payload, and the new conflict case when the slug derived from the requested shop name already exists.
+
+### Added
+
+- **New endpoint: `POST /api/v1/shops`**
+  - **Authentication**: Required Bearer JWT with the `ADMIN` role.
+  - **Request body**: `PostShopData`
+
+    | Field | Type | Required | Allowed values / format | Description |
+    |---|---|---|---|---|
+    | `name` | `string` | Yes | max length `255` | Display name of the shop. The backend derives `shopSlugId` from this value. |
+    | `shopType` | `ShopTypeData` | Yes | `AUCTION_HOUSE`, `AUCTION_PLATFORM`, `COMMERCIAL_DEALER`, `MARKETPLACE` | Shop classification. |
+    | `domains` | `string[]` | Yes | domain-like strings; normalized to lowercase hostnames | Unique set of shop domains. The backend strips any `http://` / `https://` scheme, optional `www.` prefix, and any port, path, query, or fragment before storing the value. |
+    | `image` | `string \| null` | No | URI | Optional shop logo / image URL. |
+
+  - **Behavior**:
+    - The HTTP request body itself must be present and non-empty.
+    - The created shop is returned using the existing `GetShopData` schema.
+    - Newly created shops start with `partnerStatus = SCRAPED`.
+  - **Response**: `201 Created` with `GetShopData` and `Last-Modified`.
+  - **Errors**:
+    - `400 Bad Request` — missing, empty, malformed, or field-invalid JSON body (`BAD_BODY_VALUE`)
+    - `401 Unauthorized` — missing or invalid JWT (`UNAUTHORIZED`)
+    - `403 Forbidden` — authenticated requester is not an admin (`FORBIDDEN`)
+    - `409 Conflict` — a shop with the same derived slug already exists (`SHOP_EXISTS_ALREADY`)
+
+- **New schema**
+  - **`PostShopData`** — Shop creation payload with required `name`, `shopType`, and `domains`, plus optional `image`.
+
+### Changed
+
+- No previously documented endpoints or schemas changed in this update.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-25 - Admin User Management REST API (`backend#906`)
 
 Backend PR `#906` adds admin-only user-management endpoints backed by the shared user account DTOs and a new OpenSearch-powered search contract. This update documents the new admin paths, their query interface, and the admin-only patch payload used to manage tier, role, and Stripe customer mappings.
