@@ -5326,6 +5326,19 @@ paths:
                 - "tech-store-premium.com"
                 - "tech-store-premium.de"
               image: "https://tech-store-premium.com/logo.svg"
+              structuredAddress:
+                addressLines:
+                  - "Pariser Platz 1"
+                postalCode: "10117"
+                locality: "Berlin"
+                country: "Germany"
+              phone: "+49 30 123456"
+              email: "contact@tech-store-premium.com"
+              specialitiesCategories:
+                - "medals"
+                - "coins"
+              specialitiesPeriods:
+                - "ww2"
       responses:
         "201":
           description: Shop created successfully
@@ -5354,6 +5367,22 @@ paths:
                   - "tech-store-premium.com"
                   - "tech-store-premium.de"
                 image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressLines:
+                    - "Pariser Platz 1"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "Germany"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                specialitiesCategories:
+                  - "medals"
+                  - "coins"
+                specialitiesPeriods:
+                  - "ww2"
                 partnerStatus: "SCRAPED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T10:00:00Z"
@@ -5378,6 +5407,13 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "expected value at line 1 column 1"
+                empty_structured_address:
+                  summary: Structured address object contains no geocodable content
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Cannot geocode an empty structured address"
         "401":
           description: Unauthorized – invalid or missing JWT token.
           content:
@@ -5430,6 +5466,8 @@ paths:
         - `shopNameQuery`
         - `shopType`
         - `partnerStatus`
+        - `specialitiesCategories`
+        - `specialitiesPeriods`
         - `created[min]`, `created[max]`
         - `updated[min]`, `updated[max]`
       operationId: simpleSearchShops
@@ -5467,6 +5505,28 @@ paths:
               $ref: "#/components/schemas/ShopPartnerStatusData"
             uniqueItems: true
           example: ["PARTNERED"]
+        - name: specialitiesCategories
+          in: query
+          required: false
+          description: Optional repeated speciality-category filter.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/CategoryIdData"
+          example: ["medals", "coins"]
+        - name: specialitiesPeriods
+          in: query
+          required: false
+          description: Optional repeated speciality-period filter.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PeriodIdData"
+          example: ["ww2"]
         - name: sort
           in: query
           required: false
@@ -5570,7 +5630,7 @@ paths:
       summary: Get shop details by ID
       description: |
         Retrieves detailed information about a specific shop by its shop ID (UUID).
-        Returns complete shop metadata including name, domains, image, and timestamps.
+        Returns complete shop metadata including name, domains, image, address/contact metadata, and timestamps.
       operationId: getShopById
       tags:
         - Shops
@@ -5614,6 +5674,22 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressLines:
+                    - "Pariser Platz 1"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "Germany"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                specialitiesCategories:
+                  - "medals"
+                  - "coins"
+                specialitiesPeriods:
+                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -5698,7 +5774,19 @@ paths:
             schema:
               $ref: "#/components/schemas/PatchShopData"
             example:
-              image: "https://tech-store-premium.com/new-logo.svg"
+              structuredAddress:
+                addressLines:
+                  - "Pariser Platz 1"
+                postalCode: "10117"
+                locality: "Berlin"
+                country: "Germany"
+              phone: "+49 30 123456"
+              email: "contact@tech-store-premium.com"
+              specialitiesCategories:
+                - "medals"
+                - "coins"
+              specialitiesPeriods:
+                - "ww2"
       responses:
         "200":
           description: Shop updated successfully
@@ -5729,7 +5817,23 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
-                image: "https://tech-store-premium.com/new-logo.svg"
+                image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressLines:
+                    - "Pariser Platz 1"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "Germany"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                specialitiesCategories:
+                  - "medals"
+                  - "coins"
+                specialitiesPeriods:
+                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -5774,6 +5878,13 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "expected value at line 1 column 1"
+                empty_structured_address:
+                  summary: Structured address object contains no geocodable content
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Cannot geocode an empty structured address"
         "401":
           description: Unauthorized – invalid or missing JWT token.
           content:
@@ -5929,7 +6040,7 @@ paths:
       summary: Get shop details by slug
       description: |
         Retrieves detailed information about a specific shop by its human-readable slug identifier.
-        Returns complete shop metadata including name, domains, image, and timestamps.
+        Returns complete shop metadata including name, domains, image, address/contact metadata, and timestamps.
 
         **Human-Readable Identifiers**: This endpoint uses slug-based identifiers which are human-readable
         kebab-case strings derived from the shop name (e.g., "tech-store-premium" or "christies").
@@ -5982,6 +6093,22 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressLines:
+                    - "Pariser Platz 1"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "Germany"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                specialitiesCategories:
+                  - "medals"
+                  - "coins"
+                specialitiesPeriods:
+                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -6030,7 +6157,7 @@ paths:
         Performs an advanced search for shops using comprehensive filtering criteria.
         This endpoint accepts a ShopSearchData object in the request body,
         allowing for complex filtering by shop name, shop type, partner status,
-        and creation/update date ranges.
+        speciality categories, speciality periods, and creation/update date ranges.
         Returns a paginated collection of shops matching the search criteria.
       operationId: searchShops
       tags:
@@ -6080,7 +6207,7 @@ paths:
         description: |
           Shop search filter configuration with all filtering criteria.
           Allows filtering by shop name, shop type, partner status,
-          and creation/update date ranges.
+          speciality categories, speciality periods, and creation/update date ranges.
           If you do not want to restrict the search, supply an empty JSON-Object '{}' as body.
         content:
           application/json:
@@ -6090,6 +6217,8 @@ paths:
               shopNameQuery: "tech store"
               shopType: ["COMMERCIAL_DEALER"]
               partnerStatus: ["PARTNERED"]
+              specialitiesCategories: ["medals"]
+              specialitiesPeriods: ["ww2"]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -6116,6 +6245,19 @@ paths:
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
+                    structuredAddress:
+                      addressLines:
+                        - "Pariser Platz 1"
+                      postalCode: "10117"
+                      locality: "Berlin"
+                      country: "Germany"
+                    geoAddress:
+                      lat: 52.516275
+                      lon: 13.377704
+                    phone: "+49 30 123456"
+                    email: "contact@tech-store-premium.com"
+                    specialitiesCategories: ["medals"]
+                    specialitiesPeriods: ["ww2"]
                     partnerStatus: "PARTNERED"
                     created: "2024-01-15T10:00:00Z"
                     updated: "2024-06-15T12:00:00Z"
@@ -7040,6 +7182,18 @@ paths:
                         shopDomains:
                           - "my-antique-store.com"
                         shopImage: "https://my-antique-store.com/logo.png"
+                        shopStructuredAddress:
+                          addressLines:
+                            - "Pariser Platz 1"
+                          postalCode: "10117"
+                          locality: "Berlin"
+                          country: "Germany"
+                        shopPhone: "+49 30 123456"
+                        shopEmail: "contact@my-antique-store.com"
+                        shopSpecialitiesCategories:
+                          - "medals"
+                        shopSpecialitiesPeriods:
+                          - "ww2"
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
         "401":
@@ -7067,7 +7221,8 @@ paths:
       description: |
         Submits a new partner shop application for the authenticated user.
         The application payload specifies either an existing shop (by `shopId`) or a new shop
-        (with name, type, domains, and optional image).
+        (with name, type, domains, and optional metadata such as image, contact details, address,
+        and speciality keys).
         The application is created with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
         Both state fields are read-only and cannot be set by the client.
         Returns the created application with HTTP 201.
@@ -7101,6 +7256,18 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
       responses:
         "201":
           description: Partner shop application created successfully.
@@ -7132,6 +7299,18 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T10:00:00Z"
         "400":
@@ -7233,6 +7412,18 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T11:00:00Z"
         "400":
@@ -7333,10 +7524,22 @@ paths:
                 value:
                   shopName: "My Renamed Antique Store"
               update_multiple:
-                summary: Update shop name and type
+                summary: Update shop metadata for a new-shop application
                 value:
                   shopName: "My Renamed Antique Store"
                   shopType: "AUCTION_HOUSE"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
       responses:
         "200":
           description: Partner shop application updated successfully. Returns the updated application.
@@ -7367,6 +7570,18 @@ paths:
                   shopType: "AUCTION_HOUSE"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T12:00:00Z"
         "400":
@@ -7579,6 +7794,18 @@ paths:
                         shopType: "COMMERCIAL_DEALER"
                         shopDomains:
                           - "my-antique-store.com"
+                        shopStructuredAddress:
+                          addressLines:
+                            - "Pariser Platz 1"
+                          postalCode: "10117"
+                          locality: "Berlin"
+                          country: "Germany"
+                        shopPhone: "+49 30 123456"
+                        shopEmail: "contact@my-antique-store.com"
+                        shopSpecialitiesCategories:
+                          - "medals"
+                        shopSpecialitiesPeriods:
+                          - "ww2"
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
                     - id: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
@@ -7678,6 +7905,18 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T11:00:00Z"
         "400":
@@ -7792,6 +8031,18 @@ paths:
                 value:
                   shopName: "My Antique Store"
                   shopType: "AUCTION_HOUSE"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
       responses:
         "200":
           description: Partner shop application updated successfully. Returns the updated application.
@@ -7822,6 +8073,18 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopStructuredAddress:
+                    addressLines:
+                      - "Pariser Platz 1"
+                    postalCode: "10117"
+                    locality: "Berlin"
+                    country: "Germany"
+                  shopPhone: "+49 30 123456"
+                  shopEmail: "contact@my-antique-store.com"
+                  shopSpecialitiesCategories:
+                    - "medals"
+                  shopSpecialitiesPeriods:
+                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-10T12:00:00Z"
         "400":
@@ -9770,6 +10033,67 @@ components:
           nullable: true
           example: 127
 
+    CategoryIdData:
+      type: string
+      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      description: Lowercase kebab-case category key.
+      example: medals
+
+    PeriodIdData:
+      type: string
+      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      description: Lowercase kebab-case period key.
+      example: ww2
+
+    StructuredAddressData:
+      type: object
+      description: |
+        Structured postal address used for shop metadata and geocoding.
+        When supplied in shop create/update payloads, at least one component must contain a non-empty value;
+        otherwise the backend rejects the request with `400 BAD_BODY_VALUE`.
+      properties:
+        addressLines:
+          type: array
+          items:
+            type: string
+          description: Ordered free-form address lines such as street and house number.
+          example:
+            - "Pariser Platz 1"
+        locality:
+          type: string
+          description: City, town, or locality.
+          example: "Berlin"
+        region:
+          type: string
+          description: Region, state, province, or administrative area.
+          example: "Berlin"
+        postalCode:
+          type: string
+          description: Postal or ZIP code.
+          example: "10117"
+        country:
+          type: string
+          description: Country name.
+          example: "Germany"
+
+    GeoAddressData:
+      type: object
+      description: Latitude/longitude coordinates derived by the backend from `structuredAddress`.
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+          format: double
+          description: Latitude in decimal degrees.
+          example: 52.516275
+        lon:
+          type: number
+          format: double
+          description: Longitude in decimal degrees.
+          example: 13.377704
+
     GetShopData:
       type: object
       description: Complete shop information including metadata
@@ -9824,6 +10148,31 @@ components:
           nullable: true
           description: Optional URL to the shop's logo or image
           example: "https://tech-store-premium.com/logo.svg"
+        structuredAddress:
+          $ref: "#/components/schemas/StructuredAddressData"
+        geoAddress:
+          $ref: "#/components/schemas/GeoAddressData"
+        phone:
+          type: string
+          description: Optional public contact phone number of the shop.
+          example: "+49 30 123456"
+        email:
+          type: string
+          format: email
+          description: Optional public contact email address of the shop.
+          example: "contact@tech-store-premium.com"
+        specialitiesCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: Optional list of speciality category keys associated with the shop. Omitted when empty.
+          example: ["medals", "coins"]
+        specialitiesPeriods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: Optional list of speciality period keys associated with the shop. Omitted when empty.
+          example: ["ww2"]
         partnerStatus:
           $ref: "#/components/schemas/ShopPartnerStatusData"
         created:
@@ -9839,7 +10188,7 @@ components:
 
     ShopSearchData:
       type: object
-      description: Search filter configuration for shops with optional name, type, partner-status, and date-range filters
+      description: Search filter configuration for shops with optional name, type, partner-status, speciality, and date-range filters
       properties:
         shopNameQuery:
           type: string
@@ -9865,6 +10214,22 @@ components:
           default: []
           nullable: true
           example: ["PARTNERED"]
+        specialitiesCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: |
+            Optional repeated speciality-category filter.
+            When provided, only shops having at least one of the listed category keys are returned.
+          example: ["medals", "coins"]
+        specialitiesPeriods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: |
+            Optional repeated speciality-period filter.
+            When provided, only shops having at least one of the listed period keys are returned.
+          example: ["ww2"]
         created:
           allOf:
             - $ref: "#/components/schemas/RangeQueryDateTime"
@@ -9908,6 +10273,39 @@ components:
             Optional updated URL to the shop's logo or image.
             When omitted or set to `null`, the current image is left unchanged.
           example: "https://tech-store-premium.com/new-logo.svg"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: |
+            Optional updated structured postal address.
+            When provided with at least one non-empty component, the backend geocodes it and refreshes `geoAddress`.
+            When omitted or set to `null`, the current address remains unchanged.
+        phone:
+          type: string
+          nullable: true
+          description: Optional updated public contact phone number. When omitted or set to `null`, the current phone number remains unchanged.
+          example: "+49 30 123456"
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Optional updated public contact email address. When omitted or set to `null`, the current email address remains unchanged.
+          example: "contact@tech-store-premium.com"
+        specialitiesCategories:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: Optional replacement list of speciality category keys for the shop.
+          example: ["medals", "coins"]
+        specialitiesPeriods:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: Optional replacement list of speciality period keys for the shop.
+          example: ["ww2"]
 
     PostShopData:
       type: object
@@ -9945,6 +10343,36 @@ components:
           nullable: true
           description: Optional URL to the shop's logo or image.
           example: "https://tech-store-premium.com/logo.svg"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: |
+            Optional structured postal address.
+            When provided, the backend geocodes it and stores the resulting coordinates in `geoAddress`.
+        phone:
+          type: string
+          nullable: true
+          description: Optional public contact phone number of the shop.
+          example: "+49 30 123456"
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Optional public contact email address of the shop.
+          example: "contact@tech-store-premium.com"
+        specialitiesCategories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: Optional list of speciality category keys.
+          example: ["medals", "coins"]
+        specialitiesPeriods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: Optional list of speciality period keys.
+          example: ["ww2"]
 
     PartnerShopApiKeyResponse:
       type: object
@@ -11430,7 +11858,7 @@ components:
       description: |
         The payload of a partner shop application. Discriminated by the `type` field.
         - `EXISTING`: The application targets an existing shop identified by `shopId`.
-        - `NEW`: The application targets a new shop described by name, type, domains, and optional image.
+        - `NEW`: The application targets a new shop described by name, type, domains, and optional metadata.
       oneOf:
         - title: Existing shop payload
           type: object
@@ -11483,6 +11911,29 @@ components:
               nullable: true
               description: Optional URL to the new shop's logo or image.
               example: "https://my-antique-store.com/logo.png"
+            shopStructuredAddress:
+              $ref: "#/components/schemas/StructuredAddressData"
+            shopPhone:
+              type: string
+              description: Optional public contact phone number for the requested new shop.
+              example: "+49 30 123456"
+            shopEmail:
+              type: string
+              format: email
+              description: Optional public contact email address for the requested new shop.
+              example: "contact@my-antique-store.com"
+            shopSpecialitiesCategories:
+              type: array
+              items:
+                $ref: "#/components/schemas/CategoryIdData"
+              description: Optional list of speciality category keys for the requested new shop.
+              example: ["medals", "coins"]
+            shopSpecialitiesPeriods:
+              type: array
+              items:
+                $ref: "#/components/schemas/PeriodIdData"
+              description: Optional list of speciality period keys for the requested new shop.
+              example: ["ww2"]
       discriminator:
         propertyName: type
         mapping:
@@ -11536,7 +11987,7 @@ components:
       description: |
         Request payload for creating a new partner shop application. Discriminated by the `type` field.
         - `EXISTING`: Apply for partnership for an existing shop identified by `shopId`.
-        - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional image.
+        - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional metadata.
         The created application always starts with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
       oneOf:
         - title: Existing shop payload
@@ -11590,6 +12041,34 @@ components:
               nullable: true
               description: Optional URL to the new shop's logo or image.
               example: "https://my-antique-store.com/logo.png"
+            shopStructuredAddress:
+              allOf:
+                - $ref: "#/components/schemas/StructuredAddressData"
+              nullable: true
+              description: Optional structured postal address for the requested new shop.
+            shopPhone:
+              type: string
+              nullable: true
+              description: Optional public contact phone number for the requested new shop.
+              example: "+49 30 123456"
+            shopEmail:
+              type: string
+              format: email
+              nullable: true
+              description: Optional public contact email address for the requested new shop.
+              example: "contact@my-antique-store.com"
+            shopSpecialitiesCategories:
+              type: array
+              items:
+                $ref: "#/components/schemas/CategoryIdData"
+              description: Optional list of speciality category keys for the requested new shop.
+              example: ["medals", "coins"]
+            shopSpecialitiesPeriods:
+              type: array
+              items:
+                $ref: "#/components/schemas/PeriodIdData"
+              description: Optional list of speciality period keys for the requested new shop.
+              example: ["ww2"]
       discriminator:
         propertyName: type
         mapping:
@@ -11631,8 +12110,41 @@ components:
           type: string
           format: uri
           nullable: true
-          description: Updated URL to the shop's logo or image. Set to `null` to remove the image.
+          description: Updated URL to the shop's logo or image. When omitted or set to `null`, the current image remains unchanged.
           example: "https://my-antique-store.com/logo.png"
+        shopStructuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: |
+            Updated structured postal address for the requested new shop.
+            When provided with at least one non-empty component, the address is later geocoded during shop creation.
+            When omitted or set to `null`, the current address remains unchanged.
+        shopPhone:
+          type: string
+          nullable: true
+          description: Updated public contact phone number for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
+          example: "+49 30 123456"
+        shopEmail:
+          type: string
+          format: email
+          nullable: true
+          description: Updated public contact email address for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
+          example: "contact@my-antique-store.com"
+        shopSpecialitiesCategories:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: Updated replacement list of speciality category keys for the requested new shop.
+          example: ["medals", "coins"]
+        shopSpecialitiesPeriods:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: Updated replacement list of speciality period keys for the requested new shop.
+          example: ["ww2"]
 
     AdminPatchPartnerShopApplicationData:
       type: object
@@ -11667,8 +12179,41 @@ components:
           type: string
           format: uri
           nullable: true
-          description: Updated URL to the shop's logo or image. Set to `null` to remove the image.
+          description: Updated URL to the shop's logo or image. When omitted or set to `null`, the current image remains unchanged.
           example: "https://my-antique-store.com/logo.png"
+        shopStructuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: |
+            Updated structured postal address for the requested new shop.
+            When provided with at least one non-empty component, the address is later geocoded during shop creation.
+            When omitted or set to `null`, the current address remains unchanged.
+        shopPhone:
+          type: string
+          nullable: true
+          description: Updated public contact phone number for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
+          example: "+49 30 123456"
+        shopEmail:
+          type: string
+          format: email
+          nullable: true
+          description: Updated public contact email address for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
+          example: "contact@my-antique-store.com"
+        shopSpecialitiesCategories:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/CategoryIdData"
+          description: Updated replacement list of speciality category keys for the requested new shop.
+          example: ["medals", "coins"]
+        shopSpecialitiesPeriods:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/PeriodIdData"
+          description: Updated replacement list of speciality period keys for the requested new shop.
+          example: ["ww2"]
 
     PartnerShopApplicationDecisionData:
       type: string

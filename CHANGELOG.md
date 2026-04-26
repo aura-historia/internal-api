@@ -6,6 +6,58 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-26 - Rich Shop Metadata and Shop Speciality Filters (`backend#915`)
+
+Backend PR `#915` extends shop-facing REST contracts with optional structured-address, geocoded coordinates, contact, and speciality metadata. It also adds speciality-category and speciality-period filters to shop search and propagates the same optional new-shop metadata through partner shop application payloads.
+
+### Added
+
+- **New shop metadata fields on `GetShopData`**
+
+  | Field | Type | Always present | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `structuredAddress` | `StructuredAddressData` | No | object | Optional structured postal address for the shop. |
+  | `geoAddress` | `GeoAddressData` | No | object | Optional geocoded coordinates derived from `structuredAddress`. |
+  | `phone` | `string` | No | any string | Optional public contact phone number. |
+  | `email` | `string` | No | email | Optional public contact email address. |
+  | `specialitiesCategories` | `string[]` | No | lowercase kebab-case category keys | Optional speciality category keys. Omitted when empty. |
+  | `specialitiesPeriods` | `string[]` | No | lowercase kebab-case period keys | Optional speciality period keys. Omitted when empty. |
+
+- **New component schemas**
+  - **`StructuredAddressData`** — Structured postal address object with optional `addressLines`, `locality`, `region`, `postalCode`, and `country`.
+  - **`GeoAddressData`** — Geocoded `{ lat, lon }` coordinate object returned by the backend when a shop has a structured address.
+
+- **New shop search filters on `ShopSearchData` and `GET /api/v1/shops`**
+
+  | Field / Query parameter | Type | Required | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `specialitiesCategories` | `string[]` | No | lowercase kebab-case category keys | Filters shops by one or more speciality categories. |
+  | `specialitiesPeriods` | `string[]` | No | lowercase kebab-case period keys | Filters shops by one or more speciality periods. |
+
+### Changed
+
+- **`POST /api/v1/shops`**
+  - `PostShopData` now also accepts optional `structuredAddress`, `phone`, `email`, `specialitiesCategories`, and `specialitiesPeriods`.
+  - When `structuredAddress` is supplied, the backend geocodes it and returns the resulting `geoAddress` on the created `GetShopData` response.
+  - A structurally empty `structuredAddress` is rejected with `400 Bad Request` / `BAD_BODY_VALUE`.
+
+- **`PATCH /api/v1/shops/{shopId}`**
+  - `PatchShopData` now also accepts optional `structuredAddress`, `phone`, `email`, `specialitiesCategories`, and `specialitiesPeriods`.
+  - Updating `structuredAddress` causes the backend to refresh the returned `geoAddress`.
+  - `null` or omitted patch fields remain no-ops; the backend does not expose a separate field-clearing contract for these new optional metadata fields.
+  - A structurally empty `structuredAddress` is rejected with `400 Bad Request` / `BAD_BODY_VALUE`.
+
+- **`POST /api/v1/shops/search`** and **`GET /api/v1/shops`**
+  - Shop search now supports `specialitiesCategories` and `specialitiesPeriods` in addition to the existing name, type, partner-status, and date-range filters.
+
+- **Partner shop application payloads**
+  - The `NEW` variant of `PostPartnerShopApplicationPayloadData` and `GetPartnerShopApplicationPayloadData` now includes optional `shopStructuredAddress`, `shopPhone`, `shopEmail`, `shopSpecialitiesCategories`, and `shopSpecialitiesPeriods`.
+  - `PatchPartnerShopApplicationData` and `AdminPatchPartnerShopApplicationData` now allow updating the same optional new-shop metadata fields for `NEW` applications.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-25 - Partner Shop Application Applicant User ID (`backend#913`)
 
 Backend PR `#913` extends the partner shop application response DTO with the submitting user's identifier. This update documents the new required response field on `GetPartnerShopApplicationData` across every partner-application endpoint that returns that schema.
