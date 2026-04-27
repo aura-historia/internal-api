@@ -6,6 +6,46 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-27 - Structured Address Normalization (`backend#923`)
+
+Backend PR `#923` normalizes the structured-address REST DTO shared by shop and partner-application payloads. This update realigns the internal OpenAPI spec with the backend contract by replacing the old multi-line address field, documenting the new continent enum, and correcting the country-code format.
+
+### Added
+
+- **New schema: `ContinentData`**
+  - Structured-address continent enum with these serialized values:
+    - `AFRICA`
+    - `ANTARCTICA`
+    - `ASIA`
+    - `EUROPE`
+    - `NORTH_AMERICA`
+    - `OCEANIA`
+    - `SOUTH_AMERICA`
+
+- **`StructuredAddressData.continent`** — Optional continent field returned alongside structured-address data.
+
+### Changed
+
+- **`StructuredAddressData`**
+  - `country` is now documented as an ISO 3166-1 alpha-2 country code string (for example `DE`) instead of a free-form country name.
+  - The schema examples now use the normalized address shape and include `continent` where a country is present.
+
+- **All request/response schemas using `StructuredAddressData`**
+  - The updated address contract now propagates through:
+    - `GetShopData`
+    - `PostShopData`
+    - `PatchShopData`
+    - `GetPartnerShopApplicationPayloadData` (`NEW` variant)
+    - `PostPartnerShopApplicationPayloadData` (`NEW` variant)
+    - `PatchPartnerShopApplicationData`
+    - `AdminPatchPartnerShopApplicationData`
+
+### Removed
+
+- **`StructuredAddressData.addressLines`** — Removed because the backend no longer exposes a list-based structured-address field.
+
+- **Free-form country-name documentation for `StructuredAddressData.country`** — Removed in favor of the backend’s ISO alpha-2 country-code contract.
+
 ## 2026-04-26 - Rich Shop Metadata and Shop Speciality Filters (`backend#915`)
 
 Backend PR `#915` extends shop-facing REST contracts with optional structured-address, geocoded coordinates, contact, and speciality metadata. It also adds speciality-category and speciality-period filters to shop search and propagates the same optional new-shop metadata through partner shop application payloads.

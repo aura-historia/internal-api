@@ -5327,11 +5327,12 @@ paths:
                 - "tech-store-premium.de"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
-                addressLines:
-                  - "Pariser Platz 1"
+                addressline: "Pariser Platz 1"
+                addresslineExtra: "2. Etage"
                 postalCode: "10117"
                 locality: "Berlin"
-                country: "Germany"
+                country: "DE"
+                continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
               specialitiesCategories:
@@ -5368,11 +5369,12 @@ paths:
                   - "tech-store-premium.de"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -5675,11 +5677,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -5775,11 +5778,12 @@ paths:
               $ref: "#/components/schemas/PatchShopData"
             example:
               structuredAddress:
-                addressLines:
-                  - "Pariser Platz 1"
+                addressline: "Pariser Platz 1"
+                addresslineExtra: "2. Etage"
                 postalCode: "10117"
                 locality: "Berlin"
-                country: "Germany"
+                country: "DE"
+                continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
               specialitiesCategories:
@@ -5819,11 +5823,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -6094,11 +6099,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -6246,11 +6252,12 @@ paths:
                     domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
-                      addressLines:
-                        - "Pariser Platz 1"
+                      addressline: "Pariser Platz 1"
+                      addresslineExtra: "2. Etage"
                       postalCode: "10117"
                       locality: "Berlin"
-                      country: "Germany"
+                      country: "DE"
+                      continent: "EUROPE"
                     geoAddress:
                       lat: 52.516275
                       lon: 13.377704
@@ -7183,11 +7190,12 @@ paths:
                           - "my-antique-store.com"
                         shopImage: "https://my-antique-store.com/logo.png"
                         shopStructuredAddress:
-                          addressLines:
-                            - "Pariser Platz 1"
+                          addressline: "Pariser Platz 1"
+                          addresslineExtra: "2. Etage"
                           postalCode: "10117"
                           locality: "Berlin"
-                          country: "Germany"
+                          country: "DE"
+                          continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
                         shopSpecialitiesCategories:
@@ -7257,11 +7265,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7300,11 +7309,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7413,11 +7423,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7529,11 +7540,12 @@ paths:
                   shopName: "My Renamed Antique Store"
                   shopType: "AUCTION_HOUSE"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7571,11 +7583,12 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7795,11 +7808,12 @@ paths:
                         shopDomains:
                           - "my-antique-store.com"
                         shopStructuredAddress:
-                          addressLines:
-                            - "Pariser Platz 1"
+                          addressline: "Pariser Platz 1"
+                          addresslineExtra: "2. Etage"
                           postalCode: "10117"
                           locality: "Berlin"
-                          country: "Germany"
+                          country: "DE"
+                          continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
                         shopSpecialitiesCategories:
@@ -7906,11 +7920,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -8032,11 +8047,12 @@ paths:
                   shopName: "My Antique Store"
                   shopType: "AUCTION_HOUSE"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -8074,11 +8090,12 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -10045,20 +10062,36 @@ components:
       description: Lowercase kebab-case period key.
       example: ww2
 
+    ContinentData:
+      type: string
+      description: Continent derived from a structured-address country code.
+      enum:
+        - AFRICA
+        - ANTARCTICA
+        - ASIA
+        - EUROPE
+        - NORTH_AMERICA
+        - OCEANIA
+        - SOUTH_AMERICA
+      example: EUROPE
+
     StructuredAddressData:
       type: object
       description: |
         Structured postal address used for shop metadata and geocoding.
-        When supplied in shop create/update payloads, at least one component must contain a non-empty value;
-        otherwise the backend rejects the request with `400 BAD_BODY_VALUE`.
+        When supplied in shop create/update payloads, at least one component among `addressline`,
+        `addresslineExtra`, `locality`, `region`, `postalCode`, or `country` must contain a non-empty
+        value; `continent` alone does not make the address valid, and otherwise the backend rejects the
+        request with `400 BAD_BODY_VALUE`.
       properties:
-        addressLines:
-          type: array
-          items:
-            type: string
-          description: Ordered free-form address lines such as street and house number.
-          example:
-            - "Pariser Platz 1"
+        addressline:
+          type: string
+          description: Primary free-form address line such as street and house number.
+          example: "Pariser Platz 1"
+        addresslineExtra:
+          type: string
+          description: Optional secondary address line such as floor, suite, building, or c/o information.
+          example: "2. Etage"
         locality:
           type: string
           description: City, town, or locality.
@@ -10073,8 +10106,13 @@ components:
           example: "10117"
         country:
           type: string
-          description: Country name.
-          example: "Germany"
+          pattern: '^[A-Z]{2}$'
+          description: ISO 3166-1 alpha-2 country code serialized by the backend.
+          example: "DE"
+        continent:
+          allOf:
+            - $ref: "#/components/schemas/ContinentData"
+          description: Optional continent value exposed alongside `country` in structured-address data.
 
     GeoAddressData:
       type: object
