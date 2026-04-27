@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 2026-04-27 - Structured Address Normalization (`backend#923`)
 
-Backend PR `#923` normalizes the structured-address REST DTO shared by shop and partner-application payloads. This update realigns the internal OpenAPI spec with the backend contract by replacing the old multi-line address field, documenting the new continent enum, and correcting the country-code format.
+Backend PR `#923` normalizes the structured-address REST DTO shared by shop and partner-application payloads and extends shop search with structured-address geography filters. This update realigns the internal OpenAPI spec with the backend contract by replacing the old multi-line address field, documenting the new continent enum, correcting the country-code format, and adding the missing search filters.
 
 ### Added
 
@@ -24,11 +24,22 @@ Backend PR `#923` normalizes the structured-address REST DTO shared by shop and 
 
 - **`StructuredAddressData.continent`** — Optional continent field returned alongside structured-address data.
 
+- **New schema: `CountryCodeData`**
+  - Explicit ISO 3166-1 alpha-2 country-code enum used for structured addresses and shop-search country filters.
+
+- **New shop search filters on `ShopSearchData`, `POST /api/v1/shops/search`, and `GET /api/v1/shops`**
+
+  | Field / Query parameter | Type | Required | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `countries` | `CountryCodeData[]` | No | ISO 3166-1 alpha-2 country codes | Filters shops by one or more structured-address countries. |
+  | `continents` | `ContinentData[]` | No | `AFRICA`, `ANTARCTICA`, `ASIA`, `EUROPE`, `NORTH_AMERICA`, `OCEANIA`, `SOUTH_AMERICA` | Filters shops by one or more structured-address continents. |
+
 ### Changed
 
 - **`StructuredAddressData`**
   - `country` is now documented as an ISO 3166-1 alpha-2 country code string (for example `DE`) instead of a free-form country name.
   - The schema examples now use the normalized address shape and include `continent` where a country is present.
+  - `continent` is now documented as derivable from `country` when omitted in client payloads.
 
 - **All request/response schemas using `StructuredAddressData`**
   - The updated address contract now propagates through:
@@ -39,6 +50,10 @@ Backend PR `#923` normalizes the structured-address REST DTO shared by shop and 
     - `PostPartnerShopApplicationPayloadData` (`NEW` variant)
     - `PatchPartnerShopApplicationData`
     - `AdminPatchPartnerShopApplicationData`
+
+- **Shop search documentation**
+  - `ShopSearchData`, `POST /api/v1/shops/search`, and `GET /api/v1/shops` now document the backend's `countries` and `continents` filters.
+  - Structured-address `country` references now use the shared finite `CountryCodeData` enum so generated clients can treat country codes as a closed set.
 
 ### Removed
 
