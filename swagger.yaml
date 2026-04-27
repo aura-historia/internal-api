@@ -5327,11 +5327,12 @@ paths:
                 - "tech-store-premium.de"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
-                addressLines:
-                  - "Pariser Platz 1"
+                addressline: "Pariser Platz 1"
+                addresslineExtra: "2. Etage"
                 postalCode: "10117"
                 locality: "Berlin"
-                country: "Germany"
+                country: "DE"
+                continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
               specialitiesCategories:
@@ -5368,11 +5369,12 @@ paths:
                   - "tech-store-premium.de"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -5468,6 +5470,8 @@ paths:
         - `partnerStatus`
         - `specialitiesCategories`
         - `specialitiesPeriods`
+        - `countries`
+        - `continents`
         - `created[min]`, `created[max]`
         - `updated[min]`, `updated[max]`
       operationId: simpleSearchShops
@@ -5527,6 +5531,30 @@ paths:
             items:
               $ref: "#/components/schemas/PeriodIdData"
           example: ["ww2"]
+        - name: countries
+          in: query
+          required: false
+          description: Optional repeated ISO 3166-1 alpha-2 country-code filter.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/CountryCodeData"
+            uniqueItems: true
+          example: ["DE", "US"]
+        - name: continents
+          in: query
+          required: false
+          description: Optional repeated continent filter.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ContinentData"
+            uniqueItems: true
+          example: ["EUROPE", "NORTH_AMERICA"]
         - name: sort
           in: query
           required: false
@@ -5675,11 +5703,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -5775,11 +5804,12 @@ paths:
               $ref: "#/components/schemas/PatchShopData"
             example:
               structuredAddress:
-                addressLines:
-                  - "Pariser Platz 1"
+                addressline: "Pariser Platz 1"
+                addresslineExtra: "2. Etage"
                 postalCode: "10117"
                 locality: "Berlin"
-                country: "Germany"
+                country: "DE"
+                continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
               specialitiesCategories:
@@ -5819,11 +5849,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -6094,11 +6125,12 @@ paths:
                   ]
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
-                  addressLines:
-                    - "Pariser Platz 1"
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
                   postalCode: "10117"
                   locality: "Berlin"
-                  country: "Germany"
+                  country: "DE"
+                  continent: "EUROPE"
                 geoAddress:
                   lat: 52.516275
                   lon: 13.377704
@@ -6157,7 +6189,7 @@ paths:
         Performs an advanced search for shops using comprehensive filtering criteria.
         This endpoint accepts a ShopSearchData object in the request body,
         allowing for complex filtering by shop name, shop type, partner status,
-        speciality categories, speciality periods, and creation/update date ranges.
+        speciality categories, speciality periods, countries, continents, and creation/update date ranges.
         Returns a paginated collection of shops matching the search criteria.
       operationId: searchShops
       tags:
@@ -6207,7 +6239,7 @@ paths:
         description: |
           Shop search filter configuration with all filtering criteria.
           Allows filtering by shop name, shop type, partner status,
-          speciality categories, speciality periods, and creation/update date ranges.
+          speciality categories, speciality periods, countries, continents, and creation/update date ranges.
           If you do not want to restrict the search, supply an empty JSON-Object '{}' as body.
         content:
           application/json:
@@ -6219,6 +6251,8 @@ paths:
               partnerStatus: ["PARTNERED"]
               specialitiesCategories: ["medals"]
               specialitiesPeriods: ["ww2"]
+              countries: ["DE"]
+              continents: ["EUROPE"]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -6246,11 +6280,12 @@ paths:
                     domains: ["tech-store-premium.com"]
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
-                      addressLines:
-                        - "Pariser Platz 1"
+                      addressline: "Pariser Platz 1"
+                      addresslineExtra: "2. Etage"
                       postalCode: "10117"
                       locality: "Berlin"
-                      country: "Germany"
+                      country: "DE"
+                      continent: "EUROPE"
                     geoAddress:
                       lat: 52.516275
                       lon: 13.377704
@@ -7183,11 +7218,12 @@ paths:
                           - "my-antique-store.com"
                         shopImage: "https://my-antique-store.com/logo.png"
                         shopStructuredAddress:
-                          addressLines:
-                            - "Pariser Platz 1"
+                          addressline: "Pariser Platz 1"
+                          addresslineExtra: "2. Etage"
                           postalCode: "10117"
                           locality: "Berlin"
-                          country: "Germany"
+                          country: "DE"
+                          continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
                         shopSpecialitiesCategories:
@@ -7257,11 +7293,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7300,11 +7337,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7413,11 +7451,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7529,11 +7568,12 @@ paths:
                   shopName: "My Renamed Antique Store"
                   shopType: "AUCTION_HOUSE"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7571,11 +7611,12 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -7795,11 +7836,12 @@ paths:
                         shopDomains:
                           - "my-antique-store.com"
                         shopStructuredAddress:
-                          addressLines:
-                            - "Pariser Platz 1"
+                          addressline: "Pariser Platz 1"
+                          addresslineExtra: "2. Etage"
                           postalCode: "10117"
                           locality: "Berlin"
-                          country: "Germany"
+                          country: "DE"
+                          continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
                         shopSpecialitiesCategories:
@@ -7906,11 +7948,12 @@ paths:
                     - "my-antique-store.com"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -8032,11 +8075,12 @@ paths:
                   shopName: "My Antique Store"
                   shopType: "AUCTION_HOUSE"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -8074,11 +8118,12 @@ paths:
                   shopDomains:
                     - "my-antique-store.com"
                   shopStructuredAddress:
-                    addressLines:
-                      - "Pariser Platz 1"
+                    addressline: "Pariser Platz 1"
+                    addresslineExtra: "2. Etage"
                     postalCode: "10117"
                     locality: "Berlin"
-                    country: "Germany"
+                    country: "DE"
+                    continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
                   shopSpecialitiesCategories:
@@ -10045,20 +10090,291 @@ components:
       description: Lowercase kebab-case period key.
       example: ww2
 
+    CountryCodeData:
+      type: string
+      description: ISO 3166-1 alpha-2 country code serialized by the backend.
+      enum:
+        - AD
+        - AE
+        - AF
+        - AG
+        - AI
+        - AL
+        - AM
+        - AO
+        - AQ
+        - AR
+        - AS
+        - AT
+        - AU
+        - AW
+        - AX
+        - AZ
+        - BA
+        - BB
+        - BD
+        - BE
+        - BF
+        - BG
+        - BH
+        - BI
+        - BJ
+        - BL
+        - BM
+        - BN
+        - BO
+        - BQ
+        - BR
+        - BS
+        - BT
+        - BV
+        - BW
+        - BY
+        - BZ
+        - CA
+        - CC
+        - CD
+        - CF
+        - CG
+        - CH
+        - CI
+        - CK
+        - CL
+        - CM
+        - CN
+        - CO
+        - CR
+        - CU
+        - CV
+        - CW
+        - CX
+        - CY
+        - CZ
+        - DE
+        - DJ
+        - DK
+        - DM
+        - DO
+        - DZ
+        - EC
+        - EE
+        - EG
+        - EH
+        - ER
+        - ES
+        - ET
+        - FI
+        - FJ
+        - FK
+        - FM
+        - FO
+        - FR
+        - GA
+        - GB
+        - GD
+        - GE
+        - GF
+        - GG
+        - GH
+        - GI
+        - GL
+        - GM
+        - GN
+        - GP
+        - GQ
+        - GR
+        - GS
+        - GT
+        - GU
+        - GW
+        - GY
+        - HK
+        - HM
+        - HN
+        - HR
+        - HT
+        - HU
+        - ID
+        - IE
+        - IL
+        - IM
+        - IN
+        - IO
+        - IQ
+        - IR
+        - IS
+        - IT
+        - JE
+        - JM
+        - JO
+        - JP
+        - KE
+        - KG
+        - KH
+        - KI
+        - KM
+        - KN
+        - KP
+        - KR
+        - KW
+        - KY
+        - KZ
+        - LA
+        - LB
+        - LC
+        - LI
+        - LK
+        - LR
+        - LS
+        - LT
+        - LU
+        - LV
+        - LY
+        - MA
+        - MC
+        - MD
+        - ME
+        - MF
+        - MG
+        - MH
+        - MK
+        - ML
+        - MM
+        - MN
+        - MO
+        - MP
+        - MQ
+        - MR
+        - MS
+        - MT
+        - MU
+        - MV
+        - MW
+        - MX
+        - MY
+        - MZ
+        - NA
+        - NC
+        - NE
+        - NF
+        - NG
+        - NI
+        - NL
+        - NO
+        - NP
+        - NR
+        - NU
+        - NZ
+        - OM
+        - PA
+        - PE
+        - PF
+        - PG
+        - PH
+        - PK
+        - PL
+        - PM
+        - PN
+        - PR
+        - PS
+        - PT
+        - PW
+        - PY
+        - QA
+        - RE
+        - RO
+        - RS
+        - RU
+        - RW
+        - SA
+        - SB
+        - SC
+        - SD
+        - SE
+        - SG
+        - SH
+        - SI
+        - SJ
+        - SK
+        - SL
+        - SM
+        - SN
+        - SO
+        - SR
+        - SS
+        - ST
+        - SV
+        - SX
+        - SY
+        - SZ
+        - TC
+        - TD
+        - TF
+        - TG
+        - TH
+        - TJ
+        - TK
+        - TL
+        - TM
+        - TN
+        - TO
+        - TR
+        - TT
+        - TV
+        - TW
+        - TZ
+        - UA
+        - UG
+        - UM
+        - US
+        - UY
+        - UZ
+        - VA
+        - VC
+        - VE
+        - VG
+        - VI
+        - VN
+        - VU
+        - WF
+        - WS
+        - YE
+        - YT
+        - ZA
+        - ZM
+        - ZW
+      example: DE
+
+    ContinentData:
+      type: string
+      description: Continent derived from a structured-address country code.
+      enum:
+        - AFRICA
+        - ANTARCTICA
+        - ASIA
+        - EUROPE
+        - NORTH_AMERICA
+        - OCEANIA
+        - SOUTH_AMERICA
+      example: EUROPE
+
     StructuredAddressData:
       type: object
       description: |
         Structured postal address used for shop metadata and geocoding.
-        When supplied in shop create/update payloads, at least one component must contain a non-empty value;
-        otherwise the backend rejects the request with `400 BAD_BODY_VALUE`.
+        When supplied in shop create/update payloads, at least one component among `addressline`,
+        `addresslineExtra`, `locality`, `region`, `postalCode`, or `country` must contain a non-empty
+        value; `continent` alone does not make the address valid, and otherwise the backend rejects the
+        request with `400 BAD_BODY_VALUE`.
       properties:
-        addressLines:
-          type: array
-          items:
-            type: string
-          description: Ordered free-form address lines such as street and house number.
-          example:
-            - "Pariser Platz 1"
+        addressline:
+          type: string
+          description: Primary free-form address line such as street and house number.
+          example: "Pariser Platz 1"
+        addresslineExtra:
+          type: string
+          description: Optional secondary address line such as floor, suite, building, or c/o information.
+          example: "2. Etage"
         locality:
           type: string
           description: City, town, or locality.
@@ -10072,9 +10388,17 @@ components:
           description: Postal or ZIP code.
           example: "10117"
         country:
-          type: string
-          description: Country name.
-          example: "Germany"
+          allOf:
+            - $ref: "#/components/schemas/CountryCodeData"
+          description: |
+            ISO 3166-1 alpha-2 country code serialized by the backend.
+            When `continent` is omitted but `country` is present, the backend derives the continent from this code.
+        continent:
+          allOf:
+            - $ref: "#/components/schemas/ContinentData"
+          description: |
+            Optional continent value exposed alongside `country` in structured-address data.
+            If omitted while `country` is present, the backend derives it automatically.
 
     GeoAddressData:
       type: object
@@ -10188,7 +10512,7 @@ components:
 
     ShopSearchData:
       type: object
-      description: Search filter configuration for shops with optional name, type, partner-status, speciality, and date-range filters
+      description: Search filter configuration for shops with optional name, type, partner-status, speciality, country, continent, and date-range filters
       properties:
         shopNameQuery:
           type: string
@@ -10230,6 +10554,24 @@ components:
             Optional repeated speciality-period filter.
             When provided, only shops having at least one of the listed period keys are returned.
           example: ["ww2"]
+        countries:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryCodeData"
+          description: |
+            Optional repeated ISO 3166-1 alpha-2 country-code filter.
+            When provided, only shops having at least one of the listed structured-address country codes are returned.
+          uniqueItems: true
+          example: ["DE", "US"]
+        continents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContinentData"
+          description: |
+            Optional repeated continent filter.
+            When provided, only shops having at least one of the listed structured-address continents are returned.
+          uniqueItems: true
+          example: ["EUROPE", "NORTH_AMERICA"]
         created:
           allOf:
             - $ref: "#/components/schemas/RangeQueryDateTime"
