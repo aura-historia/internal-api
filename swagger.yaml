@@ -1327,6 +1327,9 @@ paths:
         - `sellerSlugId`
         - `excludeSellerSlugId`
         - `shopType`
+        - `country`
+        - `continent`
+        - `geoAddress[lat]`, `geoAddress[lon]`, `geoAddress[distance][amount]`, `geoAddress[distance][unit]`
         - `price[min]`, `price[max]`
         - `state`
         - `originYear[min]`, `originYear[max]`
@@ -1494,6 +1497,50 @@ paths:
               $ref: "#/components/schemas/ShopTypeData"
             uniqueItems: true
           example: ["COMMERCIAL_DEALER"]
+        - name: country
+          in: query
+          required: false
+          description: |
+            Optional filter by one or more structured-address country codes of the selling shop.
+            Uses ISO 3166-1 alpha-2 codes and matches products whose indexed shop address country is one of the provided values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/CountryCodeData"
+            uniqueItems: true
+          example: ["DE"]
+        - name: continent
+          in: query
+          required: false
+          description: |
+            Optional filter by one or more structured-address continents of the selling shop.
+            Matches products whose indexed shop address continent is one of the provided values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ContinentData"
+            uniqueItems: true
+          example: ["EUROPE"]
+        - name: geoAddress
+          in: query
+          required: false
+          description: |
+            Optional geospatial proximity filter for the selling shop's indexed coordinates.
+            Use deep-object encoding with `geoAddress[lat]`, `geoAddress[lon]`, `geoAddress[distance][amount]`, and `geoAddress[distance][unit]`.
+          style: deepObject
+          explode: true
+          schema:
+            $ref: "#/components/schemas/GeoDistanceQueryData"
+          example:
+            lat: 52.52
+            lon: 13.405
+            distance:
+              amount: 100
+              unit: KILOMETERS
         - name: price
           in: query
           required: false
@@ -1844,7 +1891,7 @@ paths:
         description: |
           Search filter configuration with all filtering criteria.
           Unlike the simple text search, this allows filtering by multiple fields,
-          price ranges, product states, and date ranges.
+          geo filters, price ranges, product states, and date ranges.
         content:
           application/json:
             schema:
@@ -1856,6 +1903,14 @@ paths:
               categoryId: ["antique-clocks", "musical-instruments"]
               periodId: ["baroque", "renaissance"]
               shopName: ["Antique Store", "Vintage Gallery"]
+              country: ["DE"]
+              continent: ["EUROPE"]
+              geoAddress:
+                lat: 52.52
+                lon: 13.405
+                distance:
+                  amount: 100
+                  unit: KILOMETERS
               price:
                 min: 1000
                 max: 5000
@@ -3253,6 +3308,7 @@ paths:
 
         The generic `query` performs fuzzy matching across `email`, `firstName`,
         `lastName`, and `stripeCustomerId`.
+        Structured-address filters are also available via `country`, `continent`, and `geoAddress`.
       operationId: adminSearchUsers
       tags:
         - User Account
@@ -3311,6 +3367,46 @@ paths:
               $ref: "#/components/schemas/UserRoleData"
             uniqueItems: true
           example: ["ADMIN"]
+        - name: country
+          in: query
+          required: false
+          description: Optional filter by one or more structured-address country codes (ISO 3166-1 alpha-2).
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/CountryCodeData"
+            uniqueItems: true
+          example: ["DE"]
+        - name: continent
+          in: query
+          required: false
+          description: Optional filter by one or more structured-address continents.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/ContinentData"
+            uniqueItems: true
+          example: ["EUROPE"]
+        - name: geoAddress
+          in: query
+          required: false
+          description: |
+            Optional geospatial proximity filter for the user's indexed coordinates.
+            Use deep-object encoding with `geoAddress[lat]`, `geoAddress[lon]`, `geoAddress[distance][amount]`, and `geoAddress[distance][unit]`.
+          style: deepObject
+          explode: true
+          schema:
+            $ref: "#/components/schemas/GeoDistanceQueryData"
+          example:
+            lat: 52.52
+            lon: 13.405
+            distance:
+              amount: 50
+              unit: KILOMETERS
         - name: created[min]
           in: query
           required: false
@@ -3407,6 +3503,15 @@ paths:
                     tier: "ULTIMATE"
                     role: "ADMIN"
                     stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                    structuredAddress:
+                      addressline: "Pariser Platz 1"
+                      locality: "Berlin"
+                      postalCode: "10117"
+                      country: "DE"
+                      continent: "EUROPE"
+                    geoAddress:
+                      lat: 52.516275
+                      lon: 13.377704
                     created: "2026-01-10T09:00:00Z"
                     updated: "2026-04-25T08:00:00Z"
                   - userId: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
@@ -3574,6 +3679,15 @@ paths:
                 tier: "ULTIMATE"
                 role: "ADMIN"
                 stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                structuredAddress:
+                  addressline: "Pariser Platz 1"
+                  locality: "Berlin"
+                  postalCode: "10117"
+                  country: "DE"
+                  continent: "EUROPE"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
                 created: "2026-01-10T09:00:00Z"
                 updated: "2026-04-25T08:00:00Z"
         "401":
@@ -3690,6 +3804,15 @@ paths:
                 tier: "ULTIMATE"
                 role: "ADMIN"
                 stripeCustomerId: "cus_admin_550e8400e29b41d4a716446655440000"
+                structuredAddress:
+                  addressline: "Pariser Platz 1"
+                  locality: "Berlin"
+                  postalCode: "10117"
+                  country: "DE"
+                  continent: "EUROPE"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
                 created: "2026-01-10T09:00:00Z"
                 updated: "2026-04-25T09:15:00Z"
         "400":
@@ -8461,6 +8584,20 @@ components:
           description: Display name of the seller associated with the product
         shopType:
           $ref: "#/components/schemas/ShopTypeData"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: |
+            Optional structured address propagated from the selling shop when available.
+            This is the address that backs the product's geo-search filters.
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoAddressData"
+          nullable: true
+          description: |
+            Optional latitude/longitude coordinates propagated from the selling shop when available.
+            This is the coordinate data used by product geo-distance search.
         categoryId:
           type: string
           pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
@@ -9574,6 +9711,31 @@ components:
           default: []
           nullable: true
           example: ["COMMERCIAL_DEALER"]
+        country:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryCodeData"
+          description: |
+            Optional filter by one or more structured-address country codes of the selling shop.
+            Uses ISO 3166-1 alpha-2 codes.
+          uniqueItems: true
+          default: []
+          example: ["DE"]
+        continent:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContinentData"
+          description: Optional filter by one or more structured-address continents of the selling shop.
+          uniqueItems: true
+          default: []
+          example: ["EUROPE"]
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoDistanceQueryData"
+          nullable: true
+          description: |
+            Optional geospatial proximity filter for the selling shop's indexed coordinates.
+            Matches products whose indexed shop coordinates fall within the given distance of the provided point.
         price:
           allOf:
             - $ref: "#/components/schemas/RangeQueryUInt64"
@@ -9864,6 +10026,27 @@ components:
           uniqueItems: true
           nullable: true
           example: ["MARKETPLACE"]
+        country:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryCodeData"
+          uniqueItems: true
+          nullable: true
+          description: Optional replacement filter by structured-address country codes of the selling shop.
+          example: ["DE"]
+        continent:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContinentData"
+          uniqueItems: true
+          nullable: true
+          description: Optional replacement filter by structured-address continents of the selling shop.
+          example: ["EUROPE"]
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoDistanceQueryData"
+          nullable: true
+          description: Optional replacement geo-distance filter for the selling shop's indexed coordinates.
         price:
           allOf:
             - $ref: "#/components/schemas/RangeQueryUInt64"
@@ -10039,6 +10222,57 @@ components:
           format: int32
           description: Maximum value (inclusive)
           example: 1953
+
+    DistanceUnitData:
+      type: string
+      description: Supported units for geo-distance filters.
+      enum:
+        - MILES
+        - YARDS
+        - FEET
+        - INCHES
+        - KILOMETERS
+        - METERS
+        - CENTIMETERS
+        - MILLIMETERS
+        - NAUTICAL_MILES
+      example: KILOMETERS
+
+    DistanceData:
+      type: object
+      description: Scalar distance value used by geo-distance filters.
+      required:
+        - amount
+        - unit
+      properties:
+        amount:
+          type: number
+          format: double
+          description: Numeric distance amount.
+          example: 50
+        unit:
+          $ref: "#/components/schemas/DistanceUnitData"
+
+    GeoDistanceQueryData:
+      type: object
+      description: Geospatial filter matching indexed coordinates within a distance of a reference point.
+      required:
+        - lat
+        - lon
+        - distance
+      properties:
+        lat:
+          type: number
+          format: double
+          description: Reference latitude in decimal degrees.
+          example: 52.52
+        lon:
+          type: number
+          format: double
+          description: Reference longitude in decimal degrees.
+          example: 13.405
+        distance:
+          $ref: "#/components/schemas/DistanceData"
 
     SortUserSearchFilterFieldData:
       type: string
@@ -11176,6 +11410,25 @@ components:
           uniqueItems: true
           description: Filter matching users to one or more roles.
           example: ["ADMIN"]
+        country:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryCodeData"
+          uniqueItems: true
+          description: Filter matching users to one or more structured-address country codes.
+          example: ["DE"]
+        continent:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContinentData"
+          uniqueItems: true
+          description: Filter matching users to one or more structured-address continents.
+          example: ["EUROPE"]
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoDistanceQueryData"
+          nullable: true
+          description: Filter matching users whose indexed coordinates lie within the given distance of the provided point.
         created:
           type: object
           description: Optional created-at range filter (RFC3339 timestamps).
@@ -11261,6 +11514,16 @@ components:
           type: string
           description: Persisted Stripe customer identifier for the user, omitted when the user has never been linked to a Stripe customer
           example: "cus_mocked_550e8400e29b41d4a716446655440000"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: Optional structured postal address stored on the user account.
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoAddressData"
+          nullable: true
+          description: Optional latitude/longitude coordinates derived by the backend from `structuredAddress`.
         created:
           type: string
           format: date-time
@@ -11320,6 +11583,11 @@ components:
           nullable: true
           description: New Stripe customer identifier to persist for the user.
           example: "cus_admin_550e8400e29b41d4a716446655440000"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: Optional structured postal address to persist for the user. When provided, the backend geocodes it and refreshes `geoAddress`.
 
     PatchUserAccountData:
       type: object
@@ -11354,6 +11622,11 @@ components:
           nullable: true
           description: New consent state for displaying prohibited content
           example: true
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: Optional structured postal address to persist for the user. When provided, the backend geocodes it and refreshes `geoAddress`.
 
     PostBillingCheckoutData:
       type: object
@@ -11891,6 +12164,16 @@ components:
             When provided, the backend resolves the seller shop by this name and associates the product with that seller.
             When omitted, or when the shop type is neither `AUCTION_PLATFORM` nor `MARKETPLACE`, the partner shop itself is used as the seller.
           example: "Christie's London"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: Optional structured address to attach to the product for geo-aware indexing and search.
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoAddressData"
+          nullable: true
+          description: Optional coordinates to attach to the product for geo-aware indexing and search.
         authenticity:
           allOf:
             - $ref: "#/components/schemas/AuthenticityData"
@@ -12133,6 +12416,16 @@ components:
             When omitted, or when the shop type is neither `AUCTION_PLATFORM` nor `MARKETPLACE`, the partner shop itself is used as the seller.
             Used only when creating a new product.
           example: "Christie's London"
+        structuredAddress:
+          allOf:
+            - $ref: "#/components/schemas/StructuredAddressData"
+          nullable: true
+          description: Optional structured address to attach to the product for geo-aware indexing and search. Used only when creating a new product.
+        geoAddress:
+          allOf:
+            - $ref: "#/components/schemas/GeoAddressData"
+          nullable: true
+          description: Optional coordinates to attach to the product for geo-aware indexing and search. Used only when creating a new product.
         authenticity:
           allOf:
             - $ref: "#/components/schemas/AuthenticityData"
