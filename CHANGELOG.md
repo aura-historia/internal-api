@@ -6,6 +6,62 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-28 - Shared Geo Data for Users, Products, and Search Filters (`backend#929`)
+
+Backend PR `#929` extends REST contracts with shared structured-address and coordinate data for users and partner product ingestion, and adds geo-aware search filters for products, saved search filters, and admin user search. This update realigns the internal OpenAPI spec with the PR contract by documenting the new request/response fields, shared geo-distance schema, and the new query/body filters.
+
+### Added
+
+- **New schemas**
+  - **`DistanceUnitData`** — Geo-distance unit enum with serialized values `miles`, `yards`, `feet`, `inches`, `kilometers`, `meters`, `centimeters`, `millimeters`, and `nauticalMiles`.
+  - **`DistanceData`** — Distance object with required `amount` and `unit`.
+  - **`GeoDistanceQueryData`** — Geo-distance filter object with required `lat`, `lon`, and `distance`.
+
+- **User account address fields**
+  - **`GetUserAccountData.structuredAddress`** — Optional structured postal address stored on the user account.
+  - **`GetUserAccountData.geoAddress`** — Optional latitude/longitude coordinates derived by the backend from `structuredAddress`.
+  - **`PatchUserAccountData.structuredAddress`** — Optional self-service patch field for persisting a user address.
+  - **`PatchAdminUserData.structuredAddress`** — Optional admin patch field for persisting a user address.
+
+- **New admin user search filters on `GET /api/v1/users` and `UserSearchData`**
+
+  | Field / query parameter | Type | Required | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `country` | `CountryCodeData[]` | No | ISO 3166-1 alpha-2 country codes | Filters users by structured-address country. |
+  | `continent` | `ContinentData[]` | No | `AFRICA`, `ANTARCTICA`, `ASIA`, `EUROPE`, `NORTH_AMERICA`, `OCEANIA`, `SOUTH_AMERICA` | Filters users by structured-address continent. |
+  | `geoAddress` | `GeoDistanceQueryData` | No | deep-object query: `geoAddress[lat]`, `geoAddress[lon]`, `geoAddress[distance][amount]`, `geoAddress[distance][unit]` | Filters users by proximity to indexed coordinates. |
+
+- **Product geo/address fields**
+  - **`GetProductData.structuredAddress`** — Optional structured address propagated from the selling shop.
+  - **`GetProductData.geoAddress`** — Optional latitude/longitude coordinates propagated from the selling shop.
+  - **`PostProductData.structuredAddress`** / **`PostProductData.geoAddress`** — Optional partner-ingestion fields for geo-aware product indexing.
+  - **`PutProductData.structuredAddress`** / **`PutProductData.geoAddress`** — Optional partner upsert fields for geo-aware product indexing.
+
+- **New product geo filters on `ProductSearchData`, `PatchProductSearchData`, `GET /api/v1/products`, `POST /api/v1/products/search`, and saved search-filter contracts**
+
+  | Field / query parameter | Type | Required | Allowed values / format | Description |
+  |---|---|---|---|---|
+  | `country` | `CountryCodeData[]` | No | ISO 3166-1 alpha-2 country codes | Filters products by the selling shop's structured-address country. |
+  | `continent` | `ContinentData[]` | No | `AFRICA`, `ANTARCTICA`, `ASIA`, `EUROPE`, `NORTH_AMERICA`, `OCEANIA`, `SOUTH_AMERICA` | Filters products by the selling shop's structured-address continent. |
+  | `geoAddress` | `GeoDistanceQueryData` | No | `{ lat, lon, distance }` | Filters products by proximity to the selling shop's indexed coordinates. |
+
+### Changed
+
+- **`GET /api/v1/users`**
+  - The admin search documentation now includes `country`, `continent`, and deep-object `geoAddress` query parameters in addition to the existing text, tier, role, and date-range filters.
+  - Response examples now show the newly returned `structuredAddress` and `geoAddress` fields on user account items.
+
+- **Product search documentation**
+  - `ProductSearchData`, `PatchProductSearchData`, and both product-search endpoints now document the backend's geo-aware `country`, `continent`, and `geoAddress` filters.
+  - Saved search-filter contracts automatically inherit the same geo-aware product-search fields because they embed `ProductSearchData`.
+
+- **Partner product ingestion documentation**
+  - `PostProductData` and `PutProductData` now document the optional structured-address and coordinate fields accepted by the backend for geo-aware indexing.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-27 - Structured Address Normalization (`backend#923`)
 
 Backend PR `#923` normalizes the structured-address REST DTO shared by shop and partner-application payloads and extends shop search with structured-address geography filters. This update realigns the internal OpenAPI spec with the backend contract by replacing the old multi-line address field, documenting the new continent enum, correcting the country-code format, and adding the missing search filters.
