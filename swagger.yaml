@@ -1540,7 +1540,7 @@ paths:
             lon: 13.405
             distance:
               amount: 100
-              unit: kilometers
+              unit: KILOMETERS
         - name: price
           in: query
           required: false
@@ -1910,7 +1910,7 @@ paths:
                 lon: 13.405
                 distance:
                   amount: 100
-                  unit: kilometers
+                  unit: KILOMETERS
               price:
                 min: 1000
                 max: 5000
@@ -3406,7 +3406,7 @@ paths:
             lon: 13.405
             distance:
               amount: 50
-              unit: kilometers
+              unit: KILOMETERS
         - name: created[min]
           in: query
           required: false
@@ -10227,16 +10227,16 @@ components:
       type: string
       description: Supported units for geo-distance filters.
       enum:
-        - miles
-        - yards
-        - feet
-        - inches
-        - kilometers
-        - meters
-        - centimeters
-        - millimeters
-        - nauticalMiles
-      example: kilometers
+        - MILES
+        - YARDS
+        - FEET
+        - INCHES
+        - KILOMETERS
+        - METERS
+        - CENTIMETERS
+        - MILLIMETERS
+        - NAUTICAL_MILES
+      example: KILOMETERS
 
     DistanceData:
       type: object

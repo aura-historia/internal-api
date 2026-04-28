@@ -13,7 +13,7 @@ Backend PR `#929` extends REST contracts with shared structured-address and coor
 ### Added
 
 - **New schemas**
-  - **`DistanceUnitData`** — Geo-distance unit enum with serialized values `miles`, `yards`, `feet`, `inches`, `kilometers`, `meters`, `centimeters`, `millimeters`, and `nauticalMiles`.
+  - **`DistanceUnitData`** — Geo-distance unit enum with serialized values `MILES`, `YARDS`, `FEET`, `INCHES`, `KILOMETERS`, `METERS`, `CENTIMETERS`, `MILLIMETERS`, and `NAUTICAL_MILES`.
   - **`DistanceData`** — Distance object with required `amount` and `unit`.
   - **`GeoDistanceQueryData`** — Geo-distance filter object with required `lat`, `lon`, and `distance`.
 
