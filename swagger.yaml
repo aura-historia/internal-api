@@ -5448,6 +5448,7 @@ paths:
               domains:
                 - "tech-store-premium.com"
                 - "tech-store-premium.de"
+              url: "https://tech-store-premium.com/"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
                 addressline: "Pariser Platz 1"
@@ -5490,6 +5491,7 @@ paths:
                 domains:
                   - "tech-store-premium.com"
                   - "tech-store-premium.de"
+                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -5926,6 +5928,7 @@ paths:
             schema:
               $ref: "#/components/schemas/PatchShopData"
             example:
+              url: "https://tech-store-premium.com/"
               structuredAddress:
                 addressline: "Pariser Platz 1"
                 addresslineExtra: "2. Etage"
@@ -5970,6 +5973,7 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
+                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6246,6 +6250,7 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
+                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6401,6 +6406,7 @@ paths:
                     name: "Tech Store Premium"
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
+                    url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
                       addressline: "Pariser Platz 1"
@@ -7227,6 +7233,7 @@ paths:
                   name: "Tech Store Premium"
                   shopType: "COMMERCIAL_DEALER"
                   domains: ["tech-store-premium.com"]
+                  url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
                   created: "2024-01-15T10:00:00Z"
@@ -7339,6 +7346,7 @@ paths:
                         shopType: "COMMERCIAL_DEALER"
                         shopDomains:
                           - "my-antique-store.com"
+                        shopUrl: "https://my-antique-store.com/"
                         shopImage: "https://my-antique-store.com/logo.png"
                         shopStructuredAddress:
                           addressline: "Pariser Platz 1"
@@ -7380,8 +7388,8 @@ paths:
       description: |
         Submits a new partner shop application for the authenticated user.
         The application payload specifies either an existing shop (by `shopId`) or a new shop
-        (with name, type, domains, and optional metadata such as image, contact details, address,
-        and speciality keys).
+        (with name, type, domains, and optional metadata such as a primary URL, image, contact details,
+        address, and speciality keys).
         The application is created with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
         Both state fields are read-only and cannot be set by the client.
         Returns the created application with HTTP 201.
@@ -7414,6 +7422,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
@@ -7458,6 +7467,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
@@ -7572,6 +7582,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
@@ -7690,6 +7701,7 @@ paths:
                 value:
                   shopName: "My Renamed Antique Store"
                   shopType: "AUCTION_HOUSE"
+                  shopUrl: "https://my-antique-store.com/renamed"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
                     addresslineExtra: "2. Etage"
@@ -7733,6 +7745,7 @@ paths:
                   shopType: "AUCTION_HOUSE"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/renamed"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
                     addresslineExtra: "2. Etage"
@@ -7958,6 +7971,7 @@ paths:
                         shopType: "COMMERCIAL_DEALER"
                         shopDomains:
                           - "my-antique-store.com"
+                        shopUrl: "https://my-antique-store.com/"
                         shopStructuredAddress:
                           addressline: "Pariser Platz 1"
                           addresslineExtra: "2. Etage"
@@ -8069,6 +8083,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopImage: "https://my-antique-store.com/logo.png"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
@@ -8197,6 +8212,7 @@ paths:
                 value:
                   shopName: "My Antique Store"
                   shopType: "AUCTION_HOUSE"
+                  shopUrl: "https://my-antique-store.com/curated"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
                     addresslineExtra: "2. Etage"
@@ -8240,6 +8256,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopStructuredAddress:
                     addressline: "Pariser Platz 1"
                     addresslineExtra: "2. Etage"
@@ -8408,6 +8425,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   shopDomains:
                     - "my-antique-store.com"
+                  shopUrl: "https://my-antique-store.com/"
                   shopImage: "https://my-antique-store.com/logo.png"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-11T12:00:00Z"
@@ -10699,6 +10717,12 @@ components:
               "tech-store-premium.de",
               "apple.tech-store-premium.com",
             ]
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional primary URL of the shop website. Read responses may include backend-managed UTM tracking parameters.
+          example: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
 
         image:
           type: string
@@ -10841,6 +10865,14 @@ components:
           example:
             - "tech-store-premium.com"
             - "tech-store-premium.de"
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: |
+            Optional updated primary URL of the shop website.
+            When omitted or set to `null`, the current URL remains unchanged.
+          example: "https://tech-store-premium.com/"
         image:
           type: string
           format: uri
@@ -10913,6 +10945,12 @@ components:
           example:
             - "tech-store-premium.com"
             - "tech-store-premium.de"
+        url:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional primary URL of the shop website.
+          example: "https://tech-store-premium.com/"
         image:
           type: string
           format: uri
@@ -12493,7 +12531,7 @@ components:
       description: |
         The payload of a partner shop application. Discriminated by the `type` field.
         - `EXISTING`: The application targets an existing shop identified by `shopId`.
-        - `NEW`: The application targets a new shop described by name, type, domains, and optional metadata.
+        - `NEW`: The application targets a new shop described by name, type, domains, and optional metadata such as a primary URL, image, address, and contact details.
       oneOf:
         - title: Existing shop payload
           type: object
@@ -12540,6 +12578,12 @@ components:
               uniqueItems: true
               example:
                 - "my-antique-store.com"
+            shopUrl:
+              type: string
+              format: uri
+              nullable: true
+              description: Optional primary URL of the requested new shop website.
+              example: "https://my-antique-store.com/"
             shopImage:
               type: string
               format: uri
@@ -12622,7 +12666,7 @@ components:
       description: |
         Request payload for creating a new partner shop application. Discriminated by the `type` field.
         - `EXISTING`: Apply for partnership for an existing shop identified by `shopId`.
-        - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional metadata.
+        - `NEW`: Apply for partnership for a new shop described by name, type, domains, and optional metadata such as a primary URL, image, address, and contact details.
         The created application always starts with `businessState` `SUBMITTED` and `executionState` `PROCESSING`.
       oneOf:
         - title: Existing shop payload
@@ -12670,6 +12714,12 @@ components:
               uniqueItems: true
               example:
                 - "my-antique-store.com"
+            shopUrl:
+              type: string
+              format: uri
+              nullable: true
+              description: Optional primary URL of the requested new shop website.
+              example: "https://my-antique-store.com/"
             shopImage:
               type: string
               format: uri
@@ -12741,6 +12791,12 @@ components:
           example:
             - "my-antique-store.com"
             - "my-antique-store.de"
+        shopUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Updated primary URL of the requested new shop website. When omitted or set to `null`, the current value remains unchanged.
+          example: "https://my-antique-store.com/renamed"
         shopImage:
           type: string
           format: uri
@@ -12810,6 +12866,12 @@ components:
           example:
             - "my-antique-store.com"
             - "my-antique-store.de"
+        shopUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: Updated primary URL of the requested new shop website. When omitted or set to `null`, the current value remains unchanged.
+          example: "https://my-antique-store.com/curated"
         shopImage:
           type: string
           format: uri

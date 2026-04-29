@@ -6,6 +6,42 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-29 - Shop Primary URL Fields (`backend#940`)
+
+Backend PR `#940` adds an optional primary shop URL to shop REST DTOs and to the `NEW` partner shop application payloads used by user and admin flows. This update realigns the internal OpenAPI spec with the backend contract and documents the tracked shop URL now returned by shop read responses.
+
+### Added
+
+- **New shop URL field on shop DTOs**
+
+  | Schema / field | Type | Required | Description |
+  |---|---|---|---|
+  | `PostShopData.url` | `string (uri) \| null` | No | Optional primary URL of the shop website accepted when creating a shop. |
+  | `PatchShopData.url` | `string (uri) \| null` | No | Optional replacement primary URL of the shop website accepted when updating a shop. |
+  | `GetShopData.url` | `string (uri) \| null` | No | Optional primary URL returned for the shop. |
+
+- **New partner shop application URL field for `type: "NEW"` payloads**
+
+  | Schema / field | Type | Required | Description |
+  |---|---|---|---|
+  | `PostPartnerShopApplicationPayloadData.NEW.shopUrl` | `string (uri) \| null` | No | Optional primary URL of the requested new shop website when creating an application. |
+  | `GetPartnerShopApplicationPayloadData.NEW.shopUrl` | `string (uri) \| null` | No | Optional primary URL returned for the requested new shop website. |
+  | `PatchPartnerShopApplicationData.shopUrl` | `string (uri) \| null` | No | Optional replacement primary URL for `NEW` applications in the user patch endpoint. |
+  | `AdminPatchPartnerShopApplicationData.shopUrl` | `string (uri) \| null` | No | Optional replacement primary URL for `NEW` applications in the admin patch endpoint. |
+
+### Changed
+
+- **Shop endpoint documentation**
+  - `POST /api/v1/shops`, `PATCH /api/v1/shops/{shopId}`, and shop response examples now include the optional `url` field.
+  - Shop read examples now show the tracked URL representation returned by the backend, including `utm_source=aura_historia` and `utm_medium=referral` on `GetShopData.url`.
+
+- **Partner shop application documentation**
+  - User and admin examples for listing, creating, retrieving, and updating partner shop applications now include `shopUrl` whenever the payload type is `NEW`.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-28 - Shared Geo Data for Users, Products, and Search Filters (`backend#929`)
 
 Backend PR `#929` extends REST contracts with shared structured-address and coordinate data for users and partner product ingestion, and adds geo-aware search filters for products, saved search filters, and admin user search. This update realigns the internal OpenAPI spec with the PR contract by documenting the new request/response fields, shared geo-distance schema, and the new query/body filters.
