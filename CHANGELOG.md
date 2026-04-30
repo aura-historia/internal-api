@@ -6,6 +6,45 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-04-30 - Search-Filter Match Feedback (`backend#942`)
+
+Backend PR `#942` adds persisted user feedback for saved-search product matches. This update realigns the internal OpenAPI spec with the backend contract by documenting the new authenticated PATCH endpoint for individual matches, the dedicated match-feedback request/response schemas, and the new `matchFeedback` field now exposed in personalized product user state.
+
+### Added
+
+- **New endpoint: `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}`**
+  - Requires authentication.
+  - Request body schema: `PatchUserSearchFilterMatchData`
+  - Success response schema: `SearchFilterProductMatchData`
+
+  | Contract element | Type | Required | Description |
+  |---|---|---|---|
+  | Path `userSearchFilterId` | `string (uuid)` | Yes | Saved search-filter identifier that produced the match. |
+  | Path `shopId` | `string (uuid)` | Yes | Shop identifier of the matched product. |
+  | Path `shopsProductId` | `string` | Yes | Shop-scoped product identifier of the matched product. |
+  | Body `feedback` | `boolean` | No | Optional persisted relevance feedback. `true` marks the match as relevant, `false` marks it as not relevant. Omitting the field performs a no-op and returns the existing match unchanged. |
+  | Response `feedback` | `boolean` | No | Stored feedback value, returned only after feedback has been explicitly recorded. |
+  | Response headers | `Last-Modified`, `Access-Control-Allow-Origin` | — | Returns the updated match timestamp and standard CORS header. |
+
+- **New schema: `PatchUserSearchFilterMatchData`**
+  - Partial patch payload for search-filter product match feedback with optional `feedback: boolean`.
+
+- **New schema: `SearchFilterProductMatchData`**
+  - Match record returned by the new PATCH endpoint with fields `userId`, `userSearchFilterId`, `shopId`, `shopsProductId`, `productId`, optional `feedback`, `created`, and `updated`.
+
+### Changed
+
+- **`SearchFilterUserStateData`**
+  - Added optional `matchFeedback: boolean` to the personalized product user-state object.
+  - The field is returned only when the authenticated user has a saved-search match for the product and has already submitted feedback for that match.
+
+- **Personalized product responses**
+  - The shared `ProductUserStateData.searchFilter` contract now allows `matchFeedback` anywhere personalized product user state is returned, including product detail, product listings/search, similar products, watchlist products, and search-filter matched products.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-29 - Shop Primary URL Fields (`backend#940`)
 
 Backend PR `#940` adds an optional primary shop URL to shop REST DTOs and to the `NEW` partner shop application payloads used by user and admin flows. This update realigns the internal OpenAPI spec with the backend contract and documents the tracked shop URL now returned by shop read responses.
