@@ -2957,7 +2957,7 @@ paths:
         The match is addressed by the search filter ID, shop ID, and shop-specific product ID.
         Requires valid Cognito JWT authentication.
 
-        The request body is required, but the `feedback` field itself is optional:
+        The request body itself is required and must be a JSON object, but the `feedback` field is optional:
         - `{"feedback": true}` marks the match as relevant.
         - `{"feedback": false}` marks the match as not relevant.
         - `{}` performs a no-op update and returns the existing stored match unchanged.
@@ -2994,6 +2994,7 @@ paths:
         required: true
         description: |
           Feedback patch for an existing search-filter product match.
+          An empty JSON object `{}` is valid.
           Omitting `feedback` inside the JSON object leaves the stored feedback unchanged.
         content:
           application/json:
