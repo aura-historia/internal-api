@@ -2103,6 +2103,7 @@ paths:
                     userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     name: "My Tech Store Search"
                     notifications: true
+                    state: "ACTIVE"
                     search:
                       language: "en"
                       currency: "USD"
@@ -2239,6 +2240,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -2374,6 +2376,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -2586,6 +2589,14 @@ paths:
                 summary: Enable notifications for this search filter
                 value:
                   notifications: true
+              deactivate_filter:
+                summary: Deactivate this search filter manually
+                value:
+                  state: "INACTIVE_BY_USER"
+              reactivate_filter:
+                summary: Reactivate this search filter
+                value:
+                  state: "ACTIVE"
               update_filter_only:
                 summary: Update only the filter criteria
                 value:
@@ -2626,6 +2637,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "Updated Filter Name"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -2701,16 +2713,26 @@ paths:
                     title: "Not Found"
                     error: "USER_NOT_FOUND"
         "422":
-          description: Unprocessable Entity - restricted feature used for the user's tier
+          description: Unprocessable Entity - restricted feature used for the user's tier or quota exceeded during reactivation
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 422
-                title: "Unprocessable Content"
-                error: "SEARCH_FILTER_RESTRICTED_FEATURE"
-                detail: "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
+              examples:
+                restricted_feature:
+                  summary: Reactivation blocked by tier-restricted features
+                  value:
+                    status: 422
+                    title: "Unprocessable Content"
+                    error: "SEARCH_FILTER_RESTRICTED_FEATURE"
+                    detail: "Search filter contains forbidden search field 'shopName' which requires a higher user tier."
+                quota_exceeded:
+                  summary: Reactivation blocked by search-filter quota
+                  value:
+                    status: 422
+                    title: "Unprocessable Content"
+                    error: "SEARCH_FILTER_QUOTA_EXCEEDED"
+                    detail: "Exceeded the maximum amount of search filters. There are already 1/1 search filters occupied."
         "500":
           description: Internal server error
           content:
@@ -4815,7 +4837,7 @@ paths:
     patch:
       summary: Update watchlist product settings
       description: |
-        Updates settings for a specific watchlist product (e.g., toggle notifications).
+        Updates settings for a specific watchlist product (e.g., toggle notifications or manually activate/deactivate the watchlist entry).
         Returns the full personalized product data after applying the update.
         Requires valid Cognito JWT authentication.
       operationId: patchWatchlistProduct
@@ -4871,6 +4893,14 @@ paths:
                 summary: Disable notifications
                 value:
                   notifications: false
+              deactivate_watchlist_entry:
+                summary: Deactivate this watchlist entry manually
+                value:
+                  state: "INACTIVE_BY_USER"
+              reactivate_watchlist_entry:
+                summary: Reactivate this watchlist entry
+                value:
+                  state: "ACTIVE"
       responses:
         "200":
           description: Watchlist product updated successfully
@@ -4996,6 +5026,17 @@ paths:
                 status: 404
                 title: "Not Found"
                 error: "WATCHLIST_ENTRY_NOT_FOUND"
+        "422":
+          description: Unprocessable Entity - watchlist quota exceeded during reactivation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 422
+                title: "Unprocessable Content"
+                error: "WATCHLIST_QUOTA_EXCEEDED"
+                detail: "Exceeded the maximum amount of watchlist entries. There are already 20/20 watchlist entries occupied."
         "500":
           description: Internal server error
           content:
@@ -10077,7 +10118,7 @@ components:
       description: |
         Partial search filter update data.
         All fields are optional and only provided fields will be updated.
-        Can update the search filter name, enhanced search description, notifications preference, and/or the search filter criteria.
+        Can update the search filter name, enhanced search description, notifications preference, activation state, and/or the search filter criteria.
       properties:
         name:
           type: string
@@ -10105,6 +10146,15 @@ components:
             When `false`, no notifications are sent for this filter.
             Omit to leave unchanged.
           example: true
+        state:
+          allOf:
+            - $ref: "#/components/schemas/PatchResourceStateData"
+          nullable: true
+          description: |
+            Optional activation state update for this saved search filter.
+            `ACTIVE` reactivates the filter if the current user tier still permits the configured search features and quota.
+            `INACTIVE_BY_USER` manually disables the filter.
+            Omit to leave the current state unchanged.
         search:
           allOf:
             - $ref: "#/components/schemas/PatchProductSearchData"
@@ -10375,6 +10425,7 @@ components:
         - userSearchFilterId
         - name
         - notifications
+        - state
         - search
         - created
         - updated
@@ -10408,6 +10459,8 @@ components:
             When `false`, no notifications are sent for this filter.
             Defaults to `true` for newly created filters.
           example: true
+        state:
+          $ref: "#/components/schemas/ResourceStateData"
         search:
           $ref: "#/components/schemas/ProductSearchData"
         created:
@@ -10420,6 +10473,30 @@ components:
           format: date-time
           description: When the search filter was last updated (RFC3339 format)
           example: "2024-01-01T12:00:00Z"
+
+    ResourceStateData:
+      type: string
+      description: |
+        Activation state of a stored user-owned resource such as a saved search filter.
+        `ACTIVE` resources are eligible for their normal runtime behavior.
+        `INACTIVE_BY_USER` resources were explicitly deactivated by the user.
+        `INACTIVE_BY_RESTRICTED_PLAN` resources remain stored but are inactive because the user's current tier no longer allows them to stay active.
+      enum:
+        - ACTIVE
+        - INACTIVE_BY_USER
+        - INACTIVE_BY_RESTRICTED_PLAN
+      example: ACTIVE
+
+    PatchResourceStateData:
+      type: string
+      description: |
+        Client-settable activation state for resources that support manual activation toggles.
+        Clients may reactivate a resource with `ACTIVE` or manually disable it with `INACTIVE_BY_USER`.
+        `INACTIVE_BY_RESTRICTED_PLAN` is managed internally by the backend and is never accepted from clients.
+      enum:
+        - ACTIVE
+        - INACTIVE_BY_USER
+      example: INACTIVE_BY_USER
 
     SearchFilterProductMatchData:
       type: object
@@ -11590,6 +11667,15 @@ components:
           type: boolean
           description: Whether to enable or disable notifications for this watchlist product
           example: true
+        state:
+          allOf:
+            - $ref: "#/components/schemas/PatchResourceStateData"
+          nullable: true
+          description: |
+            Optional activation state update for this watchlist entry.
+            `ACTIVE` reactivates the entry if the user's current tier still has watchlist quota.
+            `INACTIVE_BY_USER` manually disables the entry.
+            Omit to leave the current state unchanged.
 
     SortWatchlistProductFieldData:
       type: string

@@ -6,6 +6,55 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-03 - Shared Resource State for Search Filters and Watchlist (`backend#963`)
+
+Backend PR `#963` evolved beyond the initial saved-search response change. The current backend contract now uses a shared resource-state enum for persisted user-owned resources, returns that state on saved search filters, and allows clients to manually activate/deactivate both saved search filters and watchlist entries through PATCH payloads. This update realigns the internal OpenAPI spec with that broader backend contract.
+
+### Added
+
+- **New schema: `ResourceStateData`**
+  - Shared serialized enum with the values `ACTIVE`, `INACTIVE_BY_USER`, and `INACTIVE_BY_RESTRICTED_PLAN`.
+  - `INACTIVE_BY_RESTRICTED_PLAN` is backend-managed and indicates a stored resource that is temporarily inactive because the current user tier does not allow it to remain active.
+
+- **New schema: `PatchResourceStateData`**
+  - Client-settable PATCH enum with the values `ACTIVE` and `INACTIVE_BY_USER`.
+  - Used when manually reactivating or deactivating supported user-owned resources.
+
+- **New response field on saved search filters: `UserSearchFilterData.state`**
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `state` | `ResourceStateData` | Yes | Current activation state of the saved search filter. `INACTIVE_BY_RESTRICTED_PLAN` means the filter is still stored but inactive because the user's current tier does not allow it to remain active. |
+
+### Changed
+
+- **Saved search-filter responses**
+  - `GET /api/v1/me/search-filters`
+  - `GET /api/v1/me/search-filters/{userSearchFilterId}`
+  - `POST /api/v1/me/search-filters`
+  - `PATCH /api/v1/me/search-filters/{userSearchFilterId}`
+  - All now return `UserSearchFilterData.state` in addition to the existing metadata fields.
+
+- **`PATCH /api/v1/me/search-filters/{userSearchFilterId}`**
+  - Request body `PatchUserSearchFilterData` now accepts optional `state: PatchResourceStateData`.
+  - Supported values are:
+    - `ACTIVE` — reactivate the saved search filter
+    - `INACTIVE_BY_USER` — manually deactivate the saved search filter
+  - Reactivating a filter can now fail with:
+    - `SEARCH_FILTER_QUOTA_EXCEEDED` when the tier's active-filter quota is already full
+    - `SEARCH_FILTER_RESTRICTED_FEATURE` when the current tier no longer permits the stored search criteria or enhanced-search description
+
+- **`PATCH /api/v1/me/watchlist/{shopId}/{shopsProductId}`**
+  - Request body `WatchlistProductPatch` now accepts optional `state: PatchResourceStateData`.
+  - Supported values are:
+    - `ACTIVE` — reactivate the watchlist entry
+    - `INACTIVE_BY_USER` — manually deactivate the watchlist entry
+  - Reactivating a watchlist entry can now fail with `WATCHLIST_QUOTA_EXCEEDED` when the current tier's active-watchlist quota is already full.
+
+### Removed
+
+- The search-filter-specific enum name `UserSearchFilterStateData` is no longer used in the documented contract; the backend now exposes the shared `ResourceStateData` / `PatchResourceStateData` types instead.
+
 ## 2026-04-30 - Search-Filter Match Feedback (`backend#942`)
 
 Backend PR `#942` adds persisted user feedback for saved-search product matches. This update realigns the internal OpenAPI spec with the backend contract by documenting the new authenticated PATCH endpoint for individual matches, the dedicated match-feedback request/response schemas, and the new `matchFeedback` field now exposed in personalized product user state.
