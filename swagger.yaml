@@ -2103,6 +2103,7 @@ paths:
                     userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                     name: "My Tech Store Search"
                     notifications: true
+                    state: "ACTIVE"
                     search:
                       language: "en"
                       currency: "USD"
@@ -2239,6 +2240,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -2374,6 +2376,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "My Tech Store Search"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -2626,6 +2629,7 @@ paths:
                 userSearchFilterId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
                 name: "Updated Filter Name"
                 notifications: true
+                state: "ACTIVE"
                 search:
                   language: "en"
                   currency: "USD"
@@ -10375,6 +10379,7 @@ components:
         - userSearchFilterId
         - name
         - notifications
+        - state
         - search
         - created
         - updated
@@ -10408,6 +10413,8 @@ components:
             When `false`, no notifications are sent for this filter.
             Defaults to `true` for newly created filters.
           example: true
+        state:
+          $ref: "#/components/schemas/UserSearchFilterStateData"
         search:
           $ref: "#/components/schemas/ProductSearchData"
         created:
@@ -10420,6 +10427,19 @@ components:
           format: date-time
           description: When the search filter was last updated (RFC3339 format)
           example: "2024-01-01T12:00:00Z"
+
+    UserSearchFilterStateData:
+      type: string
+      description: |
+        Activation state of a saved user search filter.
+        `ACTIVE` filters are eligible for matching and notifications.
+        `INACTIVE_BY_USER` filters were explicitly deactivated by the user.
+        `INACTIVE_BY_RESTRICTED_PLAN` filters remain stored but are inactive because the user's current tier no longer allows them to stay active.
+      enum:
+        - ACTIVE
+        - INACTIVE_BY_USER
+        - INACTIVE_BY_RESTRICTED_PLAN
+      example: ACTIVE
 
     SearchFilterProductMatchData:
       type: object

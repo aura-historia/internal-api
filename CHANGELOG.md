@@ -6,6 +6,34 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-03 - Saved Search-Filter State (`backend#963`)
+
+Backend PR `#963` adds explicit activation state to saved search-filter REST DTOs so clients can distinguish active filters from filters disabled by the user or by tier restrictions. This update realigns the internal OpenAPI spec with the backend contract by documenting the new enum and the new response field now returned for saved search filters.
+
+### Added
+
+- **New schema: `UserSearchFilterStateData`**
+  - Serialized enum with the values `ACTIVE`, `INACTIVE_BY_USER`, and `INACTIVE_BY_RESTRICTED_PLAN`.
+
+- **New response field: `UserSearchFilterData.state`**
+
+  | Field | Type | Always present | Description |
+  |---|---|---|---|
+  | `state` | `UserSearchFilterStateData` | Yes | Current activation state of the saved search filter. `INACTIVE_BY_RESTRICTED_PLAN` means the filter is still stored but inactive because the user's current tier does not allow it to remain active. |
+
+### Changed
+
+- **Saved search-filter responses**
+  - `GET /api/v1/me/search-filters`
+  - `GET /api/v1/me/search-filters/{userSearchFilterId}`
+  - `POST /api/v1/me/search-filters`
+  - `PATCH /api/v1/me/search-filters/{userSearchFilterId}`
+  - All now return `UserSearchFilterData.state` in addition to the existing metadata fields.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-04-30 - Search-Filter Match Feedback (`backend#942`)
 
 Backend PR `#942` adds persisted user feedback for saved-search product matches. This update realigns the internal OpenAPI spec with the backend contract by documenting the new authenticated PATCH endpoint for individual matches, the dedicated match-feedback request/response schemas, and the new `matchFeedback` field now exposed in personalized product user state.
