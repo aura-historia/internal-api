@@ -6,20 +6,25 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2026-05-03 - Saved Search-Filter State (`backend#963`)
+## 2026-05-03 - Shared Resource State for Search Filters and Watchlist (`backend#963`)
 
-Backend PR `#963` adds explicit activation state to saved search-filter REST DTOs so clients can distinguish active filters from filters disabled by the user or by tier restrictions. This update realigns the internal OpenAPI spec with the backend contract by documenting the new enum and the new response field now returned for saved search filters.
+Backend PR `#963` evolved beyond the initial saved-search response change. The current backend contract now uses a shared resource-state enum for persisted user-owned resources, returns that state on saved search filters, and allows clients to manually activate/deactivate both saved search filters and watchlist entries through PATCH payloads. This update realigns the internal OpenAPI spec with that broader backend contract.
 
 ### Added
 
-- **New schema: `UserSearchFilterStateData`**
-  - Serialized enum with the values `ACTIVE`, `INACTIVE_BY_USER`, and `INACTIVE_BY_RESTRICTED_PLAN`.
+- **New schema: `ResourceStateData`**
+  - Shared serialized enum with the values `ACTIVE`, `INACTIVE_BY_USER`, and `INACTIVE_BY_RESTRICTED_PLAN`.
+  - `INACTIVE_BY_RESTRICTED_PLAN` is backend-managed and indicates a stored resource that is temporarily inactive because the current user tier does not allow it to remain active.
 
-- **New response field: `UserSearchFilterData.state`**
+- **New schema: `PatchResourceStateData`**
+  - Client-settable PATCH enum with the values `ACTIVE` and `INACTIVE_BY_USER`.
+  - Used when manually reactivating or deactivating supported user-owned resources.
+
+- **New response field on saved search filters: `UserSearchFilterData.state`**
 
   | Field | Type | Always present | Description |
   |---|---|---|---|
-  | `state` | `UserSearchFilterStateData` | Yes | Current activation state of the saved search filter. `INACTIVE_BY_RESTRICTED_PLAN` means the filter is still stored but inactive because the user's current tier does not allow it to remain active. |
+  | `state` | `ResourceStateData` | Yes | Current activation state of the saved search filter. `INACTIVE_BY_RESTRICTED_PLAN` means the filter is still stored but inactive because the user's current tier does not allow it to remain active. |
 
 ### Changed
 
@@ -30,9 +35,25 @@ Backend PR `#963` adds explicit activation state to saved search-filter REST DTO
   - `PATCH /api/v1/me/search-filters/{userSearchFilterId}`
   - All now return `UserSearchFilterData.state` in addition to the existing metadata fields.
 
+- **`PATCH /api/v1/me/search-filters/{userSearchFilterId}`**
+  - Request body `PatchUserSearchFilterData` now accepts optional `state: PatchResourceStateData`.
+  - Supported values are:
+    - `ACTIVE` — reactivate the saved search filter
+    - `INACTIVE_BY_USER` — manually deactivate the saved search filter
+  - Reactivating a filter can now fail with:
+    - `SEARCH_FILTER_QUOTA_EXCEEDED` when the tier's active-filter quota is already full
+    - `SEARCH_FILTER_RESTRICTED_FEATURE` when the current tier no longer permits the stored search criteria or enhanced-search description
+
+- **`PATCH /api/v1/me/watchlist/{shopId}/{shopsProductId}`**
+  - Request body `WatchlistProductPatch` now accepts optional `state: PatchResourceStateData`.
+  - Supported values are:
+    - `ACTIVE` — reactivate the watchlist entry
+    - `INACTIVE_BY_USER` — manually deactivate the watchlist entry
+  - Reactivating a watchlist entry can now fail with `WATCHLIST_QUOTA_EXCEEDED` when the current tier's active-watchlist quota is already full.
+
 ### Removed
 
-- No endpoints or documented schemas were removed in this update.
+- The search-filter-specific enum name `UserSearchFilterStateData` is no longer used in the documented contract; the backend now exposes the shared `ResourceStateData` / `PatchResourceStateData` types instead.
 
 ## 2026-04-30 - Search-Filter Match Feedback (`backend#942`)
 
