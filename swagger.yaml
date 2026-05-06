@@ -754,7 +754,7 @@ paths:
           description: Human-readable slug identifier of the shop (kebab-case, derived from shop name)
           schema:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             example: "tech-store-premium"
         - name: productSlugId
           in: path
@@ -764,7 +764,7 @@ paths:
             Format: {product-title}-{6-char-hex} where the title is derived from the product name.
           schema:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$"
             example: "amazing-product-fa87c4"
         - name: currency
           in: query
@@ -941,10 +941,10 @@ paths:
       summary: Get product event history
       description: |
         Retrieves the event history for a specific product by its shop ID and shop's product ID.
-        Returns an array of events representing state changes, price changes, and other significant 
+        Returns an array of events representing state changes, price changes, and other significant
         product lifecycle events, ordered chronologically.
-        
-        Returns localized content based on the optional `language` query parameter and currency preferences for 
+
+        Returns localized content based on the optional `language` query parameter and currency preferences for
         price information in the event payloads.
       operationId: getProductHistory
       tags:
@@ -1379,7 +1379,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["antique-furniture"]
         - name: periodId
@@ -1394,7 +1394,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["baroque"]
         - name: shopName
@@ -1437,7 +1437,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["imperial-antiques", "heritage-gallery"]
         - name: excludeShopSlugId
@@ -1452,7 +1452,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["other-antique-shop"]
         - name: sellerSlugId
@@ -1467,7 +1467,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["imperial-antiques", "vintage-seller"]
         - name: excludeSellerSlugId
@@ -1482,7 +1482,7 @@ paths:
             type: array
             items:
               type: string
-              pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
             uniqueItems: true
           example: ["other-seller-shop"]
         - name: shopType
@@ -6457,7 +6457,7 @@ paths:
           description: Human-readable slug identifier of the shop (kebab-case, derived from shop name)
           schema:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           examples:
             simple:
               value: "christies"
@@ -6874,7 +6874,7 @@ paths:
           description: Kebab-case identifier of the category
           schema:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           example: "musical-instruments"
         - name: language
           in: query
@@ -7221,7 +7221,7 @@ paths:
           description: Kebab-case identifier of the period
           schema:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           example: "renaissance"
         - name: language
           in: query
@@ -8817,14 +8817,14 @@ components:
           description: Unique internal identifier for the product
         productSlugId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$"
           description: |
             Human-readable slug identifier for the product (kebab-case with 6-character hex suffix).
             Format: {product-title}-{6-char-hex} where the title is derived from the product name.
             Example: "amazing-product-fa87c4"
         shopSlugId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Human-readable slug identifier of the shop (kebab-case, derived from shop name).
             Example: "tech-store-premium" or "christies"
@@ -8863,7 +8863,7 @@ components:
             This is the coordinate data used by product geo-distance search.
         categoryId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           nullable: true
           description: |
             Optional kebab-case identifier for the level-one category the product has been classified into.
@@ -8877,7 +8877,7 @@ components:
             Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
         periodId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           nullable: true
           description: |
             Optional kebab-case identifier for the level-one period the product has been classified into.
@@ -8976,14 +8976,14 @@ components:
           description: Unique internal identifier for the product
         productSlugId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*-[a-f0-9]{6}$"
           description: |
             Human-readable slug identifier for the product (kebab-case with 6-character hex suffix).
             Format: {product-title}-{6-char-hex} where the title is derived from the product name.
             Example: "amazing-product-fa87c4"
         shopSlugId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Human-readable slug identifier of the shop (kebab-case, derived from shop name).
             Example: "tech-store-premium" or "christies"
@@ -9490,7 +9490,27 @@ components:
 
     CurrencyData:
       type: string
-      enum: [EUR, GBP, USD, AUD, CAD, NZD, CNY, BRL, PLN, TRY, JPY, CZK, RUB, AED, SAR, HKD, SGD, CHF]
+      enum:
+        [
+          EUR,
+          GBP,
+          USD,
+          AUD,
+          CAD,
+          NZD,
+          CNY,
+          BRL,
+          PLN,
+          TRY,
+          JPY,
+          CZK,
+          RUB,
+          AED,
+          SAR,
+          HKD,
+          SGD,
+          CHF,
+        ]
       description: |
         Supported currencies (ISO 4217 codes):
         - EUR: Euro
@@ -9861,7 +9881,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           uniqueItems: true
           default: []
           description: |
@@ -9873,7 +9893,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           uniqueItems: true
           default: []
           description: |
@@ -9933,7 +9953,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter by exact shop slug identifiers.
             Filters products to only those whose `shopSlugId` exactly matches one of the provided kebab-case values.
@@ -9944,7 +9964,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter to exclude products from specific shop slug identifiers.
             Products whose `shopSlugId` exactly matches one of the provided kebab-case values are excluded from results.
@@ -9955,7 +9975,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter by exact seller slug identifiers.
             Filters products to only those whose seller slug ID exactly matches one of the provided kebab-case values.
@@ -9966,7 +9986,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter to exclude products from specific seller slug identifiers.
             Products whose seller slug ID exactly matches one of the provided kebab-case values are excluded from results.
@@ -10107,8 +10127,8 @@ components:
             Optional natural-language description used by the AI-enhanced search filter matching service.
             When provided, a language model evaluates each matched product against this description and only
             keeps products that are a true match, attaching a user-facing reason to every confirmed hit.
-            Whitespace is trimmed and the value is silently truncated to 500 characters if longer.
-          maxLength: 500
+            Whitespace is trimmed and the value is silently truncated to 1000 characters if longer.
+          maxLength: 1000
           example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         search:
           $ref: "#/components/schemas/ProductSearchData"
@@ -10132,9 +10152,9 @@ components:
             Optional natural-language description used by the AI-enhanced search filter matching service.
             When provided, a language model evaluates each matched product against this description and only
             keeps products that are a true match, attaching a user-facing reason to every confirmed hit.
-            Whitespace is trimmed and the value is silently truncated to 500 characters if longer.
+            Whitespace is trimmed and the value is silently truncated to 1000 characters if longer.
             Omit to leave unchanged.
-          maxLength: 500
+          maxLength: 1000
           nullable: true
           example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         notifications:
@@ -10201,7 +10221,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           uniqueItems: true
           description: |
             Optional set of kebab-case level-one category identifiers to filter products by.
@@ -10213,7 +10233,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           uniqueItems: true
           description: |
             Optional set of kebab-case level-one period identifiers to filter products by.
@@ -10271,7 +10291,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter by exact shop slug identifiers.
             Filters products to only those whose `shopSlugId` exactly matches one of the provided kebab-case values.
@@ -10282,7 +10302,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter to exclude products from specific shop slug identifiers.
             Products whose `shopSlugId` exactly matches one of the provided kebab-case values are excluded from results.
@@ -10293,7 +10313,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter by exact seller slug identifiers.
             Filters products to only those whose seller slug ID exactly matches one of the provided kebab-case values.
@@ -10304,7 +10324,7 @@ components:
           type: array
           items:
             type: string
-            pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Optional filter to exclude products from specific seller slug identifiers.
             Products whose seller slug ID exactly matches one of the provided kebab-case values are excluded from results.
@@ -10449,7 +10469,7 @@ components:
           description: |
             Optional natural-language description used by the AI-enhanced search filter matching service.
             Present only when an enhanced search description was set on this filter.
-          maxLength: 500
+          maxLength: 1000
           example: "Golden cufflinks from the Art Deco period, preferably from French workshops"
         notifications:
           type: boolean
@@ -10687,13 +10707,13 @@ components:
 
     CategoryIdData:
       type: string
-      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       description: Lowercase kebab-case category key.
       example: medals
 
     PeriodIdData:
       type: string
-      pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
       description: Lowercase kebab-case period key.
       example: ww2
 
@@ -11045,7 +11065,7 @@ components:
           example: "550e8400-e29b-41d4-a716-446655440000"
         shopSlugId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: |
             Human-readable slug identifier of the shop (kebab-case, derived from shop name).
             Example: "tech-store-premium" or "christies"
@@ -11438,7 +11458,7 @@ components:
       properties:
         categoryId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: Kebab-case identifier of the category
           example: "musical-instruments"
         categoryKey:
@@ -11479,7 +11499,7 @@ components:
       properties:
         categoryId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: Kebab-case identifier of the category
           example: "musical-instruments"
         categoryKey:
@@ -11543,7 +11563,7 @@ components:
       properties:
         periodId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: Kebab-case identifier of the period
           example: "renaissance"
         periodKey:
@@ -11584,7 +11604,7 @@ components:
       properties:
         periodId:
           type: string
-          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
           description: Kebab-case identifier of the period
           example: "renaissance"
         periodKey:
