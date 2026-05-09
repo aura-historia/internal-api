@@ -71,12 +71,6 @@ paths:
                 images:
                   - "https://my-shop.com/images/violin-1.jpg"
                   - "https://my-shop.com/images/violin-2.jpg"
-                originYear:
-                  year: 1740
-                authenticity: "ORIGINAL"
-                condition: "EXCELLENT"
-                provenance: "COMPLETE"
-                restoration: "MINOR"
       responses:
         "200":
           description: |
@@ -344,8 +338,6 @@ paths:
 
         An empty `errors` map in the response indicates all products were upserted successfully.
 
-        All fields except `shopsProductId` are optional. The `authenticity`, `condition`,
-        `provenance`, and `restoration` fields each default to `UNKNOWN` when omitted.
       operationId: putPartnerProducts
       tags:
         - Products
@@ -387,10 +379,6 @@ paths:
                     url: "https://my-shop.com/products/baroque-violin"
                     images:
                       - "https://my-shop.com/images/violin-1.jpg"
-                    originYear:
-                      year: 1740
-                    authenticity: "ORIGINAL"
-                    condition: "EXCELLENT"
               update_existing:
                 summary: Update an existing product's state
                 value:
@@ -590,10 +578,6 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       shopType: "COMMERCIAL_DEALER"
-                      categoryId: "musical-instruments"
-                      category:
-                        text: "Antique Musical Instruments"
-                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -618,12 +602,6 @@ paths:
                           prohibitedContent: "NONE"
                         - url: "https://my-shop.com/images/product-2.jpg"
                           prohibitedContent: "NONE"
-                      originYear:
-                        year: 1837
-                      authenticity: "ORIGINAL"
-                      condition: "EXCELLENT"
-                      provenance: "PARTIAL"
-                      restoration: "MINOR"
                       auction:
                         start: "2025-05-01T12:00:00Z"
                         end: "2025-05-10T12:00:00Z"
@@ -647,10 +625,6 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "My Shop"
                       shopType: "COMMERCIAL_DEALER"
-                      categoryId: "musical-instruments"
-                      category:
-                        text: "Antique Musical Instruments"
-                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -675,12 +649,6 @@ paths:
                           prohibitedContent: "NONE"
                         - url: "https://my-shop.com/images/product-2.jpg"
                           prohibitedContent: "NONE"
-                      originYear:
-                        max: 1950
-                      authenticity: "QUESTIONABLE"
-                      condition: "GOOD"
-                      provenance: "CLAIMED"
-                      restoration: "MAJOR"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
         "400":
@@ -828,10 +796,6 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "Tech Store Premium"
                       shopType: "COMMERCIAL_DEALER"
-                      categoryId: "musical-instruments"
-                      category:
-                        text: "Antique Musical Instruments"
-                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
@@ -847,10 +811,6 @@ paths:
                       images:
                         - url: "https://tech-store-premium.com/images/product-1.jpg"
                           prohibitedContent: "NONE"
-                      authenticity: "UNKNOWN"
-                      condition: "UNKNOWN"
-                      provenance: "UNKNOWN"
-                      restoration: "UNKNOWN"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -871,20 +831,12 @@ paths:
                       shopsProductId: "6ba7b810"
                       shopName: "Tech Store Premium"
                       shopType: "COMMERCIAL_DEALER"
-                      categoryId: "musical-instruments"
-                      category:
-                        text: "Antique Musical Instruments"
-                        language: "en"
                       title:
                         text: "Amazing Product"
                         language: "en"
                       state: "AVAILABLE"
                       url: "https://tech-store-premium.com/products/amazing-product"
                       images: []
-                      authenticity: "UNKNOWN"
-                      condition: "UNKNOWN"
-                      provenance: "UNKNOWN"
-                      restoration: "UNKNOWN"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState: null
@@ -1318,8 +1270,6 @@ paths:
 
         Additional optional filters from `ProductSearchData` are also supported as query parameters
         using the same field names:
-        - `categoryId`
-        - `periodId`
         - `shopName`
         - `excludeShopName`
         - `shopSlugId`
@@ -1332,11 +1282,6 @@ paths:
         - `geoAddress[lat]`, `geoAddress[lon]`, `geoAddress[distance][amount]`, `geoAddress[distance][unit]`
         - `price[min]`, `price[max]`
         - `state`
-        - `originYear[min]`, `originYear[max]`
-        - `authenticity`
-        - `condition`
-        - `provenance`
-        - `restoration`
         - `created[min]`, `created[max]`
         - `updated[min]`, `updated[max]`
         - `auctionStart[min]`, `auctionStart[max]`
@@ -1367,36 +1312,6 @@ paths:
             type: string
             minLength: 1
           example: test
-        - name: categoryId
-          in: query
-          required: false
-          description: |
-            Optional set of kebab-case level-one category identifiers to filter products by.
-            When provided, products matching any of the given categories are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-            uniqueItems: true
-          example: ["antique-furniture"]
-        - name: periodId
-          in: query
-          required: false
-          description: |
-            Optional set of kebab-case level-one period identifiers to filter products by.
-            When provided, products matching any of the given periods are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-              pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-            uniqueItems: true
-          example: ["baroque"]
         - name: shopName
           in: query
           required: false
@@ -1574,75 +1489,6 @@ paths:
               $ref: "#/components/schemas/ProductStateData"
             uniqueItems: true
           example: ["AVAILABLE"]
-        - name: originYear
-          in: query
-          required: false
-          description: |
-            Optional filter by product origin year range.
-            Use `originYear[min]` and/or `originYear[max]` to specify the year bounds.
-          style: deepObject
-          explode: true
-          schema:
-            type: object
-            properties:
-              min:
-                type: integer
-                format: int32
-                description: Minimum origin year (inclusive)
-                example: 1800
-              max:
-                type: integer
-                format: int32
-                description: Maximum origin year (inclusive)
-                example: 1950
-        - name: authenticity
-          in: query
-          required: false
-          description: Optional filter by authenticity classifications. When provided, only products with the given authenticity values are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/AuthenticityData"
-            uniqueItems: true
-          example: ["ORIGINAL"]
-        - name: condition
-          in: query
-          required: false
-          description: Optional filter by product condition assessments. When provided, only products with the given condition values are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ConditionData"
-            uniqueItems: true
-          example: ["EXCELLENT"]
-        - name: provenance
-          in: query
-          required: false
-          description: Optional filter by provenance documentation levels. When provided, only products with the given provenance values are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ProvenanceData"
-            uniqueItems: true
-          example: ["PARTIAL"]
-        - name: restoration
-          in: query
-          required: false
-          description: Optional filter by restoration work levels. When provided, only products with the given restoration values are returned.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/RestorationData"
-            uniqueItems: true
-          example: ["NONE"]
         - name: created
           in: query
           required: false
@@ -1900,8 +1746,6 @@ paths:
               language: "en"
               currency: "USD"
               productQuery: "antique clock"
-              categoryId: ["antique-clocks", "musical-instruments"]
-              periodId: ["baroque", "renaissance"]
               shopName: ["Antique Store", "Vintage Gallery"]
               country: ["DE"]
               continent: ["EUROPE"]
@@ -1915,13 +1759,6 @@ paths:
                 min: 1000
                 max: 5000
               state: ["AVAILABLE"]
-              originYear:
-                min: 1742
-                max: 1953
-              authenticity: ["ORIGINAL"]
-              condition: ["EXCELLENT"]
-              provenance: ["PARTIAL"]
-              restoration: ["UNKNOWN"]
               created:
                 min: "2024-01-01T00:00:00Z"
                 max: "2024-12-31T23:59:59Z"
@@ -2108,7 +1945,6 @@ paths:
                       language: "en"
                       currency: "USD"
                       productQuery: "antique clock"
-                      categoryId: ["antique-clocks"]
                       shopName: ["Antique Store"]
                       price:
                         min: 1000
@@ -2175,7 +2011,7 @@ paths:
         Requires valid Cognito JWT authentication.
 
         The number of allowed search filters and the set of usable search filter fields depend on the user's tier:
-        - `FREE`: Up to 1 search filter. Only the following filter fields are allowed: `productQuery`, `categoryId`, `periodId`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
+        - `FREE`: Up to 1 search filter. Only the following filter fields are allowed: `productQuery`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
         - `PRO`: Up to 5 search filters. All filter fields are allowed.
         - `ULTIMATE`: Unlimited search filters. All filter fields are allowed.
       operationId: createUserSearchFilter
@@ -2196,7 +2032,6 @@ paths:
                 language: "en"
                 currency: "USD"
                 productQuery: "antique clock"
-                categoryId: ["antique-clocks"]
                 shopName: ["Antique Store"]
                 price:
                   min: 1000
@@ -2245,7 +2080,6 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: ["antique-clocks"]
                   shopName: ["Antique Store"]
                   price:
                     min: 1000
@@ -2381,7 +2215,6 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: ["antique-clocks"]
                   shopName: ["Antique Store"]
                   price:
                     min: 1000
@@ -2539,7 +2372,7 @@ paths:
         Requires valid Cognito JWT authentication.
 
         The set of usable search filter fields depends on the user's tier:
-        - `FREE`: Only the following filter fields are allowed: `productQuery`, `categoryId`, `periodId`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
+        - `FREE`: Only the following filter fields are allowed: `productQuery`, `price`, `state`. All other fields are forbidden and will return `SEARCH_FILTER_RESTRICTED_FEATURE`.
         - `PRO`: All filter fields are allowed.
         - `ULTIMATE`: All filter fields are allowed.
       operationId: updateUserSearchFilter
@@ -2572,8 +2405,6 @@ paths:
                   name: "Updated Filter Name"
                   search:
                     shopName: ["Updated Store"]
-                    categoryId: ["antique-clocks"]
-                    periodId: ["baroque"]
                     price:
                       min: 2000
                       max: 8000
@@ -2603,8 +2434,6 @@ paths:
                   search:
                     language: "de"
                     currency: "EUR"
-                    categoryId: ["antique-clocks"]
-                    periodId: ["baroque"]
               empty_update:
                 summary: No changes (returns existing filter)
                 value: {}
@@ -2642,7 +2471,6 @@ paths:
                   language: "en"
                   currency: "USD"
                   productQuery: "antique clock"
-                  categoryId: ["antique-clocks"]
                   shopName: ["Updated Store"]
                   price:
                     min: 2000
@@ -2866,10 +2694,6 @@ paths:
                       images:
                         - url: "https://tech-store.com/images/case-1.jpg"
                           prohibitedContent: "NONE"
-                      authenticity: "ORIGINAL"
-                      condition: "GOOD"
-                      provenance: "PARTIAL"
-                      restoration: "NONE"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -3282,10 +3106,6 @@ paths:
                       images:
                         - url: "https://tech-store.com/images/case-1.jpg"
                           prohibitedContent: "NONE"
-                      authenticity: "ORIGINAL"
-                      condition: "GOOD"
-                      provenance: "PARTIAL"
-                      restoration: "NONE"
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
                     userState:
@@ -3445,10 +3265,6 @@ paths:
                   images:
                     - url: "https://tech-store.com/images/case-1.jpg"
                       prohibitedContent: "NONE"
-                  authenticity: "ORIGINAL"
-                  condition: "GOOD"
-                  provenance: "PARTIAL"
-                  restoration: "NONE"
                   created: "2024-01-01T10:00:00Z"
                   updated: "2024-01-01T12:00:00Z"
                 userState:
@@ -4943,10 +4759,6 @@ paths:
                   images:
                     - url: "https://tech-store.com/images/case-1.jpg"
                       prohibitedContent: "NONE"
-                  authenticity: "ORIGINAL"
-                  condition: "GOOD"
-                  provenance: "PARTIAL"
-                  restoration: "NONE"
                   created: "2024-01-01T10:00:00Z"
                   updated: "2024-01-01T12:00:00Z"
                 userState:
@@ -5704,11 +5516,6 @@ paths:
                 continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
-              specialitiesCategories:
-                - "medals"
-                - "coins"
-              specialitiesPeriods:
-                - "ww2"
       responses:
         "201":
           description: Shop created successfully
@@ -5750,11 +5557,6 @@ paths:
                   lon: 13.377704
                 phone: "+49 30 123456"
                 email: "contact@tech-store-premium.com"
-                specialitiesCategories:
-                  - "medals"
-                  - "coins"
-                specialitiesPeriods:
-                  - "ww2"
                 partnerStatus: "SCRAPED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T10:00:00Z"
@@ -5838,8 +5640,6 @@ paths:
         - `shopNameQuery`
         - `shopType`
         - `partnerStatus`
-        - `specialitiesCategories`
-        - `specialitiesPeriods`
         - `countries`
         - `continents`
         - `created[min]`, `created[max]`
@@ -5879,28 +5679,6 @@ paths:
               $ref: "#/components/schemas/ShopPartnerStatusData"
             uniqueItems: true
           example: ["PARTNERED"]
-        - name: specialitiesCategories
-          in: query
-          required: false
-          description: Optional repeated speciality-category filter.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/CategoryIdData"
-          example: ["medals", "coins"]
-        - name: specialitiesPeriods
-          in: query
-          required: false
-          description: Optional repeated speciality-period filter.
-          style: form
-          explode: true
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/PeriodIdData"
-          example: ["ww2"]
         - name: countries
           in: query
           required: false
@@ -6084,11 +5862,6 @@ paths:
                   lon: 13.377704
                 phone: "+49 30 123456"
                 email: "contact@tech-store-premium.com"
-                specialitiesCategories:
-                  - "medals"
-                  - "coins"
-                specialitiesPeriods:
-                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -6183,11 +5956,6 @@ paths:
                 continent: "EUROPE"
               phone: "+49 30 123456"
               email: "contact@tech-store-premium.com"
-              specialitiesCategories:
-                - "medals"
-                - "coins"
-              specialitiesPeriods:
-                - "ww2"
       responses:
         "200":
           description: Shop updated successfully
@@ -6232,11 +6000,6 @@ paths:
                   lon: 13.377704
                 phone: "+49 30 123456"
                 email: "contact@tech-store-premium.com"
-                specialitiesCategories:
-                  - "medals"
-                  - "coins"
-                specialitiesPeriods:
-                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -6509,11 +6272,6 @@ paths:
                   lon: 13.377704
                 phone: "+49 30 123456"
                 email: "contact@tech-store-premium.com"
-                specialitiesCategories:
-                  - "medals"
-                  - "coins"
-                specialitiesPeriods:
-                  - "ww2"
                 partnerStatus: "PARTNERED"
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
@@ -6562,7 +6320,7 @@ paths:
         Performs an advanced search for shops using comprehensive filtering criteria.
         This endpoint accepts a ShopSearchData object in the request body,
         allowing for complex filtering by shop name, shop type, partner status,
-        speciality categories, speciality periods, countries, continents, and creation/update date ranges.
+        countries, continents, and creation/update date ranges.
         Returns a paginated collection of shops matching the search criteria.
       operationId: searchShops
       tags:
@@ -6612,7 +6370,7 @@ paths:
         description: |
           Shop search filter configuration with all filtering criteria.
           Allows filtering by shop name, shop type, partner status,
-          speciality categories, speciality periods, countries, continents, and creation/update date ranges.
+          countries, continents, and creation/update date ranges.
           If you do not want to restrict the search, supply an empty JSON-Object '{}' as body.
         content:
           application/json:
@@ -6622,8 +6380,6 @@ paths:
               shopNameQuery: "tech store"
               shopType: ["COMMERCIAL_DEALER"]
               partnerStatus: ["PARTNERED"]
-              specialitiesCategories: ["medals"]
-              specialitiesPeriods: ["ww2"]
               countries: ["DE"]
               continents: ["EUROPE"]
               created:
@@ -6665,8 +6421,6 @@ paths:
                       lon: 13.377704
                     phone: "+49 30 123456"
                     email: "contact@tech-store-premium.com"
-                    specialitiesCategories: ["medals"]
-                    specialitiesPeriods: ["ww2"]
                     partnerStatus: "PARTNERED"
                     created: "2024-01-15T10:00:00Z"
                     updated: "2024-06-15T12:00:00Z"
@@ -6722,705 +6476,6 @@ paths:
                       field: "order"
                       sourceType: "query"
                     detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories:
-    get:
-      summary: Get all categories or simple-search categories
-      description: |
-        Retrieves all product categories with localized names when no query parameters are supplied.
-        When query parameters are present, this endpoint performs simple category search and behaves
-        like `POST /api/v1/categories/search` using query-string input instead of a JSON body.
-
-        For simple-search mode, use:
-        - `language` (optional, defaults to `en`)
-        - `nameQuery` (optional)
-        - `sort` and `order` (optional)
-      operationId: getCategories
-      tags:
-        - Categories
-      parameters:
-        - name: language
-          in: query
-          required: false
-          description: Optional language for localization and simple-search matching (defaults to `en`)
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-        - name: nameQuery
-          in: query
-          required: false
-          description: Optional localized name query (simple-search mode)
-          schema:
-            type: string
-          example: furniture
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by in simple-search mode
-          schema:
-            $ref: "#/components/schemas/SortCategoryFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      responses:
-        "200":
-          description: Categories returned successfully
-          headers:
-            Cache-Control:
-              description: Shared/public cache directives for GET category responses
-              schema:
-                type: string
-              example: "public, max-age=86400, s-maxage=604800"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetCategorySummaryData"
-              example:
-                - categoryId: "furniture"
-                  categoryKey: "furniture"
-                  name:
-                    text: "Furniture"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - categoryId: "musical-instruments"
-                  categoryKey: "musical-instruments"
-                  name:
-                    text: "Antique Musical Instruments"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid query parameters in simple-search mode
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                invalid_query:
-                  summary: Invalid query parameter payload
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories/{categoryId}:
-    get:
-      summary: Get category details by ID
-      description: |
-        Retrieves detailed category information by its kebab-case category ID.
-        Localization is based on the optional `language` query parameter (defaults to `en`).
-      operationId: getCategoryById
-      tags:
-        - Categories
-      parameters:
-        - name: categoryId
-          in: path
-          required: true
-          description: Kebab-case identifier of the category
-          schema:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          example: "musical-instruments"
-        - name: language
-          in: query
-          required: false
-          description: |
-            Preferred language for localized content.
-            Defaults to `en` when omitted.
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-      responses:
-        "200":
-          description: Category found and returned successfully
-          headers:
-            Last-Modified:
-              description: When the category was last updated
-              schema:
-                type: string
-                format: http-date
-              example: "Wed, 01 Jan 2024 12:00:00 GMT"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetCategoryData"
-              example:
-                categoryId: "musical-instruments"
-                categoryKey: "musical-instruments"
-                name:
-                  text: "Antique Musical Instruments"
-                  language: "en"
-                description:
-                  text: "Antique instruments, accessories, and related items."
-                  language: "en"
-                created: "2024-01-01T00:00:00Z"
-                updated: "2024-06-01T00:00:00Z"
-        "400":
-          description: Bad request - missing category ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_category_id:
-                  summary: Missing category ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "categoryId"
-                      sourceType: "path"
-                    detail: "Missing field 'categoryId'."
-        "404":
-          description: Category not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories/search:
-    post:
-      summary: Search categories
-      description: |
-        Searches categories using a localized name query.
-        Provide an optional language and optionally a nameQuery to filter results.
-      operationId: searchCategories
-      tags:
-        - Categories
-      parameters:
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by
-          schema:
-            $ref: "#/components/schemas/SortCategoryFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      requestBody:
-        required: true
-        description: |
-          Category search configuration.
-          Omit `language` to default to `en`. Omit `nameQuery` to return all categories.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CategorySearchData"
-            examples:
-              name_search:
-                summary: Search by localized name
-                value:
-                  language: "en"
-                  nameQuery: "Furniture"
-              unrestricted:
-                summary: Unrestricted search (language only)
-                value:
-                  language: "en"
-      responses:
-        "200":
-          description: Category search results returned successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetCategorySummaryData"
-              example:
-                - categoryId: "furniture"
-                  categoryKey: "furniture"
-                  name:
-                    text: "Furniture"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - categoryId: "musical-instruments"
-                  categoryKey: "musical-instruments"
-                  name:
-                    text: "Antique Musical Instruments"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid parameters or body
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_body:
-                  summary: Missing request body
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
-                invalid_json:
-                  summary: Invalid JSON format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "expected value at line 1 column 1"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_SORT_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_ORDER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods:
-    get:
-      summary: Get all periods or simple-search periods
-      description: |
-        Retrieves all product periods with localized names when no query parameters are supplied.
-        When query parameters are present, this endpoint performs simple period search and behaves
-        like `POST /api/v1/periods/search` using query-string input instead of a JSON body.
-
-        For simple-search mode, use:
-        - `language` (optional, defaults to `en`)
-        - `nameQuery` (optional)
-        - `sort` and `order` (optional)
-      operationId: getPeriods
-      tags:
-        - Periods
-      parameters:
-        - name: language
-          in: query
-          required: false
-          description: Optional language for localization and simple-search matching (defaults to `en`)
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-        - name: nameQuery
-          in: query
-          required: false
-          description: Optional localized name query (simple-search mode)
-          schema:
-            type: string
-          example: renaissance
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by in simple-search mode
-          schema:
-            $ref: "#/components/schemas/SortPeriodFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      responses:
-        "200":
-          description: Periods returned successfully
-          headers:
-            Cache-Control:
-              description: Shared/public cache directives for GET period responses
-              schema:
-                type: string
-              example: "public, max-age=86400, s-maxage=604800"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetPeriodSummaryData"
-              example:
-                - periodId: "renaissance"
-                  periodKey: "RENAISSANCE"
-                  name:
-                    text: "Renaissance"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - periodId: "baroque"
-                  periodKey: "BAROQUE"
-                  name:
-                    text: "Baroque"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid query parameters in simple-search mode
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                invalid_query:
-                  summary: Invalid query parameter payload
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods/{periodId}:
-    get:
-      summary: Get period details by ID
-      description: |
-        Retrieves detailed period information by its kebab-case period ID.
-        Localization is based on the optional `language` query parameter (defaults to `en`).
-      operationId: getPeriodById
-      tags:
-        - Periods
-      parameters:
-        - name: periodId
-          in: path
-          required: true
-          description: Kebab-case identifier of the period
-          schema:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          example: "renaissance"
-        - name: language
-          in: query
-          required: false
-          description: |
-            Preferred language for localized content.
-            Defaults to `en` when omitted.
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-      responses:
-        "200":
-          description: Period found and returned successfully
-          headers:
-            Last-Modified:
-              description: When the period was last updated
-              schema:
-                type: string
-                format: http-date
-              example: "Wed, 01 Jan 2024 12:00:00 GMT"
-            Cache-Control:
-              description: Shared/public cache directives for GET period responses
-              schema:
-                type: string
-              example: "public, max-age=3600, s-maxage=86400"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetPeriodData"
-              example:
-                periodId: "renaissance"
-                periodKey: "RENAISSANCE"
-                name:
-                  text: "Renaissance"
-                  language: "en"
-                description:
-                  text: "European cultural period from the 14th to 17th centuries marked by revival of classical art, humanism, and major artistic innovation."
-                  language: "en"
-                created: "2024-01-01T00:00:00Z"
-                updated: "2024-06-01T00:00:00Z"
-        "400":
-          description: Bad request - missing period ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_period_id:
-                  summary: Missing period ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "periodId"
-                      sourceType: "path"
-                    detail: "Missing field 'periodId'."
-        "404":
-          description: Period not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods/search:
-    post:
-      summary: Search periods
-      description: |
-        Searches periods using a localized name query.
-        Provide an optional language and optionally a nameQuery to filter results.
-      operationId: searchPeriods
-      tags:
-        - Periods
-      parameters:
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by
-          schema:
-            $ref: "#/components/schemas/SortPeriodFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      requestBody:
-        required: true
-        description: |
-          Period search configuration.
-          Omit `language` to default to `en`. Omit `nameQuery` to return all periods.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PeriodSearchData"
-            examples:
-              name_search:
-                summary: Search by localized name
-                value:
-                  language: "en"
-                  nameQuery: "Renaissance"
-              unrestricted:
-                summary: Unrestricted search (language only)
-                value:
-                  language: "en"
-      responses:
-        "200":
-          description: Period search results returned successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetPeriodSummaryData"
-              example:
-                - periodId: "renaissance"
-                  periodKey: "RENAISSANCE"
-                  name:
-                    text: "Renaissance"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - periodId: "baroque"
-                  periodKey: "BAROQUE"
-                  name:
-                    text: "Baroque"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid parameters or body
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_body:
-                  summary: Missing request body
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
-                invalid_json:
-                  summary: Invalid JSON format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "expected value at line 1 column 1"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_SORT_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_ORDER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
         "500":
           description: Internal server error
           content:
@@ -7602,10 +6657,6 @@ paths:
                           continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
-                        shopSpecialitiesCategories:
-                          - "medals"
-                        shopSpecialitiesPeriods:
-                          - "ww2"
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
         "401":
@@ -7678,10 +6729,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
       responses:
         "201":
           description: Partner shop application created successfully.
@@ -7723,10 +6770,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T10:00:00Z"
         "400":
@@ -7838,10 +6881,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T11:00:00Z"
         "400":
@@ -7956,10 +6995,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
       responses:
         "200":
           description: Partner shop application updated successfully. Returns the updated application.
@@ -8000,10 +7035,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T12:00:00Z"
         "400":
@@ -8226,10 +7257,6 @@ paths:
                           continent: "EUROPE"
                         shopPhone: "+49 30 123456"
                         shopEmail: "contact@my-antique-store.com"
-                        shopSpecialitiesCategories:
-                          - "medals"
-                        shopSpecialitiesPeriods:
-                          - "ww2"
                       created: "2026-04-09T10:00:00Z"
                       updated: "2026-04-09T10:00:00Z"
                     - id: "7f1c2a88-4e18-4c3a-bf0d-6a0fd5e6d901"
@@ -8339,10 +7366,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-09T11:00:00Z"
         "400":
@@ -8467,10 +7490,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
       responses:
         "200":
           description: Partner shop application updated successfully. Returns the updated application.
@@ -8511,10 +7530,6 @@ paths:
                     continent: "EUROPE"
                   shopPhone: "+49 30 123456"
                   shopEmail: "contact@my-antique-store.com"
-                  shopSpecialitiesCategories:
-                    - "medals"
-                  shopSpecialitiesPeriods:
-                    - "ww2"
                 created: "2026-04-09T10:00:00Z"
                 updated: "2026-04-10T12:00:00Z"
         "400":
@@ -8804,10 +7819,6 @@ components:
         - state
         - url
         - images
-        - authenticity
-        - condition
-        - provenance
-        - restoration
         - created
         - updated
       properties:
@@ -8861,34 +7872,6 @@ components:
           description: |
             Optional latitude/longitude coordinates propagated from the selling shop when available.
             This is the coordinate data used by product geo-distance search.
-        categoryId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          nullable: true
-          description: |
-            Optional kebab-case identifier for the level-one category the product has been classified into.
-            Categories are automatically classified by the system. Examples: "musical-instruments", "antique-furniture", "antique-clocks"
-        category:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          nullable: true
-          description: |
-            Optional localized display name for the product's level-one category.
-            Language matches the product's primary content language. Examples: "Musikinstrumente" (de), "Antique Musical Instruments" (en)
-        periodId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          nullable: true
-          description: |
-            Optional kebab-case identifier for the level-one period the product has been classified into.
-            Periods are automatically classified by the system. Examples: "renaissance", "baroque", "art-deco"
-        period:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          nullable: true
-          description: |
-            Optional localized display name for the product's level-one period.
-            Language matches the product's primary content language. Examples: "Barock" (de), "Renaissance" (en)
         title:
           $ref: "#/components/schemas/LocalizedTextData"
         description:
@@ -8915,21 +7898,6 @@ components:
             $ref: "#/components/schemas/ProductImageData"
           description: Array of product images with prohibited content classification
           default: []
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/OriginYearData"
-          nullable: true
-          description: |
-            Origin year information for the antique product.
-            Can be an exact year or a year range.
-        authenticity:
-          $ref: "#/components/schemas/AuthenticityData"
-        condition:
-          $ref: "#/components/schemas/ConditionData"
-        provenance:
-          $ref: "#/components/schemas/ProvenanceData"
-        restoration:
-          $ref: "#/components/schemas/RestorationData"
         auction:
           allOf:
             - $ref: "#/components/schemas/AuctionData"
@@ -8952,7 +7920,7 @@ components:
       description: |
         Lightweight product summary information for use in search results and similar products listings.
         Contains essential product details without extended metadata fields like description, estimates,
-        origin year details, authenticity, condition, provenance, restoration, or history.
+        or history.
       required:
         - productId
         - productSlugId
@@ -9211,7 +8179,7 @@ components:
           description: |
             Whether this match is hidden because the user has exceeded their monthly search-filter match quota.
             When `true`, the product data in the response is anonymized: the `productId` is set to a nil UUID,
-            the title becomes a language-specific placeholder, `condition` is set to `Unknown`, all other UUID
+            the title becomes a language-specific placeholder, all other UUID
             fields are nil, enum fields are set to their unknown variants, optional fields are omitted, and
             timestamps are set to the Unix epoch.
             Defaults to `false`.
@@ -9375,51 +8343,6 @@ components:
           description: Updated RFC3339 auction end timestamp. Absent if this field was not changed.
           example: "2026-04-10T12:00:00Z"
 
-    ProductEventOriginYearChangedPayloadData:
-      type: object
-      description: Payload for origin year change events, containing the new origin year.
-      required:
-        - originYear
-      properties:
-        originYear:
-          $ref: "#/components/schemas/OriginYearData"
-
-    ProductEventAuthenticityChangedPayloadData:
-      type: object
-      description: Payload for authenticity change events, containing the new authenticity classification.
-      required:
-        - authenticity
-      properties:
-        authenticity:
-          $ref: "#/components/schemas/AuthenticityData"
-
-    ProductEventConditionChangedPayloadData:
-      type: object
-      description: Payload for condition change events, containing the new condition classification.
-      required:
-        - condition
-      properties:
-        condition:
-          $ref: "#/components/schemas/ConditionData"
-
-    ProductEventProvenanceChangedPayloadData:
-      type: object
-      description: Payload for provenance change events, containing the new provenance classification.
-      required:
-        - provenance
-      properties:
-        provenance:
-          $ref: "#/components/schemas/ProvenanceData"
-
-    ProductEventRestorationChangedPayloadData:
-      type: object
-      description: Payload for restoration change events, containing the new restoration classification.
-      required:
-        - restoration
-      properties:
-        restoration:
-          $ref: "#/components/schemas/RestorationData"
-
     GetProductEventData:
       type: object
       description: Historical event for a product
@@ -9547,19 +8470,6 @@ components:
         - UNKNOWN: Product has an unknown state
       example: AVAILABLE
 
-    AuthenticityData:
-      type: string
-      enum: [ORIGINAL, LATER_COPY, REPRODUCTION, QUESTIONABLE, UNKNOWN]
-      description: |
-        Authenticity classification of the antique product:
-        - ORIGINAL: Verified original antique from the stated period
-        - LATER_COPY: Antique copy made at a later time but still historical
-        - REPRODUCTION: Modern reproduction or replica
-        - QUESTIONABLE: Authenticity is disputed or uncertain
-        - UNKNOWN: Authenticity has not been determined
-      default: UNKNOWN
-      example: ORIGINAL
-
     AuctionData:
       type: object
       description: |
@@ -9585,51 +8495,6 @@ components:
             Only present for products from auction houses with scheduled auction end times.
             Used to indicate when bidding ends or when the auction session concludes.
           example: "2025-05-10T12:00:00Z"
-
-    ConditionData:
-      type: string
-      enum: [EXCELLENT, GREAT, GOOD, FAIR, POOR, UNKNOWN]
-      description: |
-        Physical condition assessment of the antique product:
-        - EXCELLENT: Near-perfect condition with minimal wear
-        - GREAT: Very good condition with minor signs of age
-        - GOOD: Good condition with moderate wear consistent with age
-        - FAIR: Fair condition with significant wear but structurally sound
-        - POOR: Poor condition with major damage or deterioration
-        - UNKNOWN: Condition has not been assessed
-      default: UNKNOWN
-      example: EXCELLENT
-
-    OriginYearData:
-      type: object
-      description: |
-        Origin year information for antique products.
-        Can represent either an exact year or a year range.
-        At least one of the fields (min, year, or max) will be present when this object is included.
-      properties:
-        min:
-          type: integer
-          nullable: true
-          description: |
-            Lower end of the year range when the antique is estimated to have originated.
-            Only present when the origin year is expressed as a range (year will be null).
-            Can be present alone (without max) to indicate "after this year".
-          example: 1900
-        year:
-          type: integer
-          nullable: true
-          description: |
-            Exact year the antique is estimated to have originated.
-            When this value is present, both min and max will typically be null.
-          example: 1837
-        max:
-          type: integer
-          nullable: true
-          description: |
-            Upper end of the year range when the antique is estimated to have originated.
-            Only present when the origin year is expressed as a range (year will be null).
-            Can be present alone (without min) to indicate "before this year".
-          example: 1950
 
     PriceEstimateData:
       type: object
@@ -9668,31 +8533,6 @@ components:
           description: |
             Optional price estimate range.
             Common for auction items where an estimated value range is provided.
-
-    ProvenanceData:
-      type: string
-      enum: [COMPLETE, PARTIAL, CLAIMED, NONE, UNKNOWN]
-      description: |
-        Documentation trail and ownership history of the antique product:
-        - COMPLETE: Full documented history from origin to present
-        - PARTIAL: Some documentation exists but history has gaps
-        - CLAIMED: Provenance is claimed by seller but lacks documentation
-        - NONE: No provenance documentation available
-        - UNKNOWN: Provenance status has not been determined
-      default: UNKNOWN
-      example: PARTIAL
-
-    RestorationData:
-      type: string
-      enum: [NONE, MINOR, MAJOR, UNKNOWN]
-      description: |
-        Level of restoration work performed on the antique product:
-        - NONE: No restoration, original condition preserved
-        - MINOR: Minor restoration or conservation work (cleaning, small repairs)
-        - MAJOR: Significant restoration or reconstruction work
-        - UNKNOWN: Restoration history has not been determined
-      default: UNKNOWN
-      example: NONE
 
     ProhibitedContentData:
       type: string
@@ -9746,12 +8586,11 @@ components:
 
     SortProductFieldData:
       type: string
-      enum: [score, price, originYear, updated, created]
+      enum: [score, price, updated, created]
       description: |
         Fields available for sorting:
         - score: Sort by relevance score (default, only available when searching with text query)
         - price: Sort by product price
-        - originYear: Sort by product origin year
         - updated: Sort by last updated timestamp
         - created: Sort by creation timestamp
       default: score
@@ -9768,11 +8607,6 @@ components:
           URL_CHANGED,
           IMAGES_CHANGED,
           AUCTION_TIME_CHANGED,
-          ORIGIN_YEAR_CHANGED,
-          AUTHENTICITY_CHANGED,
-          CONDITION_CHANGED,
-          PROVENANCE_CHANGED,
-          RESTORATION_CHANGED,
         ]
       description: |
         Types of events that can occur for a product:
@@ -9783,11 +8617,6 @@ components:
         - URL_CHANGED: Product URL was updated
         - IMAGES_CHANGED: Product image list was updated
         - AUCTION_TIME_CHANGED: Product auction start or end time was updated
-        - ORIGIN_YEAR_CHANGED: Product origin year was updated
-        - AUTHENTICITY_CHANGED: Product authenticity classification was updated
-        - CONDITION_CHANGED: Product condition classification was updated
-        - PROVENANCE_CHANGED: Product provenance classification was updated
-        - RESTORATION_CHANGED: Product restoration classification was updated
       example: STATE_CHANGED
 
     ProductEventPayloadData:
@@ -9799,11 +8628,6 @@ components:
         - $ref: "#/components/schemas/ProductEventUrlChangedPayloadData"
         - $ref: "#/components/schemas/ProductEventImagesChangedPayloadData"
         - $ref: "#/components/schemas/ProductEventAuctionTimeChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventOriginYearChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventAuthenticityChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventConditionChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventProvenanceChangedPayloadData"
-        - $ref: "#/components/schemas/ProductEventRestorationChangedPayloadData"
       description: |
         Event-specific payload data. The structure varies depending on the event type:
         - CREATED: ProductCreatedEventPayloadData (initial product state and optional price)
@@ -9813,11 +8637,6 @@ components:
         - URL_CHANGED: ProductEventUrlChangedPayloadData (new URL)
         - IMAGES_CHANGED: ProductEventImagesChangedPayloadData (new image list)
         - AUCTION_TIME_CHANGED: ProductEventAuctionTimeChangedPayloadData (new auction start/end times)
-        - ORIGIN_YEAR_CHANGED: ProductEventOriginYearChangedPayloadData (new origin year)
-        - AUTHENTICITY_CHANGED: ProductEventAuthenticityChangedPayloadData (new authenticity classification)
-        - CONDITION_CHANGED: ProductEventConditionChangedPayloadData (new condition classification)
-        - PROVENANCE_CHANGED: ProductEventProvenanceChangedPayloadData (new provenance classification)
-        - RESTORATION_CHANGED: ProductEventRestorationChangedPayloadData (new restoration classification)
 
     ApiError:
       type: object
@@ -9877,30 +8696,6 @@ components:
           minLength: 1
           nullable: true
           example: "smartphone case"
-        categoryId:
-          type: array
-          items:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          uniqueItems: true
-          default: []
-          description: |
-            Optional set of kebab-case level-one category identifiers to filter products by.
-            When provided, products matching any of the categories are returned.
-            Examples: ["musical-instruments"], ["antique-furniture", "antique-clocks"]
-          example: ["musical-instruments"]
-        periodId:
-          type: array
-          items:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          uniqueItems: true
-          default: []
-          description: |
-            Optional set of kebab-case level-one period identifiers to filter products by.
-            When provided, products matching any of the periods are returned.
-            Examples: ["renaissance"], ["baroque", "decorative-objects"]
-          example: ["baroque"]
         shopName:
           type: array
           items:
@@ -10041,47 +8836,6 @@ components:
           default: []
           nullable: true
           example: ["AVAILABLE"]
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/RangeQueryInt32"
-          nullable: true
-          description: Optional filter by product origin year range
-        authenticity:
-          type: array
-          items:
-            $ref: "#/components/schemas/AuthenticityData"
-          description: Optional filter by authenticity classifications
-          uniqueItems: true
-          default: []
-          nullable: true
-          example: ["ORIGINAL"]
-        condition:
-          type: array
-          items:
-            $ref: "#/components/schemas/ConditionData"
-          description: Optional filter by product condition assessments
-          uniqueItems: true
-          default: []
-          nullable: true
-          example: ["EXCELLENT"]
-        provenance:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProvenanceData"
-          description: Optional filter by provenance documentation levels
-          uniqueItems: true
-          default: []
-          nullable: true
-          example: ["PARTIAL"]
-        restoration:
-          type: array
-          items:
-            $ref: "#/components/schemas/RestorationData"
-          description: Optional filter by restoration work levels
-          uniqueItems: true
-          default: []
-          nullable: true
-          example: ["UNKNOWN"]
         created:
           allOf:
             - $ref: "#/components/schemas/RangeQueryDateTime"
@@ -10217,30 +8971,6 @@ components:
           minLength: 1
           nullable: true
           example: "laptop bag"
-        categoryId:
-          type: array
-          items:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          uniqueItems: true
-          description: |
-            Optional set of kebab-case level-one category identifiers to filter products by.
-            When provided, products matching any of the categories are returned.
-            Examples: ["musical-instruments"], ["antique-furniture", "antique-clocks"]
-          nullable: true
-          example: ["musical-instruments"]
-        periodId:
-          type: array
-          items:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          uniqueItems: true
-          description: |
-            Optional set of kebab-case level-one period identifiers to filter products by.
-            When provided, products matching any of the periods are returned.
-            Examples: ["renaissance"], ["baroque", "decorative-objects"]
-          nullable: true
-          example: ["baroque"]
         shopName:
           type: array
           items:
@@ -10373,43 +9103,6 @@ components:
           uniqueItems: true
           nullable: true
           example: ["AVAILABLE", "LISTED"]
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/RangeQueryInt32"
-          nullable: true
-          description: Optional filter by product origin year range
-        authenticity:
-          type: array
-          items:
-            $ref: "#/components/schemas/AuthenticityData"
-          description: Optional filter by authenticity classifications
-          uniqueItems: true
-          nullable: true
-          example: ["ORIGINAL", "LATER_COPY"]
-        condition:
-          type: array
-          items:
-            $ref: "#/components/schemas/ConditionData"
-          description: Optional filter by product condition assessments
-          uniqueItems: true
-          nullable: true
-          example: ["EXCELLENT", "GREAT"]
-        provenance:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProvenanceData"
-          description: Optional filter by provenance documentation levels
-          uniqueItems: true
-          nullable: true
-          example: ["PARTIAL", "COMPLETE"]
-        restoration:
-          type: array
-          items:
-            $ref: "#/components/schemas/RestorationData"
-          description: Optional filter by restoration work levels
-          uniqueItems: true
-          nullable: true
-          example: ["NONE", "MINOR"]
         created:
           allOf:
             - $ref: "#/components/schemas/RangeQueryDateTime"
@@ -10704,18 +9397,6 @@ components:
           description: Total number of products matching the query
           nullable: true
           example: 127
-
-    CategoryIdData:
-      type: string
-      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-      description: Lowercase kebab-case category key.
-      example: medals
-
-    PeriodIdData:
-      type: string
-      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-      description: Lowercase kebab-case period key.
-      example: ww2
 
     CountryCodeData:
       type: string
@@ -11118,18 +9799,6 @@ components:
           format: email
           description: Optional public contact email address of the shop.
           example: "contact@tech-store-premium.com"
-        specialitiesCategories:
-          type: array
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: Optional list of speciality category keys associated with the shop. Omitted when empty.
-          example: ["medals", "coins"]
-        specialitiesPeriods:
-          type: array
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: Optional list of speciality period keys associated with the shop. Omitted when empty.
-          example: ["ww2"]
         partnerStatus:
           $ref: "#/components/schemas/ShopPartnerStatusData"
         created:
@@ -11171,22 +9840,6 @@ components:
           default: []
           nullable: true
           example: ["PARTNERED"]
-        specialitiesCategories:
-          type: array
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: |
-            Optional repeated speciality-category filter.
-            When provided, only shops having at least one of the listed category keys are returned.
-          example: ["medals", "coins"]
-        specialitiesPeriods:
-          type: array
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: |
-            Optional repeated speciality-period filter.
-            When provided, only shops having at least one of the listed period keys are returned.
-          example: ["ww2"]
         countries:
           type: array
           items:
@@ -11275,21 +9928,6 @@ components:
           nullable: true
           description: Optional updated public contact email address. When omitted or set to `null`, the current email address remains unchanged.
           example: "contact@tech-store-premium.com"
-        specialitiesCategories:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: Optional replacement list of speciality category keys for the shop.
-          example: ["medals", "coins"]
-        specialitiesPeriods:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: Optional replacement list of speciality period keys for the shop.
-          example: ["ww2"]
-
     PostShopData:
       type: object
       description: |
@@ -11350,19 +9988,6 @@ components:
           nullable: true
           description: Optional public contact email address of the shop.
           example: "contact@tech-store-premium.com"
-        specialitiesCategories:
-          type: array
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: Optional list of speciality category keys.
-          example: ["medals", "coins"]
-        specialitiesPeriods:
-          type: array
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: Optional list of speciality period keys.
-          example: ["ww2"]
-
     PartnerShopApiKeyResponse:
       type: object
       description: Response body returned after creating or overwriting a partner shop API key.
@@ -11421,216 +10046,6 @@ components:
           description: Total number of products matching the query
           nullable: true
           example: 127
-
-    CategorySearchData:
-      type: object
-      description: Search configuration for categories
-      properties:
-        language:
-          $ref: "#/components/schemas/LanguageData"
-        nameQuery:
-          type: string
-          description: Optional localized name query for categories
-          example: "Furniture"
-
-    SortCategoryFieldData:
-      type: string
-      enum: [score, name, updated, created]
-      description: |
-        Fields available for sorting categories:
-        - score: Sort by relevance score (default, only available when searching with text query)
-        - name: Sort by localized category name
-        - updated: Sort by last updated timestamp
-        - created: Sort by creation timestamp
-      default: score
-      example: name
-
-    GetCategorySummaryData:
-      type: object
-      description: Summary information about a category
-      required:
-        - categoryId
-        - categoryKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        categoryId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the category
-          example: "musical-instruments"
-        categoryKey:
-          type: string
-          description: Stable key for the category
-          example: "musical-instruments"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this category
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the category was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the category was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    GetCategoryData:
-      type: object
-      description: Detailed category information
-      required:
-        - categoryId
-        - categoryKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        categoryId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the category
-          example: "musical-instruments"
-        categoryKey:
-          type: string
-          description: Stable key for the category
-          example: "musical-instruments"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this category
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the category was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the category was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    PeriodSearchData:
-      type: object
-      description: Search configuration for periods
-      properties:
-        language:
-          $ref: "#/components/schemas/LanguageData"
-        nameQuery:
-          type: string
-          description: Optional localized name query for periods
-          example: "Renaissance"
-
-    SortPeriodFieldData:
-      type: string
-      enum: [score, name, updated, created]
-      description: |
-        Fields available for sorting periods:
-        - score: Sort by relevance score (default, only available when searching with text query)
-        - name: Sort by localized period name
-        - updated: Sort by last updated timestamp
-        - created: Sort by creation timestamp
-      default: score
-      example: name
-
-    GetPeriodSummaryData:
-      type: object
-      description: Summary information about a period
-      required:
-        - periodId
-        - periodKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        periodId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the period
-          example: "renaissance"
-        periodKey:
-          type: string
-          description: Stable key for the period
-          example: "RENAISSANCE"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this period
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the period was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the period was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    GetPeriodData:
-      type: object
-      description: Detailed period information
-      required:
-        - periodId
-        - periodKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        periodId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the period
-          example: "renaissance"
-        periodKey:
-          type: string
-          description: Stable key for the period
-          example: "RENAISSANCE"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this period
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the period was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the period was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
 
     ProductKeyData:
       type: object
@@ -12130,7 +10545,7 @@ components:
       type: string
       description: |
         The user's subscription tier, which determines limits and feature access (e.g. max watchlist entries, max search filters, allowed search filter fields).
-        - `FREE`: Default tier for all users. Allows up to 20 watchlist entries, up to 1 search filter (limited to `productQuery`, `categoryId`, `periodId`, `price`, and `state` filter fields), and up to 10 product matches per filter.
+        - `FREE`: Default tier for all users. Allows up to 20 watchlist entries, up to 1 search filter (limited to `productQuery`, `price`, and `state` filter fields), and up to 10 product matches per filter.
         - `PRO`: Premium tier. Allows up to 100 watchlist entries, up to 5 search filters with access to all filter fields, and unlimited product matches per filter.
         - `ULTIMATE`: Highest tier. Allows unlimited watchlist entries, unlimited search filters with access to all filter fields, and unlimited product matches per filter.
       enum:
@@ -12507,7 +10922,6 @@ components:
       type: object
       description: |
         Data for creating a single product via the partner batch-create endpoint.
-        `authenticity`, `condition`, `provenance`, and `restoration` each default to `UNKNOWN`
         when omitted from the request.
       required:
         - shopsProductId
@@ -12572,11 +10986,6 @@ components:
             RFC3339 timestamp of when the auction for this product ends.
             Only relevant for auction-house shop types. Omit for non-auction products.
           example: "2025-05-10T12:00:00Z"
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/OriginYearData"
-          nullable: true
-          description: Optional origin year information for the antique product
         sellerName:
           type: string
           nullable: true
@@ -12596,27 +11005,6 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional coordinates to attach to the product for geo-aware indexing and search.
-        authenticity:
-          allOf:
-            - $ref: "#/components/schemas/AuthenticityData"
-          default: UNKNOWN
-          description: Authenticity classification. Defaults to `UNKNOWN` when omitted.
-        condition:
-          allOf:
-            - $ref: "#/components/schemas/ConditionData"
-          default: UNKNOWN
-          description: Condition classification. Defaults to `UNKNOWN` when omitted.
-        provenance:
-          allOf:
-            - $ref: "#/components/schemas/ProvenanceData"
-          default: UNKNOWN
-          description: Provenance classification. Defaults to `UNKNOWN` when omitted.
-        restoration:
-          allOf:
-            - $ref: "#/components/schemas/RestorationData"
-          default: UNKNOWN
-          description: Restoration classification. Defaults to `UNKNOWN` when omitted.
-
     PostProductsResponse:
       type: object
       description: |
@@ -12695,32 +11083,6 @@ components:
           nullable: true
           description: Optional updated RFC3339 timestamp of when the auction ends. Omit to leave the current value unchanged.
           example: "2026-04-10T12:00:00Z"
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/OriginYearData"
-          nullable: true
-          description: Optional updated origin year information. Omit to leave the current value unchanged.
-        authenticity:
-          allOf:
-            - $ref: "#/components/schemas/AuthenticityData"
-          nullable: true
-          description: Optional updated authenticity classification. Omit to leave the current value unchanged.
-        condition:
-          allOf:
-            - $ref: "#/components/schemas/ConditionData"
-          nullable: true
-          description: Optional updated condition classification. Omit to leave the current value unchanged.
-        provenance:
-          allOf:
-            - $ref: "#/components/schemas/ProvenanceData"
-          nullable: true
-          description: Optional updated provenance classification. Omit to leave the current value unchanged.
-        restoration:
-          allOf:
-            - $ref: "#/components/schemas/RestorationData"
-          nullable: true
-          description: Optional updated restoration classification. Omit to leave the current value unchanged.
-
     PatchProductsResponse:
       type: object
       description: |
@@ -12752,7 +11114,6 @@ components:
         - If the product **already exists**, only `state` and `price` are updated; all other
           fields are ignored for the update path.
 
-        The `authenticity`, `condition`, `provenance`, and `restoration` fields each default
         to `UNKNOWN` when omitted.
       required:
         - shopsProductId
@@ -12823,11 +11184,6 @@ components:
             RFC3339 timestamp of when the auction for this product ends.
             Only relevant for auction-house shop types. Used only when creating a new product.
           example: "2025-05-10T12:00:00Z"
-        originYear:
-          allOf:
-            - $ref: "#/components/schemas/OriginYearData"
-          nullable: true
-          description: Optional origin year information for the antique product. Used only when creating a new product.
         sellerName:
           type: string
           nullable: true
@@ -12848,27 +11204,6 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional coordinates to attach to the product for geo-aware indexing and search. Used only when creating a new product.
-        authenticity:
-          allOf:
-            - $ref: "#/components/schemas/AuthenticityData"
-          default: UNKNOWN
-          description: Authenticity classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
-        condition:
-          allOf:
-            - $ref: "#/components/schemas/ConditionData"
-          default: UNKNOWN
-          description: Condition classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
-        provenance:
-          allOf:
-            - $ref: "#/components/schemas/ProvenanceData"
-          default: UNKNOWN
-          description: Provenance classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
-        restoration:
-          allOf:
-            - $ref: "#/components/schemas/RestorationData"
-          default: UNKNOWN
-          description: Restoration classification. Defaults to `UNKNOWN` when omitted. Used only when creating a new product.
-
     PutProductsResponse:
       type: object
       description: |
@@ -12985,18 +11320,6 @@ components:
               format: email
               description: Optional public contact email address for the requested new shop.
               example: "contact@my-antique-store.com"
-            shopSpecialitiesCategories:
-              type: array
-              items:
-                $ref: "#/components/schemas/CategoryIdData"
-              description: Optional list of speciality category keys for the requested new shop.
-              example: ["medals", "coins"]
-            shopSpecialitiesPeriods:
-              type: array
-              items:
-                $ref: "#/components/schemas/PeriodIdData"
-              description: Optional list of speciality period keys for the requested new shop.
-              example: ["ww2"]
       discriminator:
         propertyName: type
         mapping:
@@ -13126,18 +11449,6 @@ components:
               nullable: true
               description: Optional public contact email address for the requested new shop.
               example: "contact@my-antique-store.com"
-            shopSpecialitiesCategories:
-              type: array
-              items:
-                $ref: "#/components/schemas/CategoryIdData"
-              description: Optional list of speciality category keys for the requested new shop.
-              example: ["medals", "coins"]
-            shopSpecialitiesPeriods:
-              type: array
-              items:
-                $ref: "#/components/schemas/PeriodIdData"
-              description: Optional list of speciality period keys for the requested new shop.
-              example: ["ww2"]
       discriminator:
         propertyName: type
         mapping:
@@ -13206,21 +11517,6 @@ components:
           nullable: true
           description: Updated public contact email address for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
           example: "contact@my-antique-store.com"
-        shopSpecialitiesCategories:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: Updated replacement list of speciality category keys for the requested new shop.
-          example: ["medals", "coins"]
-        shopSpecialitiesPeriods:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: Updated replacement list of speciality period keys for the requested new shop.
-          example: ["ww2"]
-
     AdminPatchPartnerShopApplicationData:
       type: object
       description: |
@@ -13281,21 +11577,6 @@ components:
           nullable: true
           description: Updated public contact email address for the requested new shop. When omitted or set to `null`, the current value remains unchanged.
           example: "contact@my-antique-store.com"
-        shopSpecialitiesCategories:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/CategoryIdData"
-          description: Updated replacement list of speciality category keys for the requested new shop.
-          example: ["medals", "coins"]
-        shopSpecialitiesPeriods:
-          type: array
-          nullable: true
-          items:
-            $ref: "#/components/schemas/PeriodIdData"
-          description: Updated replacement list of speciality period keys for the requested new shop.
-          example: ["ww2"]
-
     PartnerShopApplicationDecisionData:
       type: string
       enum: [APPROVE, REJECT]

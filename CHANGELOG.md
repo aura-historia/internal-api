@@ -6,6 +6,8 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-09 - Completely removed Category, Period, Authenticity, Condition, Provenance, Restoration and Origin Year
+
 ## 2026-05-03 - Shared Resource State for Search Filters and Watchlist (`backend#963`)
 
 Backend PR `#963` evolved beyond the initial saved-search response change. The current backend contract now uses a shared resource-state enum for persisted user-owned resources, returns that state on saved search filters, and allows clients to manually activate/deactivate both saved search filters and watchlist entries through PATCH payloads. This update realigns the internal OpenAPI spec with that broader backend contract.
