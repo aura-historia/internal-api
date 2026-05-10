@@ -28,8 +28,8 @@ Backend PR `#1014` splits the old saved-search-filter product endpoints into two
   - Response item schema: `PersonalizedGetProductSummaryData`
   - Response headers: `Cache-Control`, `Access-Control-Allow-Origin`
   - When the saved filter has an `enhancedSearchDescription`, the backend re-evaluates each returned product for that specific filter and overwrites `userState.searchFilter` so the live result exposes:
-    - required `matched`
-    - required `hidden` (`false` in this flow)
+    - always-present `matched`
+    - always-present `hidden` (`false` in this flow)
     - optional `matchReason`
     - omitted `userSearchFilterId`, `userSearchFilterName`, and `matchFeedback`
 
