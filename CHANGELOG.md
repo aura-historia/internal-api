@@ -51,11 +51,13 @@ Backend PR `#1014` splits the old saved-search-filter product endpoints into two
     - request: `PatchUserSearchFilterMatchData`
     - success response: `SearchFilterProductMatchData`
     - request body still accepts optional `feedback: boolean`
+- The old persisted-match route names are no longer valid:
+    - `GET /api/v1/me/search-filters/{userSearchFilterId}/products` is now the live product preview endpoint and no longer serves the stored match list.
+    - `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}` has moved to `/matches/{shopId}/{shopsProductId}`.
 
 ### Removed
 
-- The old persisted-match route `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}` is no longer part of the documented contract; clients must use the `/matches/...` path instead.
-- The old meaning of `GET /api/v1/me/search-filters/{userSearchFilterId}/products` as a stored-match listing is removed. That path is now reserved for the live product preview endpoint described above.
+- No standalone documented schemas or endpoint capabilities were removed in this update; the persisted-match functionality was renamed and the former `GET .../products` behavior was replaced by the new live-search endpoint above.
 
 ## 2026-05-09 - Completely removed Category, Period, Authenticity, Condition, Provenance, Restoration and Origin Year
 
