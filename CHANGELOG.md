@@ -6,6 +6,57 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-10 - Search-Filter Live Product Search and Match Route Rename (`backend#1014`)
+
+Backend PR `#1014` splits the old saved-search-filter product endpoints into two distinct concerns: persisted match management now lives under `/matches`, while `/products` now performs a live search against the current product index. This update realigns the internal OpenAPI spec with that backend contract and documents the new live-search behavior precisely.
+
+### Added
+
+- **New endpoint: `GET /api/v1/me/search-filters/{userSearchFilterId}/products`**
+  - Requires authentication.
+  - Runs a live search using the saved filter's stored search criteria and returns `PersonalizedProductSearchResultData`.
+  - Query parameters:
+
+  | Parameter | Type | Required | Description |
+  |---|---|---|---|
+  | `userSearchFilterId` | `string (uuid)` | Yes | Saved search-filter identifier whose stored search criteria are executed live. |
+  | `currency` | `CurrencyData` | No | Currency used for price normalization in the returned product summaries. |
+  | `language` | `LanguageData` | No | Preferred language for localized summary fields. Defaults to `en` when omitted. |
+  | `size` | `integer` | No | Maximum number of results to return. Values above `10` are capped to `10`; default is `10`. |
+  | `searchAfter` | `array` | No | Must not be provided. Any non-null value is rejected with `BAD_QUERY_PARAMETER_VALUE` because this live-preview endpoint does not allow client-driven pagination. |
+
+  - Response item schema: `PersonalizedGetProductSummaryData`
+  - Response headers: `Cache-Control`, `Access-Control-Allow-Origin`
+  - When the saved filter has an `enhancedSearchDescription`, the backend re-evaluates each returned product for that specific filter and overwrites `userState.searchFilter` so the live result exposes:
+    - required `matched`
+    - required `hidden` (`false` in this flow)
+    - optional `matchReason`
+    - omitted `userSearchFilterId`, `userSearchFilterName`, and `matchFeedback`
+
+### Changed
+
+- **Persisted saved-search match listing renamed**
+  - `GET /api/v1/me/search-filters/{userSearchFilterId}/products`
+  - → `GET /api/v1/me/search-filters/{userSearchFilterId}/matches`
+  - The renamed endpoint keeps the existing contract for stored matches:
+    - authentication required
+    - query parameters `currency`, `language`, `sort`, `order`, `searchAfter`, `size`
+    - response schema `SearchFilterMatchProductCollectionData`
+    - time-based cursor pagination sorted by match creation timestamp
+
+- **Persisted saved-search match feedback endpoint renamed**
+  - `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}`
+  - → `PATCH /api/v1/me/search-filters/{userSearchFilterId}/matches/{shopId}/{shopsProductId}`
+  - Request body and response schemas are unchanged:
+    - request: `PatchUserSearchFilterMatchData`
+    - success response: `SearchFilterProductMatchData`
+    - request body still accepts optional `feedback: boolean`
+
+### Removed
+
+- The old persisted-match route `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}` is no longer part of the documented contract; clients must use the `/matches/...` path instead.
+- The old meaning of `GET /api/v1/me/search-filters/{userSearchFilterId}/products` as a stored-match listing is removed. That path is now reserved for the live product preview endpoint described above.
+
 ## 2026-05-09 - Completely removed Category, Period, Authenticity, Condition, Provenance, Restoration and Origin Year
 
 ## 2026-05-03 - Shared Resource State for Search Filters and Watchlist (`backend#963`)
