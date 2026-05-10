@@ -51,9 +51,6 @@ Backend PR `#1014` splits the old saved-search-filter product endpoints into two
     - request: `PatchUserSearchFilterMatchData`
     - success response: `SearchFilterProductMatchData`
     - request body still accepts optional `feedback: boolean`
-- The old persisted-match route names are no longer valid:
-    - `GET /api/v1/me/search-filters/{userSearchFilterId}/products` is now the live product preview endpoint and no longer serves the stored match list.
-    - `PATCH /api/v1/me/search-filters/{userSearchFilterId}/products/{shopId}/{shopsProductId}` has moved to `/matches/{shopId}/{shopsProductId}`.
 
 ### Removed
 
