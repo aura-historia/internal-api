@@ -6,6 +6,39 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-11 - Re-added Disabled Category and Period Documentation
+
+This update restores the previously removed category and period endpoint/type documentation in a disabled state so the internal contract remains visible for frontend/backend coordination, without reintroducing the earlier category/period fields on unrelated product, search-filter, or other resource contracts.
+
+### Added
+
+- Re-added the disabled category documentation:
+  - `GET /api/v1/categories`
+  - `GET /api/v1/categories/{categoryId}`
+  - `POST /api/v1/categories/search`
+  - `CategorySearchData`
+  - `SortCategoryFieldData`
+  - `GetCategorySummaryData`
+  - `GetCategoryData`
+
+- Re-added the disabled period documentation:
+  - `GET /api/v1/periods`
+  - `GET /api/v1/periods/{periodId}`
+  - `POST /api/v1/periods/search`
+  - `PeriodSearchData`
+  - `SortPeriodFieldData`
+  - `GetPeriodSummaryData`
+  - `GetPeriodData`
+
+### Changed
+
+- All restored category and period operations are now explicitly marked as disabled in the OpenAPI spec for internal reference.
+- All restored category and period schemas are marked as deprecated/disabled reference types.
+
+### Removed
+
+- No unrelated category/period fields were reintroduced on other endpoints or schemas. Previously removed partial fields such as `categoryId` / `periodId` references on other resource contracts remain removed.
+
 ## 2026-05-10 - Search-Filter Live Product Search and Match Route Rename (`backend#1014`)
 
 Backend PR `#1014` splits the old saved-search-filter product endpoints into two distinct concerns: persisted match management now lives under `/matches`, while `/products` now performs a live search against the current product index. This update realigns the internal OpenAPI spec with that backend contract and documents the new live-search behavior precisely.
