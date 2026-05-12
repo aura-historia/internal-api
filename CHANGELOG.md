@@ -6,6 +6,39 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-12 - Shopify Partner-Shop Domain on Shop DTOs (`backend#1022`)
+
+Backend PR `#1022` adds an optional Shopify storefront domain to the shop REST DTOs so partner shops can be matched against incoming Shopify product lifecycle events. This update realigns the internal OpenAPI spec with that backend contract and documents where the new field can be sent and returned.
+
+### Added
+
+- **`PostShopData.shopifyDomain`**
+  - Optional normalized Shopify storefront domain accepted by `POST /api/v1/shops`
+  - Uses the same normalization rules as `domains` (lowercase, no scheme, no `www.` prefix, no path/query/fragment)
+
+- **`PatchShopData.shopifyDomain`**
+  - Optional normalized Shopify storefront domain accepted by `PATCH /api/v1/shops/{shopId}`
+  - When omitted or sent as `null`, the existing stored Shopify domain remains unchanged
+
+- **`GetShopData.shopifyDomain`**
+  - Optional normalized Shopify storefront domain returned when present on shop read models
+  - Exposed anywhere `GetShopData` is returned, including:
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `GET /api/v1/by-slug/shops/{shopSlugId}`
+    - `GET /api/v1/shops`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/partner/{partnerId}/shops`
+
+### Changed
+
+- Updated shop request/response examples across the affected shop endpoints to show the new optional `shopifyDomain` field where relevant.
+
+### Removed
+
+- No endpoints or previously documented shop fields were removed in this update.
+
 ## 2026-05-11 - Re-added Disabled Category and Period Documentation
 
 This update restores the previously removed category and period endpoint/type documentation in a disabled state so the internal contract remains visible for frontend/backend coordination, without reintroducing the earlier category/period fields on unrelated product, search-filter, or other resource contracts.
