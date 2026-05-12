@@ -5717,6 +5717,7 @@ paths:
               domains:
                 - "tech-store-premium.com"
                 - "tech-store-premium.de"
+              shopifyDomain: "tech-store-premium.myshopify.com"
               url: "https://tech-store-premium.com/"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
@@ -5755,6 +5756,7 @@ paths:
                 domains:
                   - "tech-store-premium.com"
                   - "tech-store-premium.de"
+                shopifyDomain: "tech-store-premium.myshopify.com"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6061,6 +6063,7 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
+                shopifyDomain: "tech-store-premium.myshopify.com"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6158,6 +6161,7 @@ paths:
             schema:
               $ref: "#/components/schemas/PatchShopData"
             example:
+              shopifyDomain: "tech-store-premium.myshopify.com"
               url: "https://tech-store-premium.com/"
               structuredAddress:
                 addressline: "Pariser Platz 1"
@@ -6198,6 +6202,7 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
+                shopifyDomain: "tech-store-premium.myshopify.com"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6470,6 +6475,7 @@ paths:
                     "tech-store-premium.de",
                     "apple.tech-store-premium.com",
                   ]
+                shopifyDomain: "tech-store-premium.myshopify.com"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6619,6 +6625,7 @@ paths:
                     name: "Tech Store Premium"
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
+                    shopifyDomain: "tech-store-premium.myshopify.com"
                     url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
@@ -7468,6 +7475,7 @@ paths:
                   name: "Tech Store Premium"
                   shopType: "COMMERCIAL_DEALER"
                   domains: ["tech-store-premium.com"]
+                  shopifyDomain: "tech-store-premium.myshopify.com"
                   url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
@@ -10708,6 +10716,14 @@ components:
               "tech-store-premium.de",
               "apple.tech-store-premium.com",
             ]
+        shopifyDomain:
+          type: string
+          nullable: true
+          description: |
+            Optional normalized Shopify storefront domain associated with the shop.
+            Used by the backend to match Shopify product lifecycle events to the shop.
+            Normalized with the same rules as `domains` (lowercase, no scheme, no `www.` prefix, no path/query/fragment).
+          example: "tech-store-premium.myshopify.com"
         url:
           type: string
           format: uri
@@ -10828,6 +10844,14 @@ components:
           example:
             - "tech-store-premium.com"
             - "tech-store-premium.de"
+        shopifyDomain:
+          type: string
+          nullable: true
+          description: |
+            Optional updated Shopify storefront domain used for Shopify partner-shop event matching.
+            Normalized with the same rules as `domains`.
+            When omitted or set to `null`, the current Shopify domain remains unchanged.
+          example: "tech-store-premium.myshopify.com"
         url:
           type: string
           format: uri
@@ -10893,6 +10917,14 @@ components:
           example:
             - "tech-store-premium.com"
             - "tech-store-premium.de"
+        shopifyDomain:
+          type: string
+          nullable: true
+          description: |
+            Optional Shopify storefront domain associated with the shop.
+            Used by the backend to match Shopify product lifecycle events to the shop.
+            Input values are normalized with the same rules as `domains`.
+          example: "tech-store-premium.myshopify.com"
         url:
           type: string
           format: uri
