@@ -5718,6 +5718,7 @@ paths:
                 - "tech-store-premium.com"
                 - "tech-store-premium.de"
               shopifyDomain: "tech-store-premium.myshopify.com"
+              shopifyCurrency: "EUR"
               url: "https://tech-store-premium.com/"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
@@ -5757,6 +5758,7 @@ paths:
                   - "tech-store-premium.com"
                   - "tech-store-premium.de"
                 shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6064,6 +6066,7 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6162,6 +6165,7 @@ paths:
               $ref: "#/components/schemas/PatchShopData"
             example:
               shopifyDomain: "tech-store-premium.myshopify.com"
+              shopifyCurrency: "EUR"
               url: "https://tech-store-premium.com/"
               structuredAddress:
                 addressline: "Pariser Platz 1"
@@ -6203,6 +6207,7 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6476,6 +6481,7 @@ paths:
                     "apple.tech-store-premium.com",
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6626,6 +6632,7 @@ paths:
                     shopType: "COMMERCIAL_DEALER"
                     domains: ["tech-store-premium.com"]
                     shopifyDomain: "tech-store-premium.myshopify.com"
+                    shopifyCurrency: "EUR"
                     url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
@@ -7476,6 +7483,7 @@ paths:
                   shopType: "COMMERCIAL_DEALER"
                   domains: ["tech-store-premium.com"]
                   shopifyDomain: "tech-store-premium.myshopify.com"
+                  shopifyCurrency: "EUR"
                   url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
@@ -10724,6 +10732,11 @@ components:
             Used by the backend to match Shopify product lifecycle events to the shop.
             Normalized with the same rules as `domains` (lowercase, no scheme, no `www.` prefix, no path/query/fragment).
           example: "tech-store-premium.myshopify.com"
+        shopifyCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: Optional Shopify currency configured for the shop, serialized as an ISO 4217 code.
         url:
           type: string
           format: uri
@@ -10852,6 +10865,13 @@ components:
             Normalized with the same rules as `domains`.
             When omitted or set to `null`, the current Shopify domain remains unchanged.
           example: "tech-store-premium.myshopify.com"
+        shopifyCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: |
+            Optional updated Shopify currency for the shop, serialized as an ISO 4217 code.
+            When omitted or set to `null`, the current Shopify currency remains unchanged.
         url:
           type: string
           format: uri
@@ -10925,6 +10945,11 @@ components:
             Used by the backend to match Shopify product lifecycle events to the shop.
             Input values are normalized with the same rules as `domains`.
           example: "tech-store-premium.myshopify.com"
+        shopifyCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: Optional Shopify currency associated with the shop, serialized as an ISO 4217 code.
         url:
           type: string
           format: uri
