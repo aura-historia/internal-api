@@ -6,6 +6,39 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-13 - Shopify Currency on Shop DTOs (`backend#1035`)
+
+Backend PR `#1035` adds an optional Shopify currency to the shop REST DTOs so each shop can carry the ISO-4217 currency code associated with its Shopify storefront. This update realigns the internal OpenAPI spec with that backend contract and documents where the new field can be sent and returned.
+
+### Added
+
+- **`PostShopData.shopifyCurrency`**
+  - Optional Shopify currency accepted by `POST /api/v1/shops`
+  - Uses the shared `CurrencyData` enum (`EUR`, `GBP`, `USD`, `AUD`, `CAD`, `NZD`, `CNY`, `BRL`, `PLN`, `TRY`, `JPY`, `CZK`, `RUB`, `AED`, `SAR`, `HKD`, `SGD`, `CHF`)
+
+- **`PatchShopData.shopifyCurrency`**
+  - Optional Shopify currency accepted by `PATCH /api/v1/shops/{shopId}`
+  - When omitted or sent as `null`, the existing stored Shopify currency remains unchanged
+
+- **`GetShopData.shopifyCurrency`**
+  - Optional Shopify currency returned when present on shop read models
+  - Exposed anywhere `GetShopData` is returned, including:
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `GET /api/v1/by-slug/shops/{shopSlugId}`
+    - `GET /api/v1/shops`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/partner/{partnerId}/shops`
+
+### Changed
+
+- Updated shop request/response examples across the affected shop endpoints to show the new optional `shopifyCurrency` field together with `shopifyDomain` where relevant.
+
+### Removed
+
+- No endpoints or previously documented shop fields were removed in this update.
+
 ## 2026-05-12 - Shopify Partner-Shop Domain on Shop DTOs (`backend#1022`)
 
 Backend PR `#1022` adds an optional Shopify storefront domain to the shop REST DTOs so partner shops can be matched against incoming Shopify product lifecycle events. This update realigns the internal OpenAPI spec with that backend contract and documents where the new field can be sent and returned.
