@@ -6,6 +6,56 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-14 - WooCommerce Partner-Shop Webhooks (`backend#1036`)
+
+Backend PR `#1036` adds WooCommerce as a partner-shop ingestion source via signed webhooks, extends shop DTOs with WooCommerce webhook configuration fields, and broadens partner-shop patch authorization to support API-key-authenticated updates when no Cognito identity is present. This update realigns the internal OpenAPI spec with that backend contract and documents the new inbound webhook route, the changed shop schemas, and the revised authentication behavior.
+
+### Added
+
+- **New endpoint: `POST /api/v1/webhooks/woocommerce/{shopId}`**
+  - Uses partner `x-api-key` authentication and requires the additional headers `x-wc-webhook-topic` and `x-wc-webhook-signature`.
+  - Accepts exactly these WooCommerce topic values in `x-wc-webhook-topic`:
+    - `product.created`
+    - `product.updated`
+    - `product.deleted`
+  - Documents topic-specific request payloads via:
+    - `WoocommerceProductWebhookUpsertData`
+    - `WoocommerceProductWebhookDeleteData`
+    - `WoocommerceProductWebhookImageData`
+  - Returns `WoocommerceWebhookResponse` with an `errors` count of `0` or `1`.
+  - Documents the relevant error cases:
+    - `400` for invalid path/body/topic/payload data
+    - `401` for missing or invalid `x-api-key` / `x-wc-webhook-signature`
+    - `403` when the addressed shop is not partnered
+    - `404` when the shop does not exist
+    - `500` when the shop has no configured WooCommerce webhook secret or another internal failure occurs
+
+- **New WooCommerce fields on shop DTOs**
+
+  | Schema / field | Type | Required | Description |
+  |---|---|---|---|
+  | `PostShopData.woocommerceWebhookSecret` | `string \| null` | No | Optional write-only secret stored for validating `x-wc-webhook-signature` on `POST /api/v1/webhooks/woocommerce/{shopId}`. |
+  | `PatchShopData.woocommerceWebhookSecret` | `string \| null` | No | Optional write-only replacement secret used for WooCommerce webhook signature validation. |
+  | `PostShopData.woocommerceCurrency` | `CurrencyData \| null` | No | Optional WooCommerce currency configured when creating a shop. Used when WooCommerce webhook payloads provide a non-empty `price`. |
+  | `PatchShopData.woocommerceCurrency` | `CurrencyData \| null` | No | Optional replacement WooCommerce currency used when webhook payloads provide a non-empty `price`. |
+  | `GetShopData.woocommerceCurrency` | `CurrencyData \| null` | No | Optional WooCommerce currency returned on shop read DTOs. |
+
+### Changed
+
+- **`PATCH /api/v1/shops/{shopId}` authentication**
+  - The endpoint now documents both supported authorization modes:
+    - Cognito bearer authentication for the assigned partner user or an `ADMIN`
+    - partner `x-api-key` authentication when no Cognito identity is present
+
+- **Shop create/update/read documentation**
+  - `POST /api/v1/shops` and `PATCH /api/v1/shops/{shopId}` request examples now include the new optional `woocommerceWebhookSecret` and `woocommerceCurrency` fields.
+  - Shop read examples for `GET /api/v1/shops/{shopId}`, `GET /api/v1/by-slug/shops/{shopSlugId}`, `POST /api/v1/shops/search`, and `GET /api/v1/partner/{partnerId}/shops` now include `woocommerceCurrency`.
+  - `woocommerceWebhookSecret` is explicitly documented as write-only and therefore remains absent from all shop read responses.
+
+### Removed
+
+- No endpoints or previously documented schemas were removed in this update.
+
 ## 2026-05-13 - Shopify Currency on Shop DTOs (`backend#1035`)
 
 Backend PR `#1035` adds an optional Shopify currency to the shop REST DTOs so each shop can carry the ISO-4217 currency code associated with its Shopify storefront. This update realigns the internal OpenAPI spec with that backend contract and documents where the new field can be sent and returned.
