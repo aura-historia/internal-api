@@ -487,6 +487,251 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/webhooks/woocommerce/{shopId}:
+    post:
+      summary: Ingest a WooCommerce product webhook (Partner API)
+      description: |
+        Accepts a single WooCommerce product webhook event for a partner shop using API key authentication.
+        This endpoint is intended for partner shops and does **not** use Cognito JWT authentication.
+
+        The caller must provide:
+        - the partner shop API key in the `x-api-key` header,
+        - the WooCommerce topic in `x-wc-webhook-topic`, and
+        - the base64-encoded HMAC-SHA256 signature of the raw request body in `x-wc-webhook-signature`.
+
+        Topic-specific payload requirements:
+        - `product.created` and `product.updated` require `id`, `name`, and `permalink`
+        - `product.deleted` requires only `id`
+
+        The shop identified by `shopId` must have a stored `woocommerceWebhookSecret`.
+        If a non-empty `price` is sent, the shop must also have `woocommerceCurrency` configured.
+      operationId: postWoocommerceWebhook
+      tags:
+        - Products
+      security:
+        - PartnerApiKeyAuth: []
+      parameters:
+        - name: shopId
+          in: path
+          required: true
+          description: Unique identifier of the partner shop that should receive the WooCommerce webhook
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+        - name: x-wc-webhook-topic
+          in: header
+          required: true
+          description: |
+            WooCommerce webhook topic that determines how the payload is interpreted.
+            Only the listed topic values are accepted.
+          schema:
+            type: string
+            enum: [product.created, product.updated, product.deleted]
+          example: "product.created"
+        - name: x-wc-webhook-signature
+          in: header
+          required: true
+          description: |
+            Base64-encoded HMAC-SHA256 signature of the raw HTTP request body, calculated with the
+            shop's configured `woocommerceWebhookSecret`.
+          schema:
+            type: string
+          example: "wqW/6B0S9myGxVQ8l3PPX2f6s4HWtY6q9KAr4m+Jv3E="
+      requestBody:
+        required: true
+        description: |
+          Topic-specific WooCommerce product payload.
+          For `product.created` and `product.updated`, `id`, `name`, and `permalink` are required.
+          For `product.deleted`, only `id` is required; all other fields are optional and ignored when absent.
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/WoocommerceProductWebhookUpsertData"
+                - $ref: "#/components/schemas/WoocommerceProductWebhookDeleteData"
+            examples:
+              created:
+                summary: Product created webhook
+                value:
+                  id: 17
+                  name: "Test Produkt Titel"
+                  permalink: "http://aura-historia-test.local/product/test-produkt-titel/"
+                  description: "<p>Hayde yallah test beschreibung</p>\n"
+                  short_description: "<p>Hayde yallah kurze test beschreibung</p>\n"
+                  price: "42.69"
+                  status: "publish"
+                  stock_status: "instock"
+                  images: []
+              updated:
+                summary: Product updated webhook
+                value:
+                  id: 17
+                  name: "Test Produkt Titel"
+                  permalink: "http://aura-historia-test.local/product/test-produkt-titel/"
+                  description: "<p>Hayde yallah test beschreibung</p>\n"
+                  short_description: "<p>Hayde yallah kurze test beschreibung</p>\n"
+                  price: "123.45"
+                  status: "publish"
+                  stock_status: "instock"
+                  images: []
+              deleted:
+                summary: Product deleted webhook
+                value:
+                  id: 17
+      responses:
+        "200":
+          description: |
+            Webhook processed successfully.
+            The `errors` count is the number of failed upsert operations and is therefore `0` or `1`
+            because this endpoint processes exactly one webhook event per request.
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WoocommerceWebhookResponse"
+              examples:
+                success:
+                  summary: Webhook processed without product upsert errors
+                  value:
+                    errors: 0
+                upsert_failed:
+                  summary: Webhook accepted but the product upsert reported one failure
+                  value:
+                    errors: 1
+        "400":
+          description: |
+            Bad request — invalid or missing shop ID, missing body, malformed JSON, unsupported
+            WooCommerce topic, or a payload that does not satisfy the selected topic's requirements.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_id:
+                  summary: Missing shop ID path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Missing field 'shopId'."
+                invalid_shop_id:
+                  summary: Invalid shop ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "shopId"
+                      sourceType: "path"
+                    detail: "Invalid UUID format"
+                missing_body:
+                  summary: Request body is absent or empty
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty."
+                invalid_json:
+                  summary: Request body is not valid JSON
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "expected value at line 1 column 1"
+                missing_topic:
+                  summary: WooCommerce topic header is missing
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-wc-webhook-topic"
+                      sourceType: "header"
+        "401":
+          description: |
+            Unauthorized — the `x-api-key` header is missing, malformed, or does not match the
+            stored partner key, or the WooCommerce signature header is missing/invalid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_api_key:
+                  summary: x-api-key header is missing or empty
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-api-key"
+                      sourceType: "header"
+                    detail: "Missing or empty 'x-api-key' header."
+                api_key_mismatch:
+                  summary: API key does not match the shop's stored key
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+                missing_signature:
+                  summary: WooCommerce signature header is missing
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-wc-webhook-signature"
+                      sourceType: "header"
+                    detail: "Missing WooCommerce signature header."
+                signature_mismatch:
+                  summary: WooCommerce signature does not match the request body
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-wc-webhook-signature"
+                      sourceType: "header"
+                    detail: "WooCommerce signature mismatch."
+        "403":
+          description: Forbidden — the shop exists but has not been granted partner status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "PARTNER_SHOP_NOT_PARTNERED"
+        "404":
+          description: Not found — the specified shop does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error — the shop has no configured WooCommerce webhook secret or another unexpected failure occurred
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/shops/{shopId}/products/{shopsProductId}:
     get:
       summary: Get a single product
@@ -5719,6 +5964,8 @@ paths:
                 - "tech-store-premium.de"
               shopifyDomain: "tech-store-premium.myshopify.com"
               shopifyCurrency: "EUR"
+              woocommerceWebhookSecret: "woocommerce-acceptance-secret"
+              woocommerceCurrency: "EUR"
               url: "https://tech-store-premium.com/"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
@@ -5759,6 +6006,7 @@ paths:
                   - "tech-store-premium.de"
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                woocommerceCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6067,6 +6315,7 @@ paths:
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                woocommerceCurrency: "EUR"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6135,9 +6384,9 @@ paths:
       description: |
         Updates mutable shop metadata for the specified shop.
 
-        Requires a valid Cognito JWT. The caller must either:
-        - be the partner user assigned to the shop, or
-        - have the `ADMIN` role.
+        Requires either:
+        - a valid Cognito JWT for the partner user assigned to the shop or for an `ADMIN`, or
+        - the partner shop's `x-api-key` when no Cognito identity is present.
 
         The request body uses `PatchShopData`. Only fields present in the JSON body are applied;
         omitted or `null` fields are left unchanged. The HTTP request body itself must not be absent
@@ -6147,6 +6396,7 @@ paths:
         - Shops
       security:
         - BearerAuth: []
+        - PartnerApiKeyAuth: []
       parameters:
         - name: shopId
           in: path
@@ -6166,6 +6416,8 @@ paths:
             example:
               shopifyDomain: "tech-store-premium.myshopify.com"
               shopifyCurrency: "EUR"
+              woocommerceWebhookSecret: "woocommerce-acceptance-secret"
+              woocommerceCurrency: "EUR"
               url: "https://tech-store-premium.com/"
               structuredAddress:
                 addressline: "Pariser Platz 1"
@@ -6208,6 +6460,7 @@ paths:
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                woocommerceCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6274,15 +6527,28 @@ paths:
                     error: "BAD_BODY_VALUE"
                     detail: "Cannot geocode an empty structured address"
         "401":
-          description: Unauthorized – invalid or missing JWT token.
+          description: Unauthorized – invalid or missing Cognito JWT when using bearer auth, or missing/malformed/mismatched `x-api-key` when using partner API-key auth.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 401
-                title: "Unauthorized"
-                error: "UNAUTHORIZED"
+              examples:
+                invalid_jwt:
+                  summary: Cognito bearer token is invalid
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                missing_api_key:
+                  summary: x-api-key header is missing or empty when no Cognito identity is present
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "x-api-key"
+                      sourceType: "header"
+                    detail: "Missing or empty 'x-api-key' header."
         "403":
           description: Forbidden – caller is not allowed to update this shop.
           content:
@@ -6482,6 +6748,7 @@ paths:
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                woocommerceCurrency: "EUR"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6633,6 +6900,7 @@ paths:
                     domains: ["tech-store-premium.com"]
                     shopifyDomain: "tech-store-premium.myshopify.com"
                     shopifyCurrency: "EUR"
+                    woocommerceCurrency: "EUR"
                     url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
@@ -7484,6 +7752,7 @@ paths:
                   domains: ["tech-store-premium.com"]
                   shopifyDomain: "tech-store-premium.myshopify.com"
                   shopifyCurrency: "EUR"
+                  woocommerceCurrency: "EUR"
                   url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
@@ -8751,7 +9020,8 @@ components:
         API key for partner shops. Issued to shops that have been granted partner status.
         The key must be provided in the `x-api-key` request header.
         This scheme is separate from user authentication (Cognito JWT) and is used
-        exclusively by partner shops to create products programmatically.
+        by partner shops for programmatic product ingestion, WooCommerce webhook delivery,
+        and selected partner-authorized shop operations.
   schemas:
     GetProductData:
       type: object
@@ -10737,6 +11007,13 @@ components:
             - $ref: "#/components/schemas/CurrencyData"
           nullable: true
           description: Optional Shopify currency configured for the shop, serialized as an ISO 4217 code.
+        woocommerceCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: |
+            Optional WooCommerce currency configured for webhook-ingested products, serialized as an ISO 4217 code.
+            When WooCommerce webhooks send a non-empty `price`, the backend parses that amount in this currency.
         url:
           type: string
           format: uri
@@ -10872,6 +11149,24 @@ components:
           description: |
             Optional updated Shopify currency for the shop, serialized as an ISO 4217 code.
             When omitted or set to `null`, the current Shopify currency remains unchanged.
+        woocommerceWebhookSecret:
+          type: string
+          nullable: true
+          writeOnly: true
+          description: |
+            Optional replacement WooCommerce webhook secret used to validate HMAC signatures on
+            `POST /api/v1/webhooks/woocommerce/{shopId}`.
+            When omitted or set to `null`, the current webhook secret remains unchanged.
+            This field is write-only and is never returned by read responses.
+          example: "woocommerce-acceptance-secret"
+        woocommerceCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: |
+            Optional updated WooCommerce currency for the shop, serialized as an ISO 4217 code.
+            When omitted or set to `null`, the current WooCommerce currency remains unchanged.
+            This currency is used when WooCommerce webhook payloads provide a non-empty `price`.
         url:
           type: string
           format: uri
@@ -10950,6 +11245,22 @@ components:
             - $ref: "#/components/schemas/CurrencyData"
           nullable: true
           description: Optional Shopify currency associated with the shop, serialized as an ISO 4217 code.
+        woocommerceWebhookSecret:
+          type: string
+          nullable: true
+          writeOnly: true
+          description: |
+            Optional WooCommerce webhook secret stored for validating HMAC signatures on
+            `POST /api/v1/webhooks/woocommerce/{shopId}`.
+            This field is write-only and is never returned by read responses.
+          example: "woocommerce-acceptance-secret"
+        woocommerceCurrency:
+          allOf:
+            - $ref: "#/components/schemas/CurrencyData"
+          nullable: true
+          description: |
+            Optional WooCommerce currency associated with the shop, serialized as an ISO 4217 code.
+            This currency is used when WooCommerce webhook payloads provide a non-empty `price`.
         url:
           type: string
           format: uri
@@ -12432,6 +12743,116 @@ components:
             An empty object indicates full success. The only possible error value is `UPSERT_FAILED`.
           example:
             "baroque-violin-002": "UPSERT_FAILED"
+
+    WoocommerceWebhookResponse:
+      type: object
+      description: |
+        Response for the WooCommerce webhook ingestion endpoint.
+        The `errors` value is the number of failed product upsert operations reported by the backend.
+        Because each webhook request contains exactly one event, the value is `0` or `1`.
+      required:
+        - errors
+      properties:
+        errors:
+          type: integer
+          minimum: 0
+          maximum: 1
+          description: Number of failed product upsert operations for the processed webhook event.
+          example: 0
+
+    WoocommerceProductWebhookImageData:
+      type: object
+      description: Image object extracted from a WooCommerce product payload.
+      required:
+        - src
+      properties:
+        src:
+          type: string
+          format: uri
+          description: Absolute URL of a product image.
+          example: "https://aura-historia-test.local/wp-content/uploads/2026/05/product.jpg"
+
+    WoocommerceProductWebhookUpsertData:
+      type: object
+      description: |
+        WooCommerce product payload accepted for `product.created` and `product.updated`.
+        The backend requires `id`, `name`, and `permalink` for these topics.
+      required:
+        - id
+        - name
+        - permalink
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 0
+          description: WooCommerce product identifier. It is converted to the internal `shopsProductId`.
+          example: 17
+        name:
+          type: string
+          description: Product title from WooCommerce.
+          example: "Test Produkt Titel"
+        permalink:
+          type: string
+          format: uri
+          description: Public URL of the WooCommerce product.
+          example: "http://aura-historia-test.local/product/test-produkt-titel/"
+        description:
+          type: string
+          nullable: true
+          description: Optional HTML product description. The backend converts it to plain text for indexing.
+          example: "<p>Hayde yallah test beschreibung</p>\n"
+        short_description:
+          type: string
+          nullable: true
+          description: Optional HTML short description used when `description` is absent.
+          example: "<p>Hayde yallah kurze test beschreibung</p>\n"
+        price:
+          type: string
+          nullable: true
+          description: |
+            Optional decimal price string from WooCommerce.
+            The backend accepts ASCII digits with an optional fractional part, trims whitespace,
+            and truncates the fractional part to at most two digits before storing the amount in
+            the shop's configured `woocommerceCurrency`.
+          example: "42.69"
+        status:
+          type: string
+          nullable: true
+          description: |
+            Optional WooCommerce product status string.
+            Recognized mappings are: `publish` -> `AVAILABLE` unless `stock_status` is `outofstock`,
+            `draft` / `pending` / `private` -> `LISTED`, `trash` -> `REMOVED`, and any other value -> `UNKNOWN`.
+          example: "publish"
+        stock_status:
+          type: string
+          nullable: true
+          description: |
+            Optional WooCommerce stock-status string.
+            When `status` is `publish`, `outofstock` maps to `SOLD`; all other values map to `AVAILABLE`.
+          example: "instock"
+        images:
+          type: array
+          description: Optional list of WooCommerce product images. Missing payload fields are treated as an empty list.
+          items:
+            $ref: "#/components/schemas/WoocommerceProductWebhookImageData"
+          example: []
+
+    WoocommerceProductWebhookDeleteData:
+      type: object
+      description: |
+        WooCommerce product payload accepted for `product.deleted`.
+        Only `id` is required. If `name` or `permalink` are provided they may still be used by the backend,
+        but the event remains valid with just the product ID.
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 0
+          description: WooCommerce product identifier. It is converted to the internal `shopsProductId`.
+          example: 17
 
     PartnerShopApplicationStateData:
       type: string
