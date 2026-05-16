@@ -503,7 +503,8 @@ paths:
         - `product.created` and `product.updated` require `id`, `name`, and `permalink`
         - `product.deleted` requires only `id`
 
-        The shop identified by `shopId` must have a stored `woocommerceWebhookSecret`.
+        The shop identified by `shopId` must have a stored `woocommerceWebhookSecret`
+        and a configured `woocommerceLanguage`.
         If a non-empty `price` is sent, the shop must also have `woocommerceCurrency` configured.
       operationId: postWoocommerceWebhook
       tags:
@@ -607,7 +608,9 @@ paths:
         "400":
           description: |
             Bad request — invalid or missing shop ID, missing body, malformed JSON, unsupported
-            WooCommerce topic, or a payload that does not satisfy the selected topic's requirements.
+            WooCommerce topic, a payload that does not satisfy the selected topic's requirements,
+            or missing required shop-level WooCommerce configuration (`woocommerceLanguage`,
+            and `woocommerceCurrency` when a non-empty `price` is sent).
           content:
             application/problem+json:
               schema:
@@ -11057,8 +11060,9 @@ components:
           nullable: true
           description: |
             Optional Shopify default language configured for the shop.
+            Relevant for shops using Shopify partner-shop ingestion.
             When present, Shopify product lifecycle events for this shop are ingested using this language.
-            When absent, the backend currently falls back to `en` during Shopify ingestion.
+            When absent, Shopify product lifecycle events for this shop currently fail instead of inferring or defaulting a language.
         woocommerceCurrency:
           allOf:
             - $ref: "#/components/schemas/CurrencyData"
@@ -11072,8 +11076,9 @@ components:
           nullable: true
           description: |
             Optional WooCommerce default language configured for the shop.
+            Relevant for shops using `POST /api/v1/webhooks/woocommerce/{shopId}`.
             When present, WooCommerce webhook-ingested products for this shop are ingested using this language.
-            When absent, the backend currently falls back to `en` during WooCommerce ingestion.
+            When absent, WooCommerce webhook requests for this shop currently fail instead of inferring or defaulting a language.
         url:
           type: string
           format: uri
@@ -11216,6 +11221,7 @@ components:
           description: |
             Optional updated Shopify default language for the shop.
             When configured, Shopify product lifecycle events for this shop are ingested using this language.
+            When absent on the stored shop record, Shopify product lifecycle events currently fail instead of inferring or defaulting a language.
             When omitted or set to `null`, the current Shopify language remains unchanged.
         woocommerceWebhookSecret:
           type: string
@@ -11242,6 +11248,7 @@ components:
           description: |
             Optional updated WooCommerce default language for the shop.
             When configured, WooCommerce webhook-ingested products for this shop are ingested using this language.
+            When absent on the stored shop record, WooCommerce webhook requests currently fail instead of inferring or defaulting a language.
             When omitted or set to `null`, the current WooCommerce language remains unchanged.
         url:
           type: string
@@ -11327,8 +11334,9 @@ components:
           nullable: true
           description: |
             Optional Shopify default language associated with the shop.
+            Relevant for shops using Shopify partner-shop ingestion.
             When configured, Shopify product lifecycle events for this shop are ingested using this language.
-            When omitted, the backend currently falls back to `en` during Shopify ingestion.
+            When omitted, Shopify product lifecycle events for this shop currently fail instead of inferring or defaulting a language.
         woocommerceWebhookSecret:
           type: string
           nullable: true
@@ -11351,8 +11359,9 @@ components:
           nullable: true
           description: |
             Optional WooCommerce default language associated with the shop.
+            Relevant for shops using `POST /api/v1/webhooks/woocommerce/{shopId}`.
             When configured, WooCommerce webhook-ingested products for this shop are ingested using this language.
-            When omitted, the backend currently falls back to `en` during WooCommerce ingestion.
+            When omitted, WooCommerce webhook requests for this shop currently fail instead of inferring or defaulting a language.
         url:
           type: string
           format: uri

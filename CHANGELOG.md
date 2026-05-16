@@ -15,7 +15,7 @@ Backend PR `#1052` replaces runtime Shopify/WooCommerce language inference with 
 - **`PostShopData.shopifyLanguage`**
   - Optional Shopify default language accepted by `POST /api/v1/shops`
   - Uses the shared `LanguageData` enum (`de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`)
-  - When configured, Shopify product lifecycle events for the shop are ingested using this language
+  - Relevant for shops using Shopify partner-shop ingestion; when configured, product lifecycle events for the shop are ingested using this language
 
 - **`PatchShopData.shopifyLanguage`**
   - Optional Shopify default language accepted by `PATCH /api/v1/shops/{shopId}`
@@ -34,7 +34,7 @@ Backend PR `#1052` replaces runtime Shopify/WooCommerce language inference with 
 - **`PostShopData.woocommerceLanguage`**
   - Optional WooCommerce default language accepted by `POST /api/v1/shops`
   - Uses the shared `LanguageData` enum (`de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`)
-  - When configured, WooCommerce webhook-ingested products for the shop are ingested using this language
+  - Relevant for shops using `POST /api/v1/webhooks/woocommerce/{shopId}`; when configured, webhook-ingested products for the shop are ingested using this language
 
 - **`PatchShopData.woocommerceLanguage`**
   - Optional WooCommerce default language accepted by `PATCH /api/v1/shops/{shopId}`
@@ -57,8 +57,9 @@ Backend PR `#1052` replaces runtime Shopify/WooCommerce language inference with 
   - Shop read examples now include the stored default ingestion languages wherever `GetShopData` is returned.
 
 - **Product ingestion language behavior**
-  - Shopify and WooCommerce partner-shop product ingestion now use the configured shop default language when present.
-  - If no shop-specific default language is stored, ingestion currently falls back to `en`.
+  - Shopify and WooCommerce partner-shop product ingestion now require the corresponding shop language to be configured.
+  - The backend no longer infers a language from product text and no longer falls back to `en` when the shop-specific language is missing.
+  - `POST /api/v1/webhooks/woocommerce/{shopId}` can therefore now fail with `400 Bad Request` if the addressed shop has no configured `woocommerceLanguage` (and, as before, if `price` is non-empty and `woocommerceCurrency` is missing).
 
 ### Removed
 
