@@ -5994,8 +5994,10 @@ paths:
                 - "tech-store-premium.de"
               shopifyDomain: "tech-store-premium.myshopify.com"
               shopifyCurrency: "EUR"
+              shopifyLanguage: "en"
               woocommerceWebhookSecret: "woocommerce-acceptance-secret"
               woocommerceCurrency: "EUR"
+              woocommerceLanguage: "de"
               url: "https://tech-store-premium.com/"
               image: "https://tech-store-premium.com/logo.svg"
               structuredAddress:
@@ -6036,7 +6038,9 @@ paths:
                   - "tech-store-premium.de"
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
+                woocommerceLanguage: "de"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6446,8 +6450,10 @@ paths:
             example:
               shopifyDomain: "tech-store-premium.myshopify.com"
               shopifyCurrency: "EUR"
+              shopifyLanguage: "en"
               woocommerceWebhookSecret: "woocommerce-acceptance-secret"
               woocommerceCurrency: "EUR"
+              woocommerceLanguage: "de"
               url: "https://tech-store-premium.com/"
               structuredAddress:
                 addressline: "Pariser Platz 1"
@@ -6490,7 +6496,9 @@ paths:
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
+                woocommerceLanguage: "de"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6778,7 +6786,9 @@ paths:
                   ]
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
+                shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
+                woocommerceLanguage: "de"
                 url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
@@ -6930,7 +6940,9 @@ paths:
                     domains: ["tech-store-premium.com"]
                     shopifyDomain: "tech-store-premium.myshopify.com"
                     shopifyCurrency: "EUR"
+                    shopifyLanguage: "en"
                     woocommerceCurrency: "EUR"
+                    woocommerceLanguage: "de"
                     url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
@@ -7782,7 +7794,9 @@ paths:
                   domains: ["tech-store-premium.com"]
                   shopifyDomain: "tech-store-premium.myshopify.com"
                   shopifyCurrency: "EUR"
+                  shopifyLanguage: "en"
                   woocommerceCurrency: "EUR"
+                  woocommerceLanguage: "de"
                   url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
@@ -11037,6 +11051,14 @@ components:
             - $ref: "#/components/schemas/CurrencyData"
           nullable: true
           description: Optional Shopify currency configured for the shop, serialized as an ISO 4217 code.
+        shopifyLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional Shopify default language configured for the shop.
+            When present, Shopify product lifecycle events for this shop are ingested using this language.
+            When absent, the backend currently falls back to `en` during Shopify ingestion.
         woocommerceCurrency:
           allOf:
             - $ref: "#/components/schemas/CurrencyData"
@@ -11044,6 +11066,14 @@ components:
           description: |
             Optional WooCommerce currency configured for webhook-ingested products, serialized as an ISO 4217 code.
             When WooCommerce webhooks send a non-empty `price`, the backend parses that amount in this currency.
+        woocommerceLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional WooCommerce default language configured for the shop.
+            When present, WooCommerce webhook-ingested products for this shop are ingested using this language.
+            When absent, the backend currently falls back to `en` during WooCommerce ingestion.
         url:
           type: string
           format: uri
@@ -11179,6 +11209,14 @@ components:
           description: |
             Optional updated Shopify currency for the shop, serialized as an ISO 4217 code.
             When omitted or set to `null`, the current Shopify currency remains unchanged.
+        shopifyLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional updated Shopify default language for the shop.
+            When configured, Shopify product lifecycle events for this shop are ingested using this language.
+            When omitted or set to `null`, the current Shopify language remains unchanged.
         woocommerceWebhookSecret:
           type: string
           nullable: true
@@ -11197,6 +11235,14 @@ components:
             Optional updated WooCommerce currency for the shop, serialized as an ISO 4217 code.
             When omitted or set to `null`, the current WooCommerce currency remains unchanged.
             This currency is used when WooCommerce webhook payloads provide a non-empty `price`.
+        woocommerceLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional updated WooCommerce default language for the shop.
+            When configured, WooCommerce webhook-ingested products for this shop are ingested using this language.
+            When omitted or set to `null`, the current WooCommerce language remains unchanged.
         url:
           type: string
           format: uri
@@ -11275,6 +11321,14 @@ components:
             - $ref: "#/components/schemas/CurrencyData"
           nullable: true
           description: Optional Shopify currency associated with the shop, serialized as an ISO 4217 code.
+        shopifyLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional Shopify default language associated with the shop.
+            When configured, Shopify product lifecycle events for this shop are ingested using this language.
+            When omitted, the backend currently falls back to `en` during Shopify ingestion.
         woocommerceWebhookSecret:
           type: string
           nullable: true
@@ -11291,6 +11345,14 @@ components:
           description: |
             Optional WooCommerce currency associated with the shop, serialized as an ISO 4217 code.
             This currency is used when WooCommerce webhook payloads provide a non-empty `price`.
+        woocommerceLanguage:
+          allOf:
+            - $ref: "#/components/schemas/LanguageData"
+          nullable: true
+          description: |
+            Optional WooCommerce default language associated with the shop.
+            When configured, WooCommerce webhook-ingested products for this shop are ingested using this language.
+            When omitted, the backend currently falls back to `en` during WooCommerce ingestion.
         url:
           type: string
           format: uri

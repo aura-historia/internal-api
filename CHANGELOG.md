@@ -6,6 +6,64 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-16 - Shop Default Ingestion Languages (`backend#1052`)
+
+Backend PR `#1052` replaces runtime Shopify/WooCommerce language inference with explicit per-shop default language settings. This update realigns the internal OpenAPI spec with that backend contract by documenting the new optional shop language fields anywhere shop create, update, and read DTOs are exposed.
+
+### Added
+
+- **`PostShopData.shopifyLanguage`**
+  - Optional Shopify default language accepted by `POST /api/v1/shops`
+  - Uses the shared `LanguageData` enum (`de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`)
+  - When configured, Shopify product lifecycle events for the shop are ingested using this language
+
+- **`PatchShopData.shopifyLanguage`**
+  - Optional Shopify default language accepted by `PATCH /api/v1/shops/{shopId}`
+  - When omitted or sent as `null`, the stored Shopify language remains unchanged
+
+- **`GetShopData.shopifyLanguage`**
+  - Optional Shopify default language returned when present on shop read models
+  - Exposed anywhere `GetShopData` is returned, including:
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `GET /api/v1/by-slug/shops/{shopSlugId}`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/partner/{partnerId}/shops`
+
+- **`PostShopData.woocommerceLanguage`**
+  - Optional WooCommerce default language accepted by `POST /api/v1/shops`
+  - Uses the shared `LanguageData` enum (`de`, `en`, `fr`, `es`, `it`, `zh`, `pt`, `pl`, `tr`, `nl`, `cs`, `ja`, `ru`, `ar`)
+  - When configured, WooCommerce webhook-ingested products for the shop are ingested using this language
+
+- **`PatchShopData.woocommerceLanguage`**
+  - Optional WooCommerce default language accepted by `PATCH /api/v1/shops/{shopId}`
+  - When omitted or sent as `null`, the stored WooCommerce language remains unchanged
+
+- **`GetShopData.woocommerceLanguage`**
+  - Optional WooCommerce default language returned when present on shop read models
+  - Exposed anywhere `GetShopData` is returned, including:
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `GET /api/v1/by-slug/shops/{shopSlugId}`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/partner/{partnerId}/shops`
+
+### Changed
+
+- **Shop request/response documentation**
+  - Shop create and patch examples now include `shopifyLanguage` and `woocommerceLanguage` alongside the existing partner-shop Shopify/WooCommerce configuration fields.
+  - Shop read examples now include the stored default ingestion languages wherever `GetShopData` is returned.
+
+- **Product ingestion language behavior**
+  - Shopify and WooCommerce partner-shop product ingestion now use the configured shop default language when present.
+  - If no shop-specific default language is stored, ingestion currently falls back to `en`.
+
+### Removed
+
+- No endpoints or previously documented schemas were removed in this update.
+
 ## 2026-05-14 - WooCommerce Partner-Shop Webhooks (`backend#1036`)
 
 Backend PR `#1036` adds WooCommerce as a partner-shop ingestion source via signed webhooks, extends shop DTOs with WooCommerce webhook configuration fields, and broadens partner-shop patch authorization to support API-key-authenticated updates when no Cognito identity is present. This update realigns the internal OpenAPI spec with that backend contract and documents the new inbound webhook route, the changed shop schemas, and the revised authentication behavior.
