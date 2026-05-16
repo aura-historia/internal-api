@@ -1517,6 +1517,8 @@ paths:
         using the same field names:
         - `shopName`
         - `excludeShopName`
+        - `sellerName`
+        - `excludeSellerName`
         - `shopSlugId`
         - `excludeShopSlugId`
         - `sellerSlugId`
@@ -1577,6 +1579,34 @@ paths:
           description: |
             Optional filter to exclude products from specific shops (keyword matching).
             Products from shops whose names exactly match one of the provided values are excluded from results.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+          example: ["Heritage Auctions"]
+        - name: sellerName
+          in: query
+          required: false
+          description: |
+            Optional filter by exact seller names (keyword matching).
+            Products are filtered to those from sellers whose names exactly match one of the provided values.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+            uniqueItems: true
+          example: ["Sotheby's", "Christie's"]
+        - name: excludeSellerName
+          in: query
+          required: false
+          description: |
+            Optional filter to exclude products from specific sellers (keyword matching).
+            Products from sellers whose names exactly match one of the provided values are excluded from results.
           style: form
           explode: true
           schema:
