@@ -845,6 +845,7 @@ paths:
                             amount: 3500
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
+                      viewUrl: "https://my-shop.com/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://my-shop.com/images/product-1.jpg"
                           prohibitedContent: "NONE"
@@ -892,6 +893,7 @@ paths:
                             amount: 3200
                       state: "AVAILABLE"
                       url: "https://my-shop.com/products/amazing-product"
+                      viewUrl: "https://my-shop.com/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://my-shop.com/images/product-1.jpg"
                           prohibitedContent: "NONE"
@@ -1056,6 +1058,7 @@ paths:
                           amount: 2999
                       state: "AVAILABLE"
                       url: "https://tech-store-premium.com/products/amazing-product"
+                      viewUrl: "https://tech-store-premium.com/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://tech-store-premium.com/images/product-1.jpg"
                           prohibitedContent: "NONE"
@@ -1084,6 +1087,7 @@ paths:
                         language: "en"
                       state: "AVAILABLE"
                       url: "https://tech-store-premium.com/products/amazing-product"
+                      viewUrl: "https://tech-store-premium.com/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                       images: []
                       created: "2024-01-01T10:00:00Z"
                       updated: "2024-01-01T12:00:00Z"
@@ -1370,6 +1374,7 @@ paths:
                           amount: 2899
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
+                        viewUrl: "https://my-shop.com/products/similar-product?utm_source=aura_historia&utm_medium=referral"
                         images:
                           - url: "https://my-shop.com/images/similar-1.jpg"
                             prohibitedContent: "NONE"
@@ -1398,6 +1403,7 @@ paths:
                           amount: 3199
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/another-item"
+                        viewUrl: "https://my-shop.com/products/another-item?utm_source=aura_historia&utm_medium=referral"
                         images: []
                         created: "2024-01-01T11:00:00Z"
                         updated: "2024-01-01T13:00:00Z"
@@ -1427,6 +1433,7 @@ paths:
                           amount: 2899
                         state: "AVAILABLE"
                         url: "https://my-shop.com/products/similar-product"
+                        viewUrl: "https://my-shop.com/products/similar-product?utm_source=aura_historia&utm_medium=referral"
                         images:
                           - url: "https://my-shop.com/images/similar-1.jpg"
                             prohibitedContent: "NONE"
@@ -2075,6 +2082,7 @@ paths:
                             amount: 2999
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
+                          viewUrl: "https://tech-store.com/premium-case?utm_source=aura_historia&utm_medium=referral"
                           images:
                             - url: "https://tech-store.com/images/premium-case-1.jpg"
                               prohibitedContent: "NONE"
@@ -2110,6 +2118,7 @@ paths:
                             amount: 2999
                           state: "AVAILABLE"
                           url: "https://tech-store.com/premium-case"
+                          viewUrl: "https://tech-store.com/premium-case?utm_source=aura_historia&utm_medium=referral"
                           images:
                             - url: "https://tech-store.com/images/premium-case-1.jpg"
                               prohibitedContent: "NONE"
@@ -2966,6 +2975,7 @@ paths:
                         amount: 2999
                       state: "AVAILABLE"
                       url: "https://curated-antiques.example/products/golden-cufflinks"
+                      viewUrl: "https://curated-antiques.example/products/golden-cufflinks?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://curated-antiques.example/images/golden-cufflinks-1.jpg"
                           prohibitedContent: "NONE"
@@ -3176,6 +3186,7 @@ paths:
                             amount: 3300
                       state: "AVAILABLE"
                       url: "https://curated-antiques.example/products/golden-cufflinks"
+                      viewUrl: "https://curated-antiques.example/products/golden-cufflinks?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://curated-antiques.example/images/golden-cufflinks-1.jpg"
                           prohibitedContent: "NONE"
@@ -3593,6 +3604,7 @@ paths:
                             amount: 3300
                       state: "AVAILABLE"
                       url: "https://tech-store.com/smartphone-case"
+                      viewUrl: "https://tech-store.com/smartphone-case?utm_source=aura_historia&utm_medium=referral"
                       images:
                         - url: "https://tech-store.com/images/case-1.jpg"
                           prohibitedContent: "NONE"
@@ -3752,6 +3764,7 @@ paths:
                         amount: 3300
                   state: "AVAILABLE"
                   url: "https://tech-store.com/smartphone-case"
+                  viewUrl: "https://tech-store.com/smartphone-case?utm_source=aura_historia&utm_medium=referral"
                   images:
                     - url: "https://tech-store.com/images/case-1.jpg"
                       prohibitedContent: "NONE"
@@ -5246,6 +5259,7 @@ paths:
                         amount: 3300
                   state: "AVAILABLE"
                   url: "https://tech-store.com/smartphone-case"
+                  viewUrl: "https://tech-store.com/smartphone-case?utm_source=aura_historia&utm_medium=referral"
                   images:
                     - url: "https://tech-store.com/images/case-1.jpg"
                       prohibitedContent: "NONE"
@@ -5431,6 +5445,8 @@ paths:
                       title:
                         text: "Amazing Product"
                         language: "en"
+                      url: "https://tech-store.example/products/amazing-product"
+                      viewUrl: "https://tech-store.example/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                       watchlistPayload:
                         type: "PRICE_CHANGE"
                         oldPrice:
@@ -5710,6 +5726,8 @@ paths:
                   title:
                     text: "Amazing Product"
                     language: "en"
+                  url: "https://tech-store.example/products/amazing-product"
+                  viewUrl: "https://tech-store.example/products/amazing-product?utm_source=aura_historia&utm_medium=referral"
                   watchlistPayload:
                     type: "PRICE_CHANGE"
                     oldPrice:
@@ -6044,7 +6062,8 @@ paths:
                 shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
                 woocommerceLanguage: "de"
-                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6353,6 +6372,8 @@ paths:
                 shopifyDomain: "tech-store-premium.myshopify.com"
                 shopifyCurrency: "EUR"
                 woocommerceCurrency: "EUR"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6502,7 +6523,8 @@ paths:
                 shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
                 woocommerceLanguage: "de"
-                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6792,7 +6814,8 @@ paths:
                 shopifyLanguage: "en"
                 woocommerceCurrency: "EUR"
                 woocommerceLanguage: "de"
-                url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                 image: "https://tech-store-premium.com/logo.svg"
                 structuredAddress:
                   addressline: "Pariser Platz 1"
@@ -6946,7 +6969,8 @@ paths:
                     shopifyLanguage: "en"
                     woocommerceCurrency: "EUR"
                     woocommerceLanguage: "de"
-                    url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                    url: "https://tech-store-premium.com/"
+                    viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                     image: "https://tech-store-premium.com/logo.svg"
                     structuredAddress:
                       addressline: "Pariser Platz 1"
@@ -7800,7 +7824,8 @@ paths:
                   shopifyLanguage: "en"
                   woocommerceCurrency: "EUR"
                   woocommerceLanguage: "de"
-                  url: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                  url: "https://tech-store-premium.com/"
+                  viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
                   image: "https://tech-store-premium.com/logo.svg"
                   partnerStatus: "PARTNERED"
                   created: "2024-01-15T10:00:00Z"
@@ -9086,6 +9111,7 @@ components:
         - title
         - state
         - url
+        - viewUrl
         - images
         - created
         - updated
@@ -9159,7 +9185,11 @@ components:
         url:
           type: string
           format: uri
-          description: URL to the product on the shop's website
+          description: Raw URL to the product on the shop's website.
+        viewUrl:
+          type: string
+          format: uri
+          description: Tracked or affiliate URL generated by the backend for user-facing navigation to the product.
         images:
           type: array
           items:
@@ -9202,6 +9232,7 @@ components:
         - title
         - state
         - url
+        - viewUrl
         - images
         - created
         - updated
@@ -9254,7 +9285,11 @@ components:
         url:
           type: string
           format: uri
-          description: URL to the product on the shop's website
+          description: Raw URL to the product on the shop's website.
+        viewUrl:
+          type: string
+          format: uri
+          description: Tracked or affiliate URL generated by the backend for user-facing navigation to the product.
         images:
           type: array
           items:
@@ -11083,7 +11118,15 @@ components:
           type: string
           format: uri
           nullable: true
-          description: Optional primary URL of the shop website. Read responses may include backend-managed UTM tracking parameters.
+          description: Optional primary URL of the shop website.
+          example: "https://tech-store-premium.com/"
+        viewUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: |
+            Optional tracked or affiliate URL derived from `url` for user-facing navigation.
+            When the shop has a primary `url`, the backend may populate this field with either Aura Historia tracking parameters or an affiliate-link target.
           example: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
 
         image:
@@ -12259,6 +12302,8 @@ components:
         - productSlugId
         - shopName
         - title
+        - url
+        - viewUrl
         - watchlistPayload
       properties:
         type:
@@ -12300,6 +12345,14 @@ components:
           description: |
             The first image of the product at the time the notification was generated.
             Absent when the product had no images. The URL is always included (prohibited content filtering is skipped for notifications).
+        url:
+          type: string
+          format: uri
+          description: Raw URL to the product on the shop's website.
+        viewUrl:
+          type: string
+          format: uri
+          description: Tracked or affiliate URL generated by the backend for user-facing navigation to the product.
         watchlistPayload:
           $ref: "#/components/schemas/WatchlistPayloadData"
 
@@ -12367,6 +12420,8 @@ components:
         - productSlugId
         - shopName
         - title
+        - url
+        - viewUrl
         - searchFilterPayload
       properties:
         type:
@@ -12408,6 +12463,14 @@ components:
           description: |
             The first image of the product at the time the notification was generated.
             Absent when the product had no images. The URL is always included (prohibited content filtering is skipped for notifications).
+        url:
+          type: string
+          format: uri
+          description: Raw URL to the product on the shop's website.
+        viewUrl:
+          type: string
+          format: uri
+          description: Tracked or affiliate URL generated by the backend for user-facing navigation to the product.
         searchFilterPayload:
           $ref: "#/components/schemas/SearchFilterPayloadData"
 
