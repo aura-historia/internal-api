@@ -6,6 +6,59 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-20 - Async Partner Product Ingestion Queue (`backend#1070`)
+
+Backend PR `#1070` moves partner product write requests and WooCommerce product webhooks behind an asynchronous ingestion queue. This update realigns the internal OpenAPI spec with the merged backend contract by documenting the new `202 Accepted` behavior, the new queue-forwarding failure semantics, and the removal of obsolete synchronous response types.
+
+### Added
+
+- **Queue-forwarding failure documentation for existing write endpoints**
+
+  | Endpoint | New status | Error code | Meaning |
+  |---|---|---|---|
+  | `POST /api/v1/shops/{shopId}/products` | `503 Service Unavailable` | `SERVICE_UNAVAILABLE` | All product-create commands failed to be forwarded to the asynchronous ingestion queue. |
+  | `PATCH /api/v1/shops/{shopId}/products` | `503 Service Unavailable` | `SERVICE_UNAVAILABLE` | All product-update commands failed to be forwarded to the asynchronous ingestion queue. |
+  | `PUT /api/v1/shops/{shopId}/products` | `503 Service Unavailable` | `SERVICE_UNAVAILABLE` | All product-upsert commands failed to be forwarded to the asynchronous ingestion queue. |
+  | `POST /api/v1/webhooks/woocommerce/{shopId}` | `503 Service Unavailable` | `SERVICE_UNAVAILABLE` | The WooCommerce webhook event could not be forwarded to the asynchronous ingestion queue. |
+
+- **Shared async enqueue response schema**
+
+  | Schema | Type | Description |
+  |---|---|---|
+  | `PartnerProductEnqueueFailuresResponse` | `array[string]` | Lists only the `shopsProductId` values that failed to be forwarded to the asynchronous ingestion queue. An empty array means full acceptance for asynchronous processing. |
+
+### Changed
+
+- **Partner batch product write endpoints now return `202 Accepted`**
+  - `POST /api/v1/shops/{shopId}/products`
+  - `PATCH /api/v1/shops/{shopId}/products`
+  - `PUT /api/v1/shops/{shopId}/products`
+
+  All three endpoints now document asynchronous acceptance instead of synchronous persistence:
+  - successful queue forwarding returns `202 Accepted`
+  - the success body is now a JSON array of failed `shopsProductId` queue-forwarding attempts
+  - a fully successful request now returns `[]` instead of an `errors` object
+
+- **`PATCH /api/v1/shops/{shopId}/products` semantics**
+  - The endpoint documentation now clarifies that product updates are only accepted for asynchronous processing during the HTTP request.
+  - Product existence is no longer documented as a synchronous request-time guarantee; it is evaluated later during ingestion.
+
+- **`PUT /api/v1/shops/{shopId}/products` semantics**
+  - The endpoint documentation now clarifies that upsert commands are accepted asynchronously.
+  - The create-vs-update decision is documented as happening during later ingestion rather than during the HTTP request itself.
+
+- **`POST /api/v1/webhooks/woocommerce/{shopId}` success response**
+  - Successful queue forwarding now returns `202 Accepted`.
+  - The success response body was removed; the endpoint now returns an empty body on success.
+
+### Removed
+
+- **Obsolete synchronous response schemas**
+  - `PostProductsResponse`
+  - `PatchProductsResponse`
+  - `PutProductsResponse`
+  - `WoocommerceWebhookResponse`
+
 ## 2026-05-19 - Affiliate View URLs for Shops, Products, and Notifications (`backend#1066`)
 
 Backend PR `#1066` separates raw destination URLs from user-facing tracked/affiliate links across shop, product, and notification read models. This update realigns the internal OpenAPI spec with the merged backend contract by documenting the new `viewUrl` fields, correcting the semantics of existing `url` fields, and refreshing every affected response example.
