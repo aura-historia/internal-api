@@ -27,11 +27,12 @@ paths:
         This endpoint is intended for partner shops — shops that have been granted partner status
         and have an API key configured. It does **not** use Cognito JWT authentication.
 
-        The request body is an array of `PostProductData` objects. Products are processed
-        individually: if some products fail to create, the response still returns HTTP 200 with
-        a partial-failure map in the `errors` field. Only entries that failed are present in the map.
+        The request body is an array of `PostProductData` objects. Each entry is forwarded
+        individually to the asynchronous partner-product ingestion queue.
 
-        An empty `errors` map in the response indicates all products were created successfully.
+        The response returns HTTP 202 with an array containing only the `shopsProductId` values
+        that failed to be forwarded to the queue. An empty array indicates that all products were
+        accepted for asynchronous processing.
       operationId: postPartnerProducts
       tags:
         - Products
@@ -72,11 +73,11 @@ paths:
                   - "https://my-shop.com/images/violin-1.jpg"
                   - "https://my-shop.com/images/violin-2.jpg"
       responses:
-        "200":
+        "202":
           description: |
-            Batch create request processed. Returns a map of `shopsProductId` to error key for
-            any products that failed to create. An empty `errors` map means all products
-            were created successfully.
+            Batch create request accepted for asynchronous processing. Returns an array containing
+            the `shopsProductId` values that failed to be forwarded to the ingestion queue.
+            An empty array means all products were accepted.
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -86,17 +87,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PostProductsResponse"
+                $ref: "#/components/schemas/PartnerProductEnqueueFailuresResponse"
               examples:
-                all_success:
-                  summary: All products created successfully
-                  value:
-                    errors: {}
+                all_accepted:
+                  summary: All products accepted for asynchronous processing
+                  value: []
                 partial_failure:
-                  summary: Some products failed to create
+                  summary: Some products failed to be forwarded to the queue
                   value:
-                    errors:
-                      "baroque-violin-002": "PRODUCT_ALREADY_EXISTS"
+                    - "baroque-violin-002"
         "400":
           description: Bad request — request body is missing, empty, or contains invalid JSON
           content:
@@ -163,6 +162,16 @@ paths:
                 status: 404
                 title: "Not Found"
                 error: "SHOP_NOT_FOUND"
+        "503":
+          description: Service unavailable — all product commands failed to be forwarded to the asynchronous ingestion queue
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 503
+                title: "Service Unavailable"
+                error: "SERVICE_UNAVAILABLE"
         "500":
           description: Internal server error
           content:
@@ -181,11 +190,14 @@ paths:
         and have an API key configured. It does **not** use Cognito JWT authentication.
 
         The request body is an array of `PatchProductData` objects. Only the fields provided in
-        each entry are updated; omitted optional fields are left unchanged. Products are processed
-        individually: if some products fail to update, the response still returns HTTP 200 with
-        a partial-failure map in the `errors` field. Only entries that failed are present in the map.
+        each entry are updated; omitted optional fields are left unchanged. Each entry is forwarded
+        individually to the asynchronous partner-product ingestion queue.
 
-        An empty `errors` map in the response indicates all products were updated successfully.
+        The response returns HTTP 202 with an array containing only the `shopsProductId` values
+        that failed to be forwarded to the queue. An empty array indicates that all updates were
+        accepted for asynchronous processing. Because persistence happens asynchronously, acceptance
+        does not guarantee that the referenced product currently exists or that the update will
+        later succeed.
       operationId: patchPartnerProducts
       tags:
         - Products
@@ -218,11 +230,11 @@ paths:
                   amount: 5000
                 state: "AVAILABLE"
       responses:
-        "200":
+        "202":
           description: |
-            Batch update request processed. Returns a map of `shopsProductId` to error key for
-            any products that failed to update. An empty `errors` map means all products
-            were updated successfully.
+            Batch update request accepted for asynchronous processing. Returns an array containing
+            the `shopsProductId` values that failed to be forwarded to the ingestion queue.
+            An empty array means all updates were accepted.
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -232,17 +244,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PatchProductsResponse"
+                $ref: "#/components/schemas/PartnerProductEnqueueFailuresResponse"
               examples:
-                all_success:
-                  summary: All products updated successfully
-                  value:
-                    errors: {}
+                all_accepted:
+                  summary: All updates accepted for asynchronous processing
+                  value: []
                 partial_failure:
-                  summary: Some products failed to update
+                  summary: Some products failed to be forwarded to the queue
                   value:
-                    errors:
-                      "baroque-violin-002": "UPDATE_FAILED"
+                    - "baroque-violin-002"
         "400":
           description: Bad request — request body is missing, empty, or contains invalid JSON
           content:
@@ -309,6 +319,16 @@ paths:
                 status: 404
                 title: "Not Found"
                 error: "SHOP_NOT_FOUND"
+        "503":
+          description: Service unavailable — all product commands failed to be forwarded to the asynchronous ingestion queue
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 503
+                title: "Service Unavailable"
+                error: "SERVICE_UNAVAILABLE"
         "500":
           description: Internal server error
           content:
@@ -327,16 +347,15 @@ paths:
         that have been granted partner status and have an API key configured. It does **not**
         use Cognito JWT authentication.
 
-        The request body is an array of `PutProductData` objects. For each entry the backend
-        checks whether a product with the given `shopsProductId` already exists in the shop:
+        The request body is an array of `PutProductData` objects. Each entry is forwarded
+        individually to the asynchronous partner-product ingestion queue as an upsert command.
+        When the queued command is later ingested:
         - **Existing product** — only `state` and `price` are updated (other fields are ignored).
         - **New product** — a full product is created using all provided fields.
 
-        Products are processed individually: if some products fail to upsert, the response
-        still returns HTTP 200 with a partial-failure map in the `errors` field. Only entries
-        that failed are present in the map.
-
-        An empty `errors` map in the response indicates all products were upserted successfully.
+        The response returns HTTP 202 with an array containing only the `shopsProductId` values
+        that failed to be forwarded to the queue. An empty array indicates that all upserts were
+        accepted for asynchronous processing.
 
       operationId: putPartnerProducts
       tags:
@@ -385,11 +404,11 @@ paths:
                   - shopsProductId: "baroque-violin-001"
                     state: "SOLD"
       responses:
-        "200":
+        "202":
           description: |
-            Batch upsert request processed. Returns a map of `shopsProductId` to error key for
-            any products that failed to upsert. An empty `errors` map means all products
-            were upserted successfully.
+            Batch upsert request accepted for asynchronous processing. Returns an array containing
+            the `shopsProductId` values that failed to be forwarded to the ingestion queue.
+            An empty array means all upserts were accepted.
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
@@ -399,17 +418,15 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PutProductsResponse"
+                $ref: "#/components/schemas/PartnerProductEnqueueFailuresResponse"
               examples:
-                all_success:
-                  summary: All products upserted successfully
-                  value:
-                    errors: {}
+                all_accepted:
+                  summary: All upserts accepted for asynchronous processing
+                  value: []
                 partial_failure:
-                  summary: Some products failed to upsert
+                  summary: Some products failed to be forwarded to the queue
                   value:
-                    errors:
-                      "baroque-violin-002": "UPSERT_FAILED"
+                    - "baroque-violin-002"
         "400":
           description: Bad request — request body is missing, empty, or contains invalid JSON
           content:
@@ -476,6 +493,16 @@ paths:
                 status: 404
                 title: "Not Found"
                 error: "SHOP_NOT_FOUND"
+        "503":
+          description: Service unavailable — all product commands failed to be forwarded to the asynchronous ingestion queue
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 503
+                title: "Service Unavailable"
+                error: "SERVICE_UNAVAILABLE"
         "500":
           description: Internal server error
           content:
@@ -581,30 +608,16 @@ paths:
                 value:
                   id: 17
       responses:
-        "200":
+        "202":
           description: |
-            Webhook processed successfully.
-            The `errors` count is the number of failed upsert operations and is therefore `0` or `1`
-            because this endpoint processes exactly one webhook event per request.
+            Webhook accepted for asynchronous processing.
+            The backend returns no response body on successful queue forwarding.
           headers:
             Access-Control-Allow-Origin:
               description: CORS header
               schema:
                 type: string
               example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WoocommerceWebhookResponse"
-              examples:
-                success:
-                  summary: Webhook processed without product upsert errors
-                  value:
-                    errors: 0
-                upsert_failed:
-                  summary: Webhook accepted but the product upsert reported one failure
-                  value:
-                    errors: 1
         "400":
           description: |
             Bad request — invalid or missing shop ID, missing body, malformed JSON, unsupported
@@ -724,6 +737,16 @@ paths:
                 status: 404
                 title: "Not Found"
                 error: "SHOP_NOT_FOUND"
+        "503":
+          description: Service unavailable — the webhook event could not be forwarded to the asynchronous ingestion queue
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 503
+                title: "Service Unavailable"
+                error: "SERVICE_UNAVAILABLE"
         "500":
           description: Internal server error — the shop has no configured WooCommerce webhook secret or another unexpected failure occurred
           content:
@@ -12690,37 +12713,32 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional coordinates to attach to the product for geo-aware indexing and search.
-    PostProductsResponse:
-      type: object
+    PartnerProductEnqueueFailuresResponse:
+      type: array
       description: |
-        Response for the batch product-creation endpoint.
-        The `errors` map contains entries only for products that failed to create.
-        An empty map indicates that all products were created successfully.
-      required:
-        - errors
-      properties:
-        errors:
-          type: object
-          additionalProperties:
-            type: string
-          description: |
-            Map of `shopsProductId` to error key for products that failed to create.
-            An empty object indicates full success.
-          example:
-            "baroque-violin-002": "PRODUCT_ALREADY_EXISTS"
+        Response for the partner batch product enqueue endpoints.
+        Contains only the `shopsProductId` values that failed to be forwarded to the
+        asynchronous ingestion queue. An empty array indicates that all commands were
+        accepted for asynchronous processing.
+      items:
+        type: string
+        description: A `shopsProductId` that failed to be forwarded to the queue.
+        example: "baroque-violin-002"
+      example:
+        - "baroque-violin-002"
 
     PatchProductData:
       type: object
       description: |
-        Data for updating a single existing product via the partner batch-update endpoint.
+        Data for enqueuing an update for a single product via the partner batch-update endpoint.
         Only `shopsProductId` is required; all other fields are optional and, when omitted,
-        the corresponding product attribute is left unchanged.
+        the corresponding product attribute is left unchanged during later asynchronous ingestion.
       required:
         - shopsProductId
       properties:
         shopsProductId:
           type: string
-          description: The shop's own identifier for the product to update. Must reference an existing product within the shop.
+          description: The shop's own identifier for the product to update. The request is accepted for asynchronous processing even though product existence is evaluated later during ingestion.
           example: "baroque-violin-001"
         price:
           allOf:
@@ -12768,31 +12786,13 @@ components:
           nullable: true
           description: Optional updated RFC3339 timestamp of when the auction ends. Omit to leave the current value unchanged.
           example: "2026-04-10T12:00:00Z"
-    PatchProductsResponse:
-      type: object
-      description: |
-        Response for the batch product-update endpoint.
-        The `errors` map contains entries only for products that failed to update.
-        An empty map indicates that all products were updated successfully.
-      required:
-        - errors
-      properties:
-        errors:
-          type: object
-          additionalProperties:
-            type: string
-          description: |
-            Map of `shopsProductId` to error key for products that failed to update.
-            An empty object indicates full success. The only possible error value is `UPDATE_FAILED`.
-          example:
-            "baroque-violin-002": "UPDATE_FAILED"
-
     PutProductData:
       type: object
       description: |
         Data for upserting a single product via the partner batch-upsert endpoint.
         Only `shopsProductId` is required. All other fields are optional.
 
+        During later asynchronous ingestion:
         - If the product **does not yet exist**, it is created using all provided fields.
           Omitting `title`, `url`, or `state` will result in placeholder defaults being applied
           internally (empty title, a placeholder URL, and `LISTED` state respectively).
@@ -12889,41 +12889,6 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional coordinates to attach to the product for geo-aware indexing and search. Used only when creating a new product.
-    PutProductsResponse:
-      type: object
-      description: |
-        Response for the batch product-upsert endpoint.
-        The `errors` map contains entries only for products that failed to upsert.
-        An empty map indicates that all products were upserted successfully.
-      required:
-        - errors
-      properties:
-        errors:
-          type: object
-          additionalProperties:
-            type: string
-          description: |
-            Map of `shopsProductId` to error key for products that failed to upsert.
-            An empty object indicates full success. The only possible error value is `UPSERT_FAILED`.
-          example:
-            "baroque-violin-002": "UPSERT_FAILED"
-
-    WoocommerceWebhookResponse:
-      type: object
-      description: |
-        Response for the WooCommerce webhook ingestion endpoint.
-        The `errors` value is the number of failed product upsert operations reported by the backend.
-        Because each webhook request contains exactly one event, the value is `0` or `1`.
-      required:
-        - errors
-      properties:
-        errors:
-          type: integer
-          minimum: 0
-          maximum: 1
-          description: Number of failed product upsert operations for the processed webhook event.
-          example: 0
-
     WoocommerceProductWebhookImageData:
       type: object
       description: Image object extracted from a WooCommerce product payload.
