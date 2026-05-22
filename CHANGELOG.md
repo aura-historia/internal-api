@@ -6,6 +6,51 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-22 - Partner Product Upsert Update Semantics (`backend#1079`)
+
+Backend PR `#1079` deprecates removal of stored product prices on the upsert-update path. While verifying that change against the `develop` branch, the internal OpenAPI spec also corrected older stale `PUT /api/v1/shops/{shopId}/products` documentation so it now matches the fields the backend actually applies when an upsert targets an existing product.
+
+### Added
+
+- No new endpoints or documented schemas were added in this update.
+
+### Changed
+
+- **`PUT /api/v1/shops/{shopId}/products` existing-product semantics**
+  - The update path now documents the backend's actual field coverage for existing products:
+    - `price`
+    - `priceEstimateMin`
+    - `priceEstimateMax`
+    - `state`
+    - `url`
+    - `images`
+    - `auctionStart`
+    - `auctionEnd`
+  - The update path still ignores create-only fields:
+    - `title`
+    - `description`
+    - `sellerName`
+    - `structuredAddress`
+    - `geoAddress`
+
+- **`PutProductData.price`**
+  - The spec now documents the backend `#1079` behavior: omitting `price` or sending `null` no longer removes an existing stored price during upsert updates.
+  - A non-null `price` value still updates the stored price on existing products.
+
+- **Other `PutProductData` update-path field semantics**
+  - `priceEstimateMin`, `priceEstimateMax`, `url`, `auctionStart`, and `auctionEnd` are now documented as updateable for existing products.
+  - For those fields, omitting the property or sending `null` leaves the stored value unchanged.
+  - `images` is now documented as replacing the stored image set on update; omitting it or sending `null` is treated as an empty list and therefore clears stored images.
+
+- **Examples**
+  - The `PUT /api/v1/shops/{shopId}/products` request examples now include:
+    - an existing-product update that leaves the current price unchanged while updating other supported fields
+    - an explicit image-clearing example via `images: null`
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-05-20 - Async Partner Product Ingestion Queue (`backend#1070`)
 
 Backend PR `#1070` moves partner product write requests and WooCommerce product webhooks behind an asynchronous ingestion queue. This update realigns the internal OpenAPI spec with the merged backend contract by documenting the new `202 Accepted` behavior, the new queue-forwarding failure semantics, and the removal of obsolete synchronous response types.
