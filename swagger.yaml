@@ -350,8 +350,19 @@ paths:
         The request body is an array of `PutProductData` objects. Each entry is forwarded
         individually to the asynchronous partner-product ingestion queue as an upsert command.
         When the queued command is later ingested:
-        - **Existing product** — only `state` and `price` are updated (other fields are ignored).
-        - **New product** — a full product is created using all provided fields.
+        - **New product** — a full product is created using all provided fields. Omitting
+          `title`, `url`, or `state` causes the backend to fall back to an empty title,
+          a placeholder URL, and `LISTED` respectively.
+        - **Existing product** — the backend applies `price`, `priceEstimateMin`,
+          `priceEstimateMax`, `state`, `url`, `images`, `auctionStart`, and `auctionEnd`.
+          `title`, `description`, `sellerName`, `structuredAddress`, and `geoAddress`
+          are ignored on the update path.
+        - On the update path, omitting or sending `null` for `price`, `priceEstimateMin`,
+          `priceEstimateMax`, `url`, `auctionStart`, or `auctionEnd` leaves the stored value
+          unchanged.
+        - On the update path, `images` always replaces the stored image set; omitting
+          `images` or sending `null` is treated as an empty list and therefore clears all
+          stored images.
 
         The response returns HTTP 202 with an array containing only the `shopsProductId` values
         that failed to be forwarded to the queue. An empty array indicates that all upserts were
@@ -399,10 +410,26 @@ paths:
                     images:
                       - "https://my-shop.com/images/violin-1.jpg"
               update_existing:
-                summary: Update an existing product's state
+                summary: Update an existing product while leaving the current price unchanged
                 value:
                   - shopsProductId: "baroque-violin-001"
                     state: "SOLD"
+                    priceEstimateMin:
+                      currency: "EUR"
+                      amount: 4200
+                    priceEstimateMax:
+                      currency: "EUR"
+                      amount: 4800
+                    url: "https://my-shop.com/products/baroque-violin?status=sold"
+                    images:
+                      - "https://my-shop.com/images/violin-1.jpg"
+                      - "https://my-shop.com/images/violin-detail.jpg"
+                    auctionEnd: "2025-05-10T12:30:00Z"
+              clear_images:
+                summary: Clear an existing product's images
+                value:
+                  - shopsProductId: "baroque-violin-001"
+                    images: null
       responses:
         "202":
           description: |
@@ -12630,7 +12657,6 @@ components:
       type: object
       description: |
         Data for creating a single product via the partner batch-create endpoint.
-        when omitted from the request.
       required:
         - shopsProductId
         - title
@@ -12796,10 +12822,14 @@ components:
         - If the product **does not yet exist**, it is created using all provided fields.
           Omitting `title`, `url`, or `state` will result in placeholder defaults being applied
           internally (empty title, a placeholder URL, and `LISTED` state respectively).
-        - If the product **already exists**, only `state` and `price` are updated; all other
-          fields are ignored for the update path.
-
-        to `UNKNOWN` when omitted.
+        - If the product **already exists**, `price`, `priceEstimateMin`,
+          `priceEstimateMax`, `state`, `url`, `images`, `auctionStart`, and `auctionEnd`
+          participate in the update path.
+        - On the update path, omitting or sending `null` for `price`, `priceEstimateMin`,
+          `priceEstimateMax`, `url`, `auctionStart`, or `auctionEnd` leaves the stored value
+          unchanged.
+        - On the update path, omitting `images` or sending `null` is treated as an empty list
+          and therefore clears all stored images.
       required:
         - shopsProductId
       properties:
@@ -12821,17 +12851,17 @@ components:
           allOf:
             - $ref: "#/components/schemas/PriceData"
           nullable: true
-          description: Optional asking price for the product. Applied on both create and update paths.
+          description: Optional asking price for the product. Applied on create and on update when a non-null value is provided. Omit or send `null` to leave the current stored price unchanged.
         priceEstimateMin:
           allOf:
             - $ref: "#/components/schemas/PriceData"
           nullable: true
-          description: Optional lower bound of the estimated price range. Used only when creating a new product.
+          description: Optional lower bound of the estimated price range. Applied on both create and update paths. Omit or send `null` to leave the current stored lower bound unchanged.
         priceEstimateMax:
           allOf:
             - $ref: "#/components/schemas/PriceData"
           nullable: true
-          description: Optional upper bound of the estimated price range. Used only when creating a new product.
+          description: Optional upper bound of the estimated price range. Applied on both create and update paths. Omit or send `null` to leave the current stored upper bound unchanged.
         state:
           allOf:
             - $ref: "#/components/schemas/ProductStateData"
@@ -12841,7 +12871,7 @@ components:
           type: string
           format: uri
           nullable: true
-          description: URL to the product on the shop's website. Used only when creating a new product.
+          description: URL to the product on the shop's website. Applied on both create and update paths. Omit or send `null` to leave the current stored URL unchanged.
           example: "https://my-shop.com/products/baroque-violin"
         images:
           type: array
@@ -12849,7 +12879,7 @@ components:
             type: string
             format: uri
           nullable: true
-          description: List of image URLs for the product. Used only when creating a new product.
+          description: List of image URLs for the product. Applied on both create and update paths. On update, the provided array replaces the stored image set; omitting `images` or sending `null` is treated as an empty list and therefore clears all stored images.
           example:
             - "https://my-shop.com/images/violin-1.jpg"
             - "https://my-shop.com/images/violin-2.jpg"
@@ -12859,7 +12889,8 @@ components:
           nullable: true
           description: |
             RFC3339 timestamp of when the auction for this product starts.
-            Only relevant for auction-house shop types. Used only when creating a new product.
+            Only relevant for auction-house shop types. Applied on both create and update paths.
+            Omit or send `null` to leave the current stored start timestamp unchanged.
           example: "2025-05-01T12:00:00Z"
         auctionEnd:
           type: string
@@ -12867,7 +12898,8 @@ components:
           nullable: true
           description: |
             RFC3339 timestamp of when the auction for this product ends.
-            Only relevant for auction-house shop types. Used only when creating a new product.
+            Only relevant for auction-house shop types. Applied on both create and update paths.
+            Omit or send `null` to leave the current stored end timestamp unchanged.
           example: "2025-05-10T12:00:00Z"
         sellerName:
           type: string
