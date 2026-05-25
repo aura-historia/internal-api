@@ -6,6 +6,33 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-25 - Partner Application Notification Shop Logos (`backend#1087`)
+
+Backend PR `#1087` extends partner-application notifications so the REST notification payload can now expose an optional shop logo URL. This update realigns the internal OpenAPI spec with that backend contract and documents where frontend consumers can expect the new field.
+
+### Added
+
+- **New optional shop-logo field on partner-application notification payloads**
+
+  | Schema / field | Type | Required | Description |
+  |---|---|---|---|
+  | `PartnerApplicationNotificationPayloadData.image` | `string (uri) \| null` | No | Optional shop logo URL sourced from the partner application itself for `NEW` applications or from the linked existing shop for `EXISTING` applications. |
+
+  Exposed anywhere `GetNotificationData` / `NotificationCollectionData` returns a `PARTNER_APPLICATION` payload, including:
+  - `GET /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications`
+  - `PATCH /api/v1/me/notifications/{eventId}`
+
+### Changed
+
+- **`PARTNER_APPLICATION` notification payload shape**
+  - `NotificationPayloadData` now documents that partner-application notification payloads may include an optional `image` field containing the shop logo URL.
+  - The field is omitted when no logo URL is available.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-05-22 - Partner Product Upsert Update Semantics (`backend#1079`)
 
 Backend PR `#1079` deprecates removal of stored product prices on the upsert-update path. While verifying that change against the `develop` branch, the internal OpenAPI spec also corrected older stale `PUT /api/v1/shops/{shopId}/products` documentation so it now matches the fields the backend actually applies when an upsert targets an existing product.
