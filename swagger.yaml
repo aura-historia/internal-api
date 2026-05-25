@@ -12557,6 +12557,15 @@ components:
           type: string
           description: Display name of the shop referenced by the partner application.
           example: "Tech Store"
+        image:
+          type: string
+          format: uri
+          nullable: true
+          description: |
+            Optional shop logo URL included with partner-application notifications when the related
+            application or linked existing shop has an image configured.
+            Absent when no shop logo URL is available.
+          example: "https://tech-store.example/logo.png"
         partnerApplicationPayload:
           $ref: "#/components/schemas/PartnerApplicationPayloadData"
 
