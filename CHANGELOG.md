@@ -6,6 +6,74 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-27 - Scoped Access Tokens and Partner-Shop Routing (`backend#1095`)
+
+Backend PR `#1095` refactors partner-shop API keys into Aura Historia access tokens, adds authenticated access-token management endpoints, moves partner-shop listing to a `/me` route, and realigns partner-authenticated shop/product/webhook flows around bearer authentication. This update refreshes the internal OpenAPI spec so frontend and backend teams can rely on the documented token shapes, route changes, and retired API-key contract.
+
+### Added
+
+- **Authenticated access-token management endpoints**
+
+  | Endpoint | Purpose | Success response |
+  |---|---|---|
+  | `POST /api/v1/me/access-tokens` | Create a new Aura Historia access token and return its plaintext value once | `201 Created` → `CreatedAccessTokenData` |
+  | `GET /api/v1/me/access-tokens` | List the authenticated user's non-expired access-token metadata | `200 OK` → `GetAccessTokenData[]` |
+  | `GET /api/v1/me/access-tokens/{accessTokenId}` | Read one non-expired access token by ID | `200 OK` → `GetAccessTokenData` |
+  | `PATCH /api/v1/me/access-tokens` | Update one access token's metadata by body-provided `accessTokenId` | `200 OK` → `GetAccessTokenData` |
+  | `DELETE /api/v1/me/access-tokens?accessTokenId=...` | Delete one access token selected by query parameter | `204 No Content` |
+
+- **New access-token schemas**
+
+  | Schema | Description |
+  |---|---|
+  | `ScopeData` | Access-token scope enum with `shops_manage` and `products_write` |
+  | `AccessTokenTypeData` | Token-type enum currently fixed to `BEARER` |
+  | `GetAccessTokenData` | Access-token metadata returned by read/update endpoints |
+  | `CreatedAccessTokenData` | Creation response shape combining metadata plus the one-time plaintext `accessToken` |
+  | `PostAccessTokenData` | Request body for creating a token |
+  | `PatchAccessTokenData` | Request body for updating a token |
+
+- **Partner-shop IDs on user account payloads**
+
+  | Schema / field | Type | Required | Description |
+  |---|---|---|---|
+  | `GetUserAccountData.partnerShops` | `string (uuid)[]` | No | Optional set of shop IDs for shops where the user is currently linked as the partner. |
+
+### Changed
+
+- **Partner-ingestion authentication model**
+  - `POST /api/v1/shops/{shopId}/products`
+  - `PATCH /api/v1/shops/{shopId}/products`
+  - `PUT /api/v1/shops/{shopId}/products`
+  - `POST /api/v1/webhooks/woocommerce/{shopId}`
+  - `PATCH /api/v1/shops/{shopId}`
+
+  These routes now document bearer authentication instead of partner `x-api-key` authentication:
+  - partner product write endpoints accept either
+    - a Cognito JWT for a user linked to the shop, or
+    - an Aura Historia access token with the `products_write` scope for that user
+  - the WooCommerce webhook endpoint accepts either a Cognito JWT or an Aura Historia access token for the linked partner user
+  - `PATCH /api/v1/shops/{shopId}` accepts either a Cognito JWT for the linked partner or an admin, or an Aura Historia access token for the linked partner user
+  - malformed `Authorization` headers are now documented as `400 BAD_HEADER_VALUE`
+  - missing/invalid bearer auth is now documented with `UNAUTHORIZED` / `ACCESS_TOKEN_NOT_FOUND` instead of the retired partner API-key mismatch contract
+
+- **Partner-shop listing route**
+  - The old partner-scoped listing route has been replaced:
+    - removed: `GET /api/v1/partner/{partnerId}/shops`
+    - added replacement: `GET /api/v1/me/partner-shops`
+  - The response remains a `GetShopData[]` collection, but it now represents the authenticated user's linked `partnerShops` set rather than a caller-supplied partner ID.
+
+- **Bearer-auth security scheme documentation**
+  - `BearerAuth` now explicitly documents that selected partner-ingestion routes can also accept Aura Historia access tokens in the standard `Authorization: Bearer ...` header.
+
+### Removed
+
+- **Retired partner API-key contract**
+  - Removed endpoint: `PUT /api/v1/shops/{shopId}/api-key`
+  - Removed security scheme: `PartnerApiKeyAuth`
+  - Removed schema: `PartnerShopApiKeyResponse`
+  - Removed old partner-write / webhook examples and error documentation that depended on `x-api-key` and `PARTNER_SHOP_API_KEY_MISMATCH`
+
 ## 2026-05-25 - Partner Application Notification Shop Logos (`backend#1087`)
 
 Backend PR `#1087` extends partner-application notifications so the REST notification payload can now expose an optional shop logo URL. This update realigns the internal OpenAPI spec with that backend contract and documents where frontend consumers can expect the new field.

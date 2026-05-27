@@ -23,9 +23,10 @@ paths:
     post:
       summary: Batch create products (Partner API)
       description: |
-        Creates one or more products for a shop using API key authentication.
-        This endpoint is intended for partner shops — shops that have been granted partner status
-        and have an API key configured. It does **not** use Cognito JWT authentication.
+        Creates one or more products for a shop using bearer authentication.
+        The `Authorization` header must contain either:
+        - a Cognito JWT for a user linked to the partner shop, or
+        - an Aura Historia access token owned by that user and carrying the `products_write` scope.
 
         The request body is an array of `PostProductData` objects. Each entry is forwarded
         individually to the asynchronous partner-product ingestion queue.
@@ -46,7 +47,7 @@ paths:
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
       security:
-        - PartnerApiKeyAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         description: Array of products to create. Must not be empty.
@@ -97,7 +98,7 @@ paths:
                   value:
                     - "baroque-violin-002"
         "400":
-          description: Bad request — request body is missing, empty, or contains invalid JSON
+          description: Bad request — request body is missing, empty, contains invalid JSON, or the `Authorization` header is malformed
           content:
             application/problem+json:
               schema:
@@ -117,41 +118,61 @@ paths:
                     title: "Bad Request"
                     error: "INVALID_JSON"
                     detail: "expected value at line 1 column 1"
+                invalid_authorization_header:
+                  summary: Authorization header is not a valid bearer token
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
+                    detail: "Token in authorization header is not a valid bearer token"
         "401":
           description: |
-            Unauthorized — the `x-api-key` header is missing, malformed, or the API key does not
-            match the key stored for the shop.
+            Unauthorized — the bearer token is missing, invalid, expired, or references an unknown Aura Historia access token.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_header:
-                  summary: x-api-key header is missing or empty
+                missing_authorization:
+                  summary: Authorization header is missing
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "BAD_HEADER_VALUE"
+                    error: "UNAUTHORIZED"
                     source:
-                      field: "x-api-key"
+                      field: "Authorization"
                       sourceType: "header"
-                    detail: "Missing or empty 'x-api-key' header."
-                api_key_mismatch:
-                  summary: API key does not match the shop's stored key
+                access_token_not_found:
+                  summary: Aura Historia access token does not exist or is expired
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
         "403":
-          description: Forbidden — the shop exists but has not been granted partner status
+          description: Forbidden — the bearer token is valid but does not grant product-write access for this shop, or the shop is not partner-enabled
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 403
-                title: "Forbidden"
-                error: "PARTNER_SHOP_NOT_PARTNERED"
+              examples:
+                not_partner_user:
+                  summary: Authenticated user is not linked to the shop
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "FORBIDDEN"
+                shop_not_partnered:
+                  summary: Shop exists but has not been granted partner status
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "PARTNER_SHOP_NOT_PARTNERED"
         "404":
           description: Not found — the specified shop does not exist
           content:
@@ -185,9 +206,10 @@ paths:
     patch:
       summary: Batch update products (Partner API)
       description: |
-        Updates one or more existing products for a shop using API key authentication.
-        This endpoint is intended for partner shops — shops that have been granted partner status
-        and have an API key configured. It does **not** use Cognito JWT authentication.
+        Updates one or more existing products for a shop using bearer authentication.
+        The `Authorization` header must contain either:
+        - a Cognito JWT for a user linked to the partner shop, or
+        - an Aura Historia access token owned by that user and carrying the `products_write` scope.
 
         The request body is an array of `PatchProductData` objects. Only the fields provided in
         each entry are updated; omitted optional fields are left unchanged. Each entry is forwarded
@@ -211,7 +233,7 @@ paths:
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
       security:
-        - PartnerApiKeyAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         description: Array of product updates to apply. Must not be empty.
@@ -254,7 +276,7 @@ paths:
                   value:
                     - "baroque-violin-002"
         "400":
-          description: Bad request — request body is missing, empty, or contains invalid JSON
+          description: Bad request — request body is missing, empty, contains invalid JSON, or the `Authorization` header is malformed
           content:
             application/problem+json:
               schema:
@@ -274,41 +296,61 @@ paths:
                     title: "Bad Request"
                     error: "INVALID_JSON"
                     detail: "expected value at line 1 column 1"
+                invalid_authorization_header:
+                  summary: Authorization header is not a valid bearer token
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
+                    detail: "Token in authorization header is not a valid bearer token"
         "401":
           description: |
-            Unauthorized — the `x-api-key` header is missing, malformed, or the API key does not
-            match the key stored for the shop.
+            Unauthorized — the bearer token is missing, invalid, expired, or references an unknown Aura Historia access token.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_header:
-                  summary: x-api-key header is missing or empty
+                missing_authorization:
+                  summary: Authorization header is missing
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "BAD_HEADER_VALUE"
+                    error: "UNAUTHORIZED"
                     source:
-                      field: "x-api-key"
+                      field: "Authorization"
                       sourceType: "header"
-                    detail: "Missing or empty 'x-api-key' header."
-                api_key_mismatch:
-                  summary: API key does not match the shop's stored key
+                access_token_not_found:
+                  summary: Aura Historia access token does not exist or is expired
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
         "403":
-          description: Forbidden — the shop exists but has not been granted partner status
+          description: Forbidden — the bearer token is valid but does not grant product-write access for this shop, or the shop is not partner-enabled
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 403
-                title: "Forbidden"
-                error: "PARTNER_SHOP_NOT_PARTNERED"
+              examples:
+                not_partner_user:
+                  summary: Authenticated user is not linked to the shop
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "FORBIDDEN"
+                shop_not_partnered:
+                  summary: Shop exists but has not been granted partner status
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "PARTNER_SHOP_NOT_PARTNERED"
         "404":
           description: Not found — the specified shop does not exist
           content:
@@ -343,9 +385,9 @@ paths:
       summary: Batch upsert products (Partner API)
       description: |
         Creates new products or updates existing ones for a shop in a single batch call,
-        using API key authentication. This endpoint is intended for partner shops — shops
-        that have been granted partner status and have an API key configured. It does **not**
-        use Cognito JWT authentication.
+        using bearer authentication. The `Authorization` header must contain either:
+        - a Cognito JWT for a user linked to the partner shop, or
+        - an Aura Historia access token owned by that user and carrying the `products_write` scope.
 
         The request body is an array of `PutProductData` objects. Each entry is forwarded
         individually to the asynchronous partner-product ingestion queue as an upsert command.
@@ -381,7 +423,7 @@ paths:
             format: uuid
             example: "550e8400-e29b-41d4-a716-446655440000"
       security:
-        - PartnerApiKeyAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         description: Array of products to upsert. Must not be empty.
@@ -455,7 +497,7 @@ paths:
                   value:
                     - "baroque-violin-002"
         "400":
-          description: Bad request — request body is missing, empty, or contains invalid JSON
+          description: Bad request — request body is missing, empty, contains invalid JSON, or the `Authorization` header is malformed
           content:
             application/problem+json:
               schema:
@@ -475,41 +517,61 @@ paths:
                     title: "Bad Request"
                     error: "INVALID_JSON"
                     detail: "expected value at line 1 column 1"
+                invalid_authorization_header:
+                  summary: Authorization header is not a valid bearer token
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
+                    detail: "Token in authorization header is not a valid bearer token"
         "401":
           description: |
-            Unauthorized — the `x-api-key` header is missing, malformed, or the API key does not
-            match the key stored for the shop.
+            Unauthorized — the bearer token is missing, invalid, expired, or references an unknown Aura Historia access token.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_header:
-                  summary: x-api-key header is missing or empty
+                missing_authorization:
+                  summary: Authorization header is missing
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "BAD_HEADER_VALUE"
+                    error: "UNAUTHORIZED"
                     source:
-                      field: "x-api-key"
+                      field: "Authorization"
                       sourceType: "header"
-                    detail: "Missing or empty 'x-api-key' header."
-                api_key_mismatch:
-                  summary: API key does not match the shop's stored key
+                access_token_not_found:
+                  summary: Aura Historia access token does not exist or is expired
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
         "403":
-          description: Forbidden — the shop exists but has not been granted partner status
+          description: Forbidden — the bearer token is valid but does not grant product-write access for this shop, or the shop is not partner-enabled
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 403
-                title: "Forbidden"
-                error: "PARTNER_SHOP_NOT_PARTNERED"
+              examples:
+                not_partner_user:
+                  summary: Authenticated user is not linked to the shop
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "FORBIDDEN"
+                shop_not_partnered:
+                  summary: Shop exists but has not been granted partner status
+                  value:
+                    status: 403
+                    title: "Forbidden"
+                    error: "PARTNER_SHOP_NOT_PARTNERED"
         "404":
           description: Not found — the specified shop does not exist
           content:
@@ -545,11 +607,12 @@ paths:
     post:
       summary: Ingest a WooCommerce product webhook (Partner API)
       description: |
-        Accepts a single WooCommerce product webhook event for a partner shop using API key authentication.
-        This endpoint is intended for partner shops and does **not** use Cognito JWT authentication.
+        Accepts a single WooCommerce product webhook event for a partner shop using bearer authentication.
+        The `Authorization` header must contain either:
+        - a Cognito JWT for a user linked to the partner shop, or
+        - an Aura Historia access token owned by that user.
 
         The caller must provide:
-        - the partner shop API key in the `x-api-key` header,
         - the WooCommerce topic in `x-wc-webhook-topic`, and
         - the base64-encoded HMAC-SHA256 signature of the raw request body in `x-wc-webhook-signature`.
 
@@ -564,7 +627,7 @@ paths:
       tags:
         - Products
       security:
-        - PartnerApiKeyAuth: []
+        - BearerAuth: []
       parameters:
         - name: shopId
           in: path
@@ -647,10 +710,11 @@ paths:
               example: "*"
         "400":
           description: |
-            Bad request — invalid or missing shop ID, missing body, malformed JSON, unsupported
-            WooCommerce topic, a payload that does not satisfy the selected topic's requirements,
-            or missing required shop-level WooCommerce configuration (`woocommerceLanguage`,
-            and `woocommerceCurrency` when a non-empty `price` is sent).
+            Bad request — invalid or missing shop ID, missing body, malformed JSON, a malformed
+            `Authorization` header, unsupported WooCommerce topic, a payload that does not satisfy
+            the selected topic's requirements, or missing required shop-level WooCommerce
+            configuration (`woocommerceLanguage`, and `woocommerceCurrency` when a non-empty
+            `price` is sent).
           content:
             application/problem+json:
               schema:
@@ -699,31 +763,43 @@ paths:
                     source:
                       field: "x-wc-webhook-topic"
                       sourceType: "header"
+                invalid_authorization_header:
+                  summary: Authorization header is not a valid bearer token
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
+                    detail: "Token in authorization header is not a valid bearer token"
         "401":
           description: |
-            Unauthorized — the `x-api-key` header is missing, malformed, or does not match the
-            stored partner key, or the WooCommerce signature header is missing/invalid.
+            Unauthorized — the bearer token is missing, invalid, expired, or references an unknown
+            Aura Historia access token, or the WooCommerce signature header is missing/invalid.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                missing_api_key:
-                  summary: x-api-key header is missing or empty
+                missing_authorization:
+                  summary: Authorization header is missing
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "BAD_HEADER_VALUE"
+                    error: "UNAUTHORIZED"
                     source:
-                      field: "x-api-key"
+                      field: "Authorization"
                       sourceType: "header"
-                    detail: "Missing or empty 'x-api-key' header."
-                api_key_mismatch:
-                  summary: API key does not match the shop's stored key
+                access_token_not_found:
+                  summary: Aura Historia access token does not exist or is expired
                   value:
                     status: 401
                     title: "Unauthorized"
-                    error: "PARTNER_SHOP_API_KEY_MISMATCH"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
                 missing_signature:
                   summary: WooCommerce signature header is missing
                   value:
@@ -745,7 +821,7 @@ paths:
                       sourceType: "header"
                     detail: "WooCommerce signature mismatch."
         "403":
-          description: Forbidden — the shop exists but has not been granted partner status
+          description: Forbidden — the authenticated user is not linked to the shop, or the shop is not partner-enabled
           content:
             application/problem+json:
               schema:
@@ -754,6 +830,7 @@ paths:
                 status: 403
                 title: "Forbidden"
                 error: "PARTNER_SHOP_NOT_PARTNERED"
+                detail: "User '550e8400-e29b-41d4-a716-446655440111' is not the partner of shop '550e8400-e29b-41d4-a716-446655440000'"
         "404":
           description: Not found — the specified shop does not exist
           content:
@@ -4796,6 +4873,499 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
+  /api/v1/me/access-tokens:
+    post:
+      summary: Create an Aura Historia access token
+      description: |
+        Creates a new Aura Historia access token for the authenticated user.
+        The plaintext token is returned only once in this creation response; subsequent read
+        endpoints return metadata only.
+      operationId: createAccessToken
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Access-token metadata and optional scopes to assign.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostAccessTokenData"
+            example:
+              name: "Partner product sync"
+              scope: ["products_write"]
+      responses:
+        "201":
+          description: Access token created successfully
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedAccessTokenData"
+              example:
+                accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+                name: "Partner product sync"
+                scope: ["products_write"]
+                tokenType: "BEARER"
+                expiresAt: null
+                expiresIn: null
+                created: "2026-05-27T18:30:00Z"
+                updated: "2026-05-27T18:30:00Z"
+                accessToken: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
+        "400":
+          description: Bad request - request body is missing or invalid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid JSON request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    get:
+      summary: List Aura Historia access tokens
+      description: |
+        Returns all non-expired Aura Historia access tokens owned by the authenticated user.
+        The plaintext token values are never returned by this endpoint.
+      operationId: listAccessTokens
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Access tokens retrieved successfully
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GetAccessTokenData"
+              example:
+                - accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+                  name: "Partner product sync"
+                  scope: ["products_write"]
+                  tokenType: "BEARER"
+                  expiresAt: null
+                  expiresIn: null
+                  created: "2026-05-27T18:30:00Z"
+                  updated: "2026-05-27T18:30:00Z"
+                - accessTokenId: "019710b4-a18a-7dad-b4c3-11f9fd5fd002"
+                  name: "Shop settings automation"
+                  scope: ["shops_manage"]
+                  tokenType: "BEARER"
+                  expiresAt: "2026-06-01T00:00:00Z"
+                  expiresIn: 352800
+                  created: "2026-05-27T22:00:00Z"
+                  updated: "2026-05-27T22:00:00Z"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "USER_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update an Aura Historia access token
+      description: |
+        Updates access-token metadata for the authenticated user.
+        Send only `accessTokenId` to perform a no-op read-back of the current metadata.
+      operationId: updateAccessToken
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: Partial access-token update payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchAccessTokenData"
+            examples:
+              rename_and_rescope:
+                summary: Rename a token and replace its scope set
+                value:
+                  accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+                  name: "Updated sync token"
+                  scope: ["products_write"]
+              no_op:
+                summary: Return existing metadata unchanged
+                value:
+                  accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+      responses:
+        "200":
+          description: Access token updated successfully
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAccessTokenData"
+              example:
+                accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+                name: "Updated sync token"
+                scope: ["products_write"]
+                tokenType: "BEARER"
+                expiresAt: null
+                expiresIn: null
+                created: "2026-05-27T18:30:00Z"
+                updated: "2026-05-27T19:00:00Z"
+        "400":
+          description: Bad request - request body is missing or invalid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                invalid_body:
+                  summary: Invalid JSON request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User or access token not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                user_not_found:
+                  summary: Authenticated user record does not exist
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "USER_NOT_FOUND"
+                access_token_not_found:
+                  summary: Access token does not exist or is expired
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete an Aura Historia access token
+      description: |
+        Deletes one access token owned by the authenticated user.
+        The token to remove is selected via the required `accessTokenId` query parameter.
+      operationId: deleteAccessToken
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: accessTokenId
+          in: query
+          required: true
+          description: Unique identifier of the access token to delete
+          schema:
+            type: string
+            format: uuid
+          example: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+      responses:
+        "204":
+          description: Access token deleted successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+        "400":
+          description: Bad request - query parameter is missing or invalid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_access_token_id:
+                  summary: Missing accessTokenId query parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Missing query parameter accessTokenId"
+                invalid_access_token_id:
+                  summary: accessTokenId is not a valid UUID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Invalid accessTokenId"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User or access token not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                user_not_found:
+                  summary: Authenticated user record does not exist
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "USER_NOT_FOUND"
+                access_token_not_found:
+                  summary: Access token does not exist or is expired
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/me/access-tokens/{accessTokenId}:
+    get:
+      summary: Get one Aura Historia access token
+      description: |
+        Returns metadata for one non-expired Aura Historia access token owned by the authenticated
+        user. The plaintext token value is never returned by this endpoint.
+      operationId: getAccessToken
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: accessTokenId
+          in: path
+          required: true
+          description: Unique identifier of the access token to retrieve
+          schema:
+            type: string
+            format: uuid
+          example: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+      responses:
+        "200":
+          description: Access token retrieved successfully
+          headers:
+            Cache-Control:
+              description: Caching directive. Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAccessTokenData"
+              example:
+                accessTokenId: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+                name: "Partner product sync"
+                scope: ["products_write"]
+                tokenType: "BEARER"
+                expiresAt: null
+                expiresIn: null
+                created: "2026-05-27T18:30:00Z"
+                updated: "2026-05-27T18:30:00Z"
+        "400":
+          description: Bad request - invalid or missing access-token ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_access_token_id:
+                  summary: Missing access-token ID
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "path"
+                    detail: "Missing field 'accessTokenId'."
+                invalid_access_token_id:
+                  summary: Invalid access-token ID format
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "path"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: User or access token not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                user_not_found:
+                  summary: Authenticated user record does not exist
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "USER_NOT_FOUND"
+                access_token_not_found:
+                  summary: Access token does not exist or is expired
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "ACCESS_TOKEN_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
   /api/v1/me/billing/checkout:
     post:
       summary: Create Stripe checkout session
@@ -6492,9 +7062,10 @@ paths:
       description: |
         Updates mutable shop metadata for the specified shop.
 
-        Requires either:
-        - a valid Cognito JWT for the partner user assigned to the shop or for an `ADMIN`, or
-        - the partner shop's `x-api-key` when no Cognito identity is present.
+        Requires bearer authentication.
+        The `Authorization` header may contain:
+        - a Cognito JWT for the partner user assigned to the shop or for an `ADMIN`, or
+        - an Aura Historia access token owned by the partner user assigned to the shop.
 
         The request body uses `PatchShopData`. Only fields present in the JSON body are applied;
         omitted or `null` fields are left unchanged. The HTTP request body itself must not be absent
@@ -6504,7 +7075,6 @@ paths:
         - Shops
       security:
         - BearerAuth: []
-        - PartnerApiKeyAuth: []
       parameters:
         - name: shopId
           in: path
@@ -6592,7 +7162,7 @@ paths:
                 created: "2024-01-01T10:00:00Z"
                 updated: "2024-01-01T12:00:00Z"
         "400":
-          description: Bad request - invalid or missing shop ID, empty body, or invalid JSON
+          description: Bad request - invalid or missing shop ID, empty body, invalid JSON, or a malformed `Authorization` header
           content:
             application/problem+json:
               schema:
@@ -6639,140 +7209,31 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "Cannot geocode an empty structured address"
+                invalid_authorization_header:
+                  summary: Authorization header is not a valid bearer token
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_HEADER_VALUE"
+                    source:
+                      field: "Authorization"
+                      sourceType: "header"
+                    detail: "Token in authorization header is not a valid bearer token"
         "401":
-          description: Unauthorized – invalid or missing Cognito JWT when using bearer auth, or missing/malformed/mismatched `x-api-key` when using partner API-key auth.
+          description: Unauthorized – invalid or missing bearer token.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
               examples:
-                invalid_jwt:
-                  summary: Cognito bearer token is invalid
+                invalid_bearer:
+                  summary: Bearer token is invalid or missing
                   value:
                     status: 401
                     title: "Unauthorized"
                     error: "UNAUTHORIZED"
-                missing_api_key:
-                  summary: x-api-key header is missing or empty when no Cognito identity is present
-                  value:
-                    status: 401
-                    title: "Unauthorized"
-                    error: "BAD_HEADER_VALUE"
-                    source:
-                      field: "x-api-key"
-                      sourceType: "header"
-                    detail: "Missing or empty 'x-api-key' header."
         "403":
           description: Forbidden – caller is not allowed to update this shop.
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 403
-                title: "Forbidden"
-                error: "PARTNER_SHOP_NOT_PARTNERED"
-                detail: "User '550e8400-e29b-41d4-a716-446655440111' is not the partner of shop '550e8400-e29b-41d4-a716-446655440000'"
-        "404":
-          description: Shop not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "SHOP_NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-  /api/v1/shops/{shopId}/api-key:
-    put:
-      summary: Create or overwrite a partner shop API key
-      description: |
-        Creates a new partner API key for the specified shop and returns the plaintext key in the response.
-        If a key already exists for the shop, it is overwritten.
-
-        Requires a valid Cognito JWT. The caller must either:
-        - be the partner user assigned to the shop, or
-        - have the `ADMIN` role.
-
-        The returned key is only available in this response. The backend stores only a hash.
-      operationId: putShopApiKey
-      tags:
-        - Shops
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: shopId
-          in: path
-          required: true
-          description: Unique identifier of the shop (UUID format)
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440000"
-      responses:
-        "200":
-          description: API key created successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PartnerShopApiKeyResponse"
-              example:
-                apiKey: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
-        "400":
-          description: Bad request - invalid or missing shop ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_shop_id:
-                  summary: Missing shop ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "shopId"
-                      sourceType: "path"
-                    detail: "Missing field 'shopId'."
-                invalid_shop_id:
-                  summary: Invalid shop ID format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "INVALID_UUID"
-                    source:
-                      field: "shopId"
-                      sourceType: "path"
-                    detail: "Invalid UUID format"
-        "401":
-          description: Unauthorized – invalid or missing JWT token.
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 401
-                title: "Unauthorized"
-                error: "UNAUTHORIZED"
-        "403":
-          description: Forbidden – caller is not allowed to manage an API key for this shop.
           content:
             application/problem+json:
               schema:
@@ -7823,31 +8284,18 @@ paths:
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
 
-  /api/v1/partner/{partnerId}/shops:
+  /api/v1/me/partner-shops:
     get:
-      summary: List shops for a partner user
+      summary: List the authenticated user's partner shops
       description: |
-        Returns all shops whose `partner_user_id` matches the requested `partnerId`.
-
-        Requires a valid Cognito JWT. The caller may request:
-        - their own shops (`partnerId` equals the JWT `sub`), or
-        - another partner's shops when the caller has the `ADMIN` role.
-
-        Returns an empty array when the partner currently has no shops.
+        Returns all shops linked to the authenticated user's `partnerShops` set.
+        Requires a valid Cognito JWT and returns an empty array when the user currently has no
+        linked partner shops.
       operationId: getPartnerShops
       tags:
         - Shops
       security:
         - BearerAuth: []
-      parameters:
-        - name: partnerId
-          in: path
-          required: true
-          description: Unique identifier of the partner user
-          schema:
-            type: string
-            format: uuid
-            example: "550e8400-e29b-41d4-a716-446655440222"
       responses:
         "200":
           description: Partner shops retrieved successfully
@@ -7880,33 +8328,6 @@ paths:
                   partnerStatus: "PARTNERED"
                   created: "2024-01-15T10:00:00Z"
                   updated: "2024-06-15T12:00:00Z"
-        "400":
-          description: Bad request - invalid or missing partner ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_partner_id:
-                  summary: Missing partner ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "partnerId"
-                      sourceType: "path"
-                    detail: "Missing field 'partnerId'."
-                invalid_partner_id:
-                  summary: Invalid partner ID format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "INVALID_UUID"
-                    source:
-                      field: "partnerId"
-                      sourceType: "path"
-                    detail: "Invalid UUID format"
         "401":
           description: Unauthorized – invalid or missing JWT token.
           content:
@@ -7917,17 +8338,25 @@ paths:
                 status: 401
                 title: "Unauthorized"
                 error: "UNAUTHORIZED"
-        "403":
-          description: Forbidden – this endpoint requires the `ADMIN` role when requesting another partner's shops.
+        "404":
+          description: User or linked shop not found.
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ApiError"
-              example:
-                status: 403
-                title: "Forbidden"
-                error: "FORBIDDEN"
-                detail: "This action requires the 'ADMIN' role."
+              examples:
+                user_not_found:
+                  summary: Authenticated user record does not exist
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "USER_NOT_FOUND"
+                shop_not_found:
+                  summary: A linked partner shop could not be loaded
+                  value:
+                    status: 404
+                    title: "Not Found"
+                    error: "SHOP_NOT_FOUND"
         "500":
           description: Internal server error
           content:
@@ -9130,20 +9559,12 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
+      bearerFormat: JWT or Aura Historia access token
       description: |
-        Cognito JWT token.
-        The token is used for authenticating and authorizing users as well as personalizing responses.
-    PartnerApiKeyAuth:
-      type: apiKey
-      in: header
-      name: x-api-key
-      description: |
-        API key for partner shops. Issued to shops that have been granted partner status.
-        The key must be provided in the `x-api-key` request header.
-        This scheme is separate from user authentication (Cognito JWT) and is used
-        by partner shops for programmatic product ingestion, WooCommerce webhook delivery,
-        and selected partner-authorized shop operations.
+        Bearer token used by the backend.
+        Most authenticated user endpoints require a Cognito JWT.
+        Selected partner-ingestion endpoints also accept Aura Historia access tokens in the same
+        `Authorization: Bearer ...` header.
   schemas:
     GetProductData:
       type: object
@@ -11485,19 +11906,6 @@ components:
           nullable: true
           description: Optional public contact email address of the shop.
           example: "contact@tech-store-premium.com"
-    PartnerShopApiKeyResponse:
-      type: object
-      description: Response body returned after creating or overwriting a partner shop API key.
-      required:
-        - apiKey
-      properties:
-        apiKey:
-          type: string
-          description: |
-            Plaintext partner shop API key.
-            Returned only when the key is created; subsequent verification uses the `x-api-key` request header.
-          example: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
-
     SortShopFieldData:
       type: string
       enum: [score, name, updated, created]
@@ -12010,6 +12418,136 @@ components:
               description: Inclusive upper bound.
               example: "2026-04-25T23:59:59Z"
 
+    ScopeData:
+      type: string
+      enum: [shops_manage, products_write]
+      description: Scopes that can be assigned to an Aura Historia access token.
+
+    AccessTokenTypeData:
+      type: string
+      enum: [BEARER]
+      description: Token type returned for Aura Historia access tokens.
+
+    GetAccessTokenData:
+      type: object
+      description: Metadata describing one Aura Historia access token.
+      required:
+        - accessTokenId
+        - name
+        - tokenType
+        - created
+        - updated
+      properties:
+        accessTokenId:
+          type: string
+          format: uuid
+          description: Unique identifier of the access token.
+          example: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+        name:
+          type: string
+          maxLength: 128
+          description: Human-readable access-token name.
+          example: "Partner product sync"
+        scope:
+          type: array
+          uniqueItems: true
+          description: Optional set of scopes assigned to the access token.
+          items:
+            $ref: "#/components/schemas/ScopeData"
+          example: ["products_write"]
+        tokenType:
+          $ref: "#/components/schemas/AccessTokenTypeData"
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional RFC3339 expiry timestamp.
+          example: "2026-06-01T00:00:00Z"
+        expiresIn:
+          type: integer
+          nullable: true
+          description: Remaining lifetime in whole seconds at response time.
+          example: 352800
+        created:
+          type: string
+          format: date-time
+          description: When the access token was created (RFC3339 format).
+          example: "2026-05-27T18:30:00Z"
+        updated:
+          type: string
+          format: date-time
+          description: When the access token metadata was last updated (RFC3339 format).
+          example: "2026-05-27T19:00:00Z"
+
+    CreatedAccessTokenData:
+      allOf:
+        - $ref: "#/components/schemas/GetAccessTokenData"
+        - type: object
+          required:
+            - accessToken
+          properties:
+            accessToken:
+              type: string
+              description: Plaintext Aura Historia access token. Returned only once on creation.
+              example: "aurahistoria_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
+
+    PostAccessTokenData:
+      type: object
+      description: Request body for creating a new Aura Historia access token.
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          description: Human-readable access-token name.
+          example: "Partner product sync"
+        scope:
+          type: array
+          uniqueItems: true
+          description: Optional set of scopes to assign to the access token.
+          items:
+            $ref: "#/components/schemas/ScopeData"
+          example: ["products_write"]
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional RFC3339 expiry timestamp.
+          example: "2026-06-01T00:00:00Z"
+
+    PatchAccessTokenData:
+      type: object
+      description: Partial metadata update payload for an existing Aura Historia access token.
+      required:
+        - accessTokenId
+      properties:
+        accessTokenId:
+          type: string
+          format: uuid
+          description: Unique identifier of the access token to update.
+          example: "019710b4-a0f5-7cb7-98df-ef75f0a0f001"
+        name:
+          type: string
+          maxLength: 128
+          nullable: true
+          description: Optional replacement name for the access token.
+          example: "Updated sync token"
+        scope:
+          type: array
+          uniqueItems: true
+          nullable: true
+          description: Optional replacement scope set for the access token.
+          items:
+            $ref: "#/components/schemas/ScopeData"
+          example: ["products_write"]
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Optional replacement expiry timestamp.
+          example: "2026-06-15T00:00:00Z"
+
     GetUserAccountData:
       type: object
       description: Complete user account information including prohibited content consent
@@ -12076,6 +12614,14 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional latitude/longitude coordinates derived by the backend from `structuredAddress`.
+        partnerShops:
+          type: array
+          uniqueItems: true
+          description: Optional set of shop IDs for shops where the user is currently the linked partner.
+          items:
+            type: string
+            format: uuid
+          example: ["550e8400-e29b-41d4-a716-446655440000"]
         created:
           type: string
           format: date-time
