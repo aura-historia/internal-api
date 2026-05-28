@@ -6,6 +6,72 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-28 - OAuth2 Authorization Code Flow (`backend#1103`)
+
+Backend PR `#1103` introduces a full OAuth2 authorization code flow with PKCE, allowing third-party OAuth clients to obtain Aura Historia access tokens on behalf of authenticated users. This update adds all four new OAuth endpoints and two new response schemas to the OpenAPI spec.
+
+### Added
+
+- **New OAuth2 endpoints**
+
+  | Endpoint | Purpose |
+  |---|---|
+  | `GET /api/v1/oauth/authorize` | Start the authorization code flow. The authenticated user (resource owner) grants the OAuth client access. Returns a `302` redirect to `redirect_uri?code=<code>&state=<state>`. |
+  | `POST /api/v1/oauth/token` | Exchange a single-use authorization code for an Aura Historia access token. Body is `application/x-www-form-urlencoded`. |
+  | `POST /api/v1/oauth/revoke` | Revoke an access token issued via the OAuth flow. Body is `application/x-www-form-urlencoded`. |
+  | `POST /api/v1/oauth/introspect` | Return metadata about an access token. Body is `application/x-www-form-urlencoded`. |
+
+  **Authorization endpoint** (`GET /api/v1/oauth/authorize`) query parameters:
+  - `response_type` (required): must be `code`
+  - `client_id` (required): registered OAuth client ID
+  - `redirect_uri` (required): must exactly match a registered redirect URI for the client
+  - `scope` (optional): space-separated scope string (e.g. `products:write`)
+  - `state` (optional): opaque CSRF protection value — echoed back in the redirect
+  - `code_challenge` (required): PKCE S256 code challenge (base64url-encoded SHA256 of `code_verifier`)
+  - `code_challenge_method` (required): must be `S256`
+
+  Requires a valid Cognito bearer token (the authenticated user authorizes the client).
+
+  **Token endpoint** (`POST /api/v1/oauth/token`) form fields:
+  - `grant_type` (required): must be `authorization_code`
+  - `code` (required): authorization code from the authorize redirect
+  - `redirect_uri` (required): must match the redirect URI used in the authorization request
+  - `client_id` (required)
+  - `client_secret` (required)
+  - `code_verifier` (required): PKCE verifier whose SHA256 hash matches the `code_challenge`
+
+  No bearer token required — client authenticates via `client_id` / `client_secret` form fields.
+
+  **Revoke endpoint** (`POST /api/v1/oauth/revoke`) and **introspect endpoint** (`POST /api/v1/oauth/introspect`) form fields:
+  - `token` (required): the access token to revoke/introspect
+  - `client_id` (required)
+  - `client_secret` (required)
+
+  No bearer token required for these endpoints either.
+
+- **New schemas**
+  - `OAuthTokenResponseData` — response body of `POST /api/v1/oauth/token`:
+    - `access_token` (string): the issued Aura Historia bearer token
+    - `token_type` (AccessTokenTypeData): always `BEARER`
+    - `expires_in` (integer, nullable): seconds until expiry; `null` for non-expiring tokens
+    - `scope` (string): space-separated scopes granted to the token
+  - `OAuthIntrospectionResponseData` — response body of `POST /api/v1/oauth/introspect`:
+    - `active` (boolean, **required**): `true` if the token is valid and not revoked; `false` otherwise
+    - `scope` (string, optional): space-separated scopes (present when `active` is `true`)
+    - `client_id` (string, optional): OAuth client that issued the token (present when `active` is `true` and token was issued via OAuth)
+    - `sub` (string/uuid, optional): Aura Historia user ID of the resource owner (present when `active` is `true`)
+    - `token_type` (string, optional): always `Bearer` when `active` is `true`
+    - `exp` (integer, optional): Unix timestamp expiry (present when `active` is `true` and the token has an expiry)
+    - `iat` (integer, optional): Unix timestamp issued-at (present when `active` is `true` and the issue time is known)
+
+### Changed
+
+- **`AccessToken` domain type** now carries an `origin` field (`User` or `OAuth { client_id }`). This is an internal domain change; the `GetAccessTokenData` REST response schema is **not** changed — the `origin` field is not exposed to API consumers.
+
+### Removed
+
+- Nothing was removed from the API in this update.
+
 ## 2026-05-28 - Access Token Deletion Path Parameter (`backend#1105`)
 
 Backend PR `#1105` changes access-token deletion to use a resource path parameter instead of a query parameter. This update realigns the internal OpenAPI spec with that backend contract and documents the updated request path and validation behavior for frontend consumers.
