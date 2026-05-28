@@ -9522,169 +9522,169 @@ paths:
           required: true
           description: OAuth response type. Must be `code`.
           schema:
-           type: string
-           enum: ["code"]
+            type: string
+            enum: ["code"]
           example: "code"
         - name: client_id
           in: query
           required: true
           description: Identifier of the registered OAuth client.
           schema:
-           type: string
+            type: string
           example: "my-oauth-client"
         - name: redirect_uri
           in: query
           required: true
           description: Redirect URI registered for the OAuth client. Must exactly match one of the client's registered redirect URIs.
           schema:
-           type: string
-           format: uri
+            type: string
+            format: uri
           example: "https://client.example/callback"
         - name: scope
           in: query
           required: false
           description: Space-separated list of requested scopes. Must be a subset of the client's allowed scopes.
           schema:
-           type: string
+            type: string
           example: "products:write"
         - name: state
           in: query
           required: false
           description: Opaque client state value. Returned unchanged in the redirect to prevent CSRF attacks.
           schema:
-           type: string
+            type: string
           example: "xyz"
         - name: code_challenge
           in: query
           required: true
           description: PKCE code challenge. Must be the base64url-encoded SHA256 hash of the `code_verifier` (S256 method).
           schema:
-           type: string
+            type: string
           example: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
         - name: code_challenge_method
           in: query
           required: true
           description: PKCE challenge method. Must be `S256`.
           schema:
-           type: string
-           enum: ["S256"]
+            type: string
+            enum: ["S256"]
           example: "S256"
       responses:
         "302":
           description: |
-           Authorization successful. The user-agent is redirected to `redirect_uri` with the
-           one-time authorization `code` and the original `state` (if supplied) appended as
-           query parameters, e.g.
-           `https://client.example/callback?code=<code>&state=<state>`.
+            Authorization successful. The user-agent is redirected to `redirect_uri` with the
+            one-time authorization `code` and the original `state` (if supplied) appended as
+            query parameters, e.g.
+            `https://client.example/callback?code=<code>&state=<state>`.
           headers:
-           Location:
-             description: Redirect URL containing the authorization `code` and optional `state`.
-             schema:
-               type: string
-               format: uri
-             example: "https://client.example/callback?code=SplxlOBeZQQYbYS6WxSbIA&state=xyz"
-           Cache-Control:
-             description: Always set to `no-store`.
-             schema:
-               type: string
-             example: "no-store"
+            Location:
+              description: Redirect URL containing the authorization `code` and optional `state`.
+              schema:
+                type: string
+                format: uri
+              example: "https://client.example/callback?code=SplxlOBeZQQYbYS6WxSbIA&state=xyz"
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
         "400":
           description: Bad request — a required query parameter is missing or has an unsupported value.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               missing_response_type:
-                 summary: Missing response_type query parameter
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "response_type"
-                     sourceType: "query"
-                   detail: "Missing query parameter response_type"
-               unsupported_response_type:
-                 summary: Unsupported response_type value
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "response_type"
-                     sourceType: "query"
-                   detail: "Unsupported response_type 'token'"
-               missing_code_challenge:
-                 summary: Missing code_challenge query parameter
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "code_challenge"
-                     sourceType: "query"
-                   detail: "Missing query parameter code_challenge"
-               unsupported_code_challenge_method:
-                 summary: Unsupported code_challenge_method
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "code_challenge_method"
-                     sourceType: "query"
-                   detail: "Unsupported code_challenge_method 'plain'"
-               invalid_scope:
-                 summary: Requested scope not allowed for client
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "scope"
-                     sourceType: "query"
-                   detail: "Requested scope is not allowed for client."
-               invalid_redirect_uri:
-                 summary: Redirect URI not registered for client
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_QUERY_PARAMETER_VALUE"
-                   source:
-                     field: "redirect_uri"
-                     sourceType: "query"
-                   detail: "Redirect URI is not registered for client."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_response_type:
+                  summary: Missing response_type query parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "response_type"
+                      sourceType: "query"
+                    detail: "Missing query parameter response_type"
+                unsupported_response_type:
+                  summary: Unsupported response_type value
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "response_type"
+                      sourceType: "query"
+                    detail: "Unsupported response_type 'token'"
+                missing_code_challenge:
+                  summary: Missing code_challenge query parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "code_challenge"
+                      sourceType: "query"
+                    detail: "Missing query parameter code_challenge"
+                unsupported_code_challenge_method:
+                  summary: Unsupported code_challenge_method
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "code_challenge_method"
+                      sourceType: "query"
+                    detail: "Unsupported code_challenge_method 'plain'"
+                invalid_scope:
+                  summary: Requested scope not allowed for client
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "scope"
+                      sourceType: "query"
+                    detail: "Requested scope is not allowed for client."
+                invalid_redirect_uri:
+                  summary: Redirect URI not registered for client
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "redirect_uri"
+                      sourceType: "query"
+                    detail: "Redirect URI is not registered for client."
         "401":
           description: Unauthorized — the Cognito bearer token is missing, invalid, or the OAuth client was not found / credentials are invalid.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               missing_bearer:
-                 summary: Missing or invalid bearer token
-                 value:
-                   status: 401
-                   title: "Unauthorized"
-                   error: "UNAUTHORIZED"
-               client_not_found:
-                 summary: OAuth client not found
-                 value:
-                   status: 401
-                   title: "Unauthorized"
-                   error: "UNAUTHORIZED"
-                   detail: "OAuth client not found."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_bearer:
+                  summary: Missing or invalid bearer token
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                client_not_found:
+                  summary: OAuth client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "OAuth client not found."
         "500":
           description: Internal server error.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             example:
-               status: 500
-               title: "Internal Server Error"
-               error: "INTERNAL_SERVER_ERROR"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/oauth/token:
     post:
@@ -9706,132 +9706,132 @@ paths:
         description: Authorization code exchange payload (form-urlencoded).
         content:
           application/x-www-form-urlencoded:
-           schema:
-             type: object
-             required:
-               - grant_type
-               - code
-               - redirect_uri
-               - client_id
-               - client_secret
-               - code_verifier
-             properties:
-               grant_type:
-                 type: string
-                 enum: ["authorization_code"]
-                 description: OAuth grant type. Must be `authorization_code`.
-                 example: "authorization_code"
-               code:
-                 type: string
-                 description: Single-use authorization code received from the authorize redirect.
-                 example: "SplxlOBeZQQYbYS6WxSbIA"
-               redirect_uri:
-                 type: string
-                 format: uri
-                 description: Must exactly match the `redirect_uri` used in the corresponding authorization request.
-                 example: "https://client.example/callback"
-               client_id:
-                 type: string
-                 description: OAuth client identifier.
-                 example: "my-oauth-client"
-               client_secret:
-                 type: string
-                 description: OAuth client secret.
-                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
-               code_verifier:
-                 type: string
-                 description: PKCE code verifier. The SHA256 hash of this value must match the `code_challenge` from the authorization request.
-                 example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+            schema:
+              type: object
+              required:
+                - grant_type
+                - code
+                - redirect_uri
+                - client_id
+                - client_secret
+                - code_verifier
+              properties:
+                grant_type:
+                  type: string
+                  enum: ["authorization_code"]
+                  description: OAuth grant type. Must be `authorization_code`.
+                  example: "authorization_code"
+                code:
+                  type: string
+                  description: Single-use authorization code received from the authorize redirect.
+                  example: "SplxlOBeZQQYbYS6WxSbIA"
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Must exactly match the `redirect_uri` used in the corresponding authorization request.
+                  example: "https://client.example/callback"
+                client_id:
+                  type: string
+                  description: OAuth client identifier.
+                  example: "my-oauth-client"
+                client_secret:
+                  type: string
+                  description: OAuth client secret.
+                  example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+                code_verifier:
+                  type: string
+                  description: PKCE code verifier. The SHA256 hash of this value must match the `code_challenge` from the authorization request.
+                  example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
       responses:
         "200":
           description: Access token issued successfully.
           headers:
-           Cache-Control:
-             description: Always set to `no-store`.
-             schema:
-               type: string
-             example: "no-store"
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
           content:
-           application/json:
-             schema:
-               $ref: "#/components/schemas/OAuthTokenResponseData"
-             example:
-               access_token: "aurahistoria_abcdefghijk_verylongtokenvalue"
-               token_type: "BEARER"
-               expires_in: null
-               scope: "products:write"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthTokenResponseData"
+              example:
+                access_token: "aurahistoria_abcdefghijk_verylongtokenvalue"
+                token_type: "BEARER"
+                expires_in: null
+                scope: "products:write"
         "400":
           description: Bad request — a required form field is missing or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               missing_grant_type:
-                 summary: Missing grant_type form field
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   source:
-                     field: "grant_type"
-                     sourceType: "body"
-                   detail: "Missing form field grant_type"
-               unsupported_grant_type:
-                 summary: Unsupported grant_type
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   source:
-                     field: "grant_type"
-                     sourceType: "body"
-                   detail: "Unsupported grant_type 'client_credentials'"
-               code_not_found:
-                 summary: Authorization code not found or already used
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   detail: "Authorization code not found."
-               code_expired:
-                 summary: Authorization code expired
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   detail: "Authorization code expired."
-               invalid_code_verifier:
-                 summary: PKCE code verifier does not match
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   detail: "PKCE code_verifier did not match code_challenge."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_grant_type:
+                  summary: Missing grant_type form field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    source:
+                      field: "grant_type"
+                      sourceType: "body"
+                    detail: "Missing form field grant_type"
+                unsupported_grant_type:
+                  summary: Unsupported grant_type
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    source:
+                      field: "grant_type"
+                      sourceType: "body"
+                    detail: "Unsupported grant_type 'client_credentials'"
+                code_not_found:
+                  summary: Authorization code not found or already used
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Authorization code not found."
+                code_expired:
+                  summary: Authorization code expired
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Authorization code expired."
+                invalid_code_verifier:
+                  summary: PKCE code verifier does not match
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "PKCE code_verifier did not match code_challenge."
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               invalid_client:
-                 summary: Invalid client secret or client not found
-                 value:
-                   status: 401
-                   title: "Unauthorized"
-                   error: "UNAUTHORIZED"
-                   detail: "Invalid OAuth client secret."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_client:
+                  summary: Invalid client secret or client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "Invalid OAuth client secret."
         "500":
           description: Internal server error.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             example:
-               status: 500
-               title: "Internal Server Error"
-               error: "INTERNAL_SERVER_ERROR"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/oauth/revoke:
     post:
@@ -9851,75 +9851,75 @@ paths:
         description: Token revocation payload (form-urlencoded).
         content:
           application/x-www-form-urlencoded:
-           schema:
-             type: object
-             required:
-               - token
-               - client_id
-               - client_secret
-             properties:
-               token:
-                 type: string
-                 description: The access token to revoke.
-                 example: "aurahistoria_abcdefghijk_verylongtokenvalue"
-               client_id:
-                 type: string
-                 description: OAuth client identifier.
-                 example: "my-oauth-client"
-               client_secret:
-                 type: string
-                 description: OAuth client secret.
-                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+            schema:
+              type: object
+              required:
+                - token
+                - client_id
+                - client_secret
+              properties:
+                token:
+                  type: string
+                  description: The access token to revoke.
+                  example: "aurahistoria_abcdefghijk_verylongtokenvalue"
+                client_id:
+                  type: string
+                  description: OAuth client identifier.
+                  example: "my-oauth-client"
+                client_secret:
+                  type: string
+                  description: OAuth client secret.
+                  example: "aurahistoria_abcdefghijk_verylongsecretvalue"
       responses:
         "200":
           description: Token revoked successfully (or token was unknown/already inactive). Empty response body.
           headers:
-           Cache-Control:
-             description: Always set to `no-store`.
-             schema:
-               type: string
-             example: "no-store"
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
         "400":
           description: Bad request — a required form field is missing or the token value is invalid.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               missing_token:
-                 summary: Missing token form field
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   source:
-                     field: "token"
-                     sourceType: "body"
-                   detail: "Missing form field token"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_token:
+                  summary: Missing token form field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    source:
+                      field: "token"
+                      sourceType: "body"
+                    detail: "Missing form field token"
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               invalid_client:
-                 summary: Invalid client secret or client not found
-                 value:
-                   status: 401
-                   title: "Unauthorized"
-                   error: "UNAUTHORIZED"
-                   detail: "Invalid OAuth client secret."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_client:
+                  summary: Invalid client secret or client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "Invalid OAuth client secret."
         "500":
           description: Internal server error.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             example:
-               status: 500
-               title: "Internal Server Error"
-               error: "INTERNAL_SERVER_ERROR"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
   /api/v1/oauth/introspect:
     post:
@@ -9939,94 +9939,94 @@ paths:
         description: Token introspection payload (form-urlencoded).
         content:
           application/x-www-form-urlencoded:
-           schema:
-             type: object
-             required:
-               - token
-               - client_id
-               - client_secret
-             properties:
-               token:
-                 type: string
-                 description: The access token to introspect.
-                 example: "aurahistoria_abcdefghijk_verylongtokenvalue"
-               client_id:
-                 type: string
-                 description: OAuth client identifier.
-                 example: "my-oauth-client"
-               client_secret:
-                 type: string
-                 description: OAuth client secret.
-                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+            schema:
+              type: object
+              required:
+                - token
+                - client_id
+                - client_secret
+              properties:
+                token:
+                  type: string
+                  description: The access token to introspect.
+                  example: "aurahistoria_abcdefghijk_verylongtokenvalue"
+                client_id:
+                  type: string
+                  description: OAuth client identifier.
+                  example: "my-oauth-client"
+                client_secret:
+                  type: string
+                  description: OAuth client secret.
+                  example: "aurahistoria_abcdefghijk_verylongsecretvalue"
       responses:
         "200":
           description: "Introspection result. `active: false` means the token is unknown, expired, or revoked."
           headers:
-           Cache-Control:
-             description: Always set to `no-store`.
-             schema:
-               type: string
-             example: "no-store"
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
           content:
-           application/json:
-             schema:
-               $ref: "#/components/schemas/OAuthIntrospectionResponseData"
-             examples:
-               active:
-                 summary: Active token
-                 value:
-                   active: true
-                   scope: "products:write"
-                   client_id: "my-oauth-client"
-                   sub: "0196580c-e4ca-723f-a7e0-1a73588380f1"
-                   token_type: "Bearer"
-                   exp: 1780000000
-                   iat: 1748400000
-               inactive:
-                 summary: Inactive / unknown token
-                 value:
-                   active: false
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthIntrospectionResponseData"
+              examples:
+                active:
+                  summary: Active token
+                  value:
+                    active: true
+                    scope: "products:write"
+                    client_id: "my-oauth-client"
+                    sub: "0196580c-e4ca-723f-a7e0-1a73588380f1"
+                    token_type: "Bearer"
+                    exp: 1780000000
+                    iat: 1748400000
+                inactive:
+                  summary: Inactive / unknown token
+                  value:
+                    active: false
         "400":
           description: Bad request — a required form field is missing or the token value is invalid.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               missing_token:
-                 summary: Missing token form field
-                 value:
-                   status: 400
-                   title: "Bad Request"
-                   error: "BAD_BODY_VALUE"
-                   source:
-                     field: "token"
-                     sourceType: "body"
-                   detail: "Missing form field token"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_token:
+                  summary: Missing token form field
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    source:
+                      field: "token"
+                      sourceType: "body"
+                    detail: "Missing form field token"
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             examples:
-               invalid_client:
-                 summary: Invalid client secret or client not found
-                 value:
-                   status: 401
-                   title: "Unauthorized"
-                   error: "UNAUTHORIZED"
-                   detail: "Invalid OAuth client secret."
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                invalid_client:
+                  summary: Invalid client secret or client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "Invalid OAuth client secret."
         "500":
           description: Internal server error.
           content:
-           application/problem+json:
-             schema:
-               $ref: "#/components/schemas/ApiError"
-             example:
-               status: 500
-               title: "Internal Server Error"
-               error: "INTERNAL_SERVER_ERROR"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
 
 components:
   securitySchemes:
