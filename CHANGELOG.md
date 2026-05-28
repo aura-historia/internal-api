@@ -6,6 +6,25 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-28 - Access Token Deletion Path Parameter (`backend#1105`)
+
+Backend PR `#1105` changes access-token deletion to use a resource path parameter instead of a query parameter. This update realigns the internal OpenAPI spec with that backend contract and documents the updated request path and validation behavior for frontend consumers.
+
+### Added
+
+- No new endpoints or documented schemas were added in this update.
+
+### Changed
+
+- **`DELETE /api/v1/me/access-tokens/{accessTokenId}`**
+  - The access token to delete is now identified by the required `{accessTokenId}` path parameter instead of the old `accessTokenId` query parameter.
+  - `400` responses now document path-parameter validation errors (`BAD_PATH_PARAMETER_VALUE` / `INVALID_UUID`) consistent with the backend's shared access-token path parsing.
+
+### Removed
+
+- **Removed obsolete delete route documentation**
+  - `DELETE /api/v1/me/access-tokens?accessTokenId=...`
+
 ## 2026-05-28 - Scoped Access Tokens for Partner APIs (`backend#1095`)
 
 Backend PR `#1095` refactors partner API keys into user-owned Aura Historia access tokens, adds self-service access-token management endpoints, and realigns partner/shop authorization flows around bearer authentication. This update realigns the internal OpenAPI spec with the merged backend contract by documenting the new access-token CRUD routes, the renamed/self-scoped partner-shop lookup, the bearer-authenticated partner ingestion flows, and the removal of obsolete API-key-specific documentation.

@@ -5087,87 +5087,6 @@ paths:
                 status: 500
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
-    delete:
-      summary: Delete an Aura Historia access token
-      description: |
-        Deletes one access token owned by the authenticated user.
-        The token to delete is selected with the required `accessTokenId` query parameter.
-        Requires valid Cognito JWT authentication.
-      operationId: deleteMyAccessToken
-      tags:
-        - User Account
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: accessTokenId
-          in: query
-          required: true
-          description: Unique identifier of the access token to delete
-          schema:
-            type: string
-            format: uuid
-            example: "01970f22-2bf0-7000-8000-000000000001"
-      responses:
-        "204":
-          description: Access token deleted successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-        "400":
-          description: Bad request - missing or invalid `accessTokenId` query parameter
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_access_token_id:
-                  summary: Missing query parameter
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Missing query parameter accessTokenId"
-                invalid_access_token_id:
-                  summary: Invalid query parameter value
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Invalid accessTokenId"
-        "401":
-          description: Unauthorized - invalid or missing JWT token
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 401
-                title: "Unauthorized"
-                error: "UNAUTHORIZED"
-        "404":
-          description: Access token not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "ACCESS_TOKEN_NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
   /api/v1/me/access-tokens/{accessTokenId}:
     get:
       summary: Get one Aura Historia access token
@@ -5217,6 +5136,92 @@ paths:
                 expiresIn: 2851200
                 created: "2026-05-28T06:30:00Z"
                 updated: "2026-05-28T06:30:00Z"
+        "400":
+          description: Bad request - invalid or missing access-token path parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_access_token_id:
+                  summary: Missing access-token path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "path"
+                    detail: "Missing field 'accessTokenId'."
+                invalid_access_token_id:
+                  summary: Invalid access-token identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized - invalid or missing JWT token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "404":
+          description: Access token not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "ACCESS_TOKEN_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete an Aura Historia access token
+      description: |
+        Deletes one access token owned by the authenticated user.
+        The token to delete is identified by the required `{accessTokenId}` path parameter.
+        Requires valid Cognito JWT authentication.
+      operationId: deleteMyAccessToken
+      tags:
+        - User Account
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: accessTokenId
+          in: path
+          required: true
+          description: Unique identifier of the access token to delete
+          schema:
+            type: string
+            format: uuid
+            example: "01970f22-2bf0-7000-8000-000000000001"
+      responses:
+        "204":
+          description: Access token deleted successfully
+          headers:
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
         "400":
           description: Bad request - invalid or missing access-token path parameter
           content:
