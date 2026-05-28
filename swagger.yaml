@@ -9499,6 +9499,535 @@ paths:
                 status: 500
                 title: "Internal Server Error"
                 error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/authorize:
+    get:
+      summary: OAuth2 authorization endpoint
+      description: |
+        Starts the OAuth2 authorization code flow (RFC 6749 §4.1).
+        The authenticated user (resource owner) grants the requesting OAuth client access to their
+        Aura Historia account. PKCE (RFC 7636) with `S256` is required for all requests.
+
+        On success the endpoint redirects (302) to the `redirect_uri` appending `code` and, if
+        supplied, `state` as query parameters. The single-use authorization code must be exchanged
+        for an access token via `POST /api/v1/oauth/token` before it expires.
+      operationId: oauthAuthorize
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: response_type
+          in: query
+          required: true
+          description: OAuth response type. Must be `code`.
+          schema:
+           type: string
+           enum: ["code"]
+          example: "code"
+        - name: client_id
+          in: query
+          required: true
+          description: Identifier of the registered OAuth client.
+          schema:
+           type: string
+          example: "my-oauth-client"
+        - name: redirect_uri
+          in: query
+          required: true
+          description: Redirect URI registered for the OAuth client. Must exactly match one of the client's registered redirect URIs.
+          schema:
+           type: string
+           format: uri
+          example: "https://client.example/callback"
+        - name: scope
+          in: query
+          required: false
+          description: Space-separated list of requested scopes. Must be a subset of the client's allowed scopes.
+          schema:
+           type: string
+          example: "products:write"
+        - name: state
+          in: query
+          required: false
+          description: Opaque client state value. Returned unchanged in the redirect to prevent CSRF attacks.
+          schema:
+           type: string
+          example: "xyz"
+        - name: code_challenge
+          in: query
+          required: true
+          description: PKCE code challenge. Must be the base64url-encoded SHA256 hash of the `code_verifier` (S256 method).
+          schema:
+           type: string
+          example: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+        - name: code_challenge_method
+          in: query
+          required: true
+          description: PKCE challenge method. Must be `S256`.
+          schema:
+           type: string
+           enum: ["S256"]
+          example: "S256"
+      responses:
+        "302":
+          description: |
+           Authorization successful. The user-agent is redirected to `redirect_uri` with the
+           one-time authorization `code` and the original `state` (if supplied) appended as
+           query parameters, e.g.
+           `https://client.example/callback?code=<code>&state=<state>`.
+          headers:
+           Location:
+             description: Redirect URL containing the authorization `code` and optional `state`.
+             schema:
+               type: string
+               format: uri
+             example: "https://client.example/callback?code=SplxlOBeZQQYbYS6WxSbIA&state=xyz"
+           Cache-Control:
+             description: Always set to `no-store`.
+             schema:
+               type: string
+             example: "no-store"
+        "400":
+          description: Bad request — a required query parameter is missing or has an unsupported value.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               missing_response_type:
+                 summary: Missing response_type query parameter
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "response_type"
+                     sourceType: "query"
+                   detail: "Missing query parameter response_type"
+               unsupported_response_type:
+                 summary: Unsupported response_type value
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "response_type"
+                     sourceType: "query"
+                   detail: "Unsupported response_type 'token'"
+               missing_code_challenge:
+                 summary: Missing code_challenge query parameter
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "code_challenge"
+                     sourceType: "query"
+                   detail: "Missing query parameter code_challenge"
+               unsupported_code_challenge_method:
+                 summary: Unsupported code_challenge_method
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "code_challenge_method"
+                     sourceType: "query"
+                   detail: "Unsupported code_challenge_method 'plain'"
+               invalid_scope:
+                 summary: Requested scope not allowed for client
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "scope"
+                     sourceType: "query"
+                   detail: "Requested scope is not allowed for client."
+               invalid_redirect_uri:
+                 summary: Redirect URI not registered for client
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_QUERY_PARAMETER_VALUE"
+                   source:
+                     field: "redirect_uri"
+                     sourceType: "query"
+                   detail: "Redirect URI is not registered for client."
+        "401":
+          description: Unauthorized — the Cognito bearer token is missing, invalid, or the OAuth client was not found / credentials are invalid.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               missing_bearer:
+                 summary: Missing or invalid bearer token
+                 value:
+                   status: 401
+                   title: "Unauthorized"
+                   error: "UNAUTHORIZED"
+               client_not_found:
+                 summary: OAuth client not found
+                 value:
+                   status: 401
+                   title: "Unauthorized"
+                   error: "UNAUTHORIZED"
+                   detail: "OAuth client not found."
+        "500":
+          description: Internal server error.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             example:
+               status: 500
+               title: "Internal Server Error"
+               error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/token:
+    post:
+      summary: OAuth2 token endpoint
+      description: |
+        Exchanges a single-use authorization code for an Aura Historia access token (RFC 6749 §4.1.3).
+        The request body must be `application/x-www-form-urlencoded`. Client authentication is
+        performed via `client_id` / `client_secret` form fields. PKCE code verification (RFC 7636)
+        is mandatory: `code_verifier` must produce the `code_challenge` supplied to the authorize
+        endpoint.
+
+        The issued access token is non-expiring by default (same lifetime as tokens created via
+        `POST /api/v1/me/access-tokens`).
+      operationId: oauthToken
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        description: Authorization code exchange payload (form-urlencoded).
+        content:
+          application/x-www-form-urlencoded:
+           schema:
+             type: object
+             required:
+               - grant_type
+               - code
+               - redirect_uri
+               - client_id
+               - client_secret
+               - code_verifier
+             properties:
+               grant_type:
+                 type: string
+                 enum: ["authorization_code"]
+                 description: OAuth grant type. Must be `authorization_code`.
+                 example: "authorization_code"
+               code:
+                 type: string
+                 description: Single-use authorization code received from the authorize redirect.
+                 example: "SplxlOBeZQQYbYS6WxSbIA"
+               redirect_uri:
+                 type: string
+                 format: uri
+                 description: Must exactly match the `redirect_uri` used in the corresponding authorization request.
+                 example: "https://client.example/callback"
+               client_id:
+                 type: string
+                 description: OAuth client identifier.
+                 example: "my-oauth-client"
+               client_secret:
+                 type: string
+                 description: OAuth client secret.
+                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+               code_verifier:
+                 type: string
+                 description: PKCE code verifier. The SHA256 hash of this value must match the `code_challenge` from the authorization request.
+                 example: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+      responses:
+        "200":
+          description: Access token issued successfully.
+          headers:
+           Cache-Control:
+             description: Always set to `no-store`.
+             schema:
+               type: string
+             example: "no-store"
+          content:
+           application/json:
+             schema:
+               $ref: "#/components/schemas/OAuthTokenResponseData"
+             example:
+               access_token: "aurahistoria_abcdefghijk_verylongtokenvalue"
+               token_type: "BEARER"
+               expires_in: null
+               scope: "products:write"
+        "400":
+          description: Bad request — a required form field is missing or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               missing_grant_type:
+                 summary: Missing grant_type form field
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   source:
+                     field: "grant_type"
+                     sourceType: "body"
+                   detail: "Missing form field grant_type"
+               unsupported_grant_type:
+                 summary: Unsupported grant_type
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   source:
+                     field: "grant_type"
+                     sourceType: "body"
+                   detail: "Unsupported grant_type 'client_credentials'"
+               code_not_found:
+                 summary: Authorization code not found or already used
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   detail: "Authorization code not found."
+               code_expired:
+                 summary: Authorization code expired
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   detail: "Authorization code expired."
+               invalid_code_verifier:
+                 summary: PKCE code verifier does not match
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   detail: "PKCE code_verifier did not match code_challenge."
+        "401":
+          description: Unauthorized — invalid OAuth client credentials.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               invalid_client:
+                 summary: Invalid client secret or client not found
+                 value:
+                   status: 401
+                   title: "Unauthorized"
+                   error: "UNAUTHORIZED"
+                   detail: "Invalid OAuth client secret."
+        "500":
+          description: Internal server error.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             example:
+               status: 500
+               title: "Internal Server Error"
+               error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/revoke:
+    post:
+      summary: OAuth2 token revocation endpoint
+      description: |
+        Revokes an Aura Historia access token that was issued through the OAuth authorization code
+        flow (RFC 7009). The request body must be `application/x-www-form-urlencoded`. Client
+        authentication is performed via `client_id` / `client_secret` form fields.
+
+        After revocation the token is immediately inactive and introspection will return
+        `active: false`. Attempting to revoke an unknown or already-revoked token is not an error.
+      operationId: oauthRevoke
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        description: Token revocation payload (form-urlencoded).
+        content:
+          application/x-www-form-urlencoded:
+           schema:
+             type: object
+             required:
+               - token
+               - client_id
+               - client_secret
+             properties:
+               token:
+                 type: string
+                 description: The access token to revoke.
+                 example: "aurahistoria_abcdefghijk_verylongtokenvalue"
+               client_id:
+                 type: string
+                 description: OAuth client identifier.
+                 example: "my-oauth-client"
+               client_secret:
+                 type: string
+                 description: OAuth client secret.
+                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+      responses:
+        "200":
+          description: Token revoked successfully (or token was unknown/already inactive). Empty response body.
+          headers:
+           Cache-Control:
+             description: Always set to `no-store`.
+             schema:
+               type: string
+             example: "no-store"
+        "400":
+          description: Bad request — a required form field is missing or the token value is invalid.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               missing_token:
+                 summary: Missing token form field
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   source:
+                     field: "token"
+                     sourceType: "body"
+                   detail: "Missing form field token"
+        "401":
+          description: Unauthorized — invalid OAuth client credentials.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               invalid_client:
+                 summary: Invalid client secret or client not found
+                 value:
+                   status: 401
+                   title: "Unauthorized"
+                   error: "UNAUTHORIZED"
+                   detail: "Invalid OAuth client secret."
+        "500":
+          description: Internal server error.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             example:
+               status: 500
+               title: "Internal Server Error"
+               error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/introspect:
+    post:
+      summary: OAuth2 token introspection endpoint
+      description: |
+        Returns metadata about an Aura Historia access token (RFC 7662). The request body must be
+        `application/x-www-form-urlencoded`. Client authentication is performed via `client_id` /
+        `client_secret` form fields.
+
+        If the token is unknown, expired, or revoked, `active` is `false` and all other fields are
+        omitted. Otherwise `active` is `true` and the available token metadata is populated.
+      operationId: oauthIntrospect
+      tags:
+        - OAuth
+      requestBody:
+        required: true
+        description: Token introspection payload (form-urlencoded).
+        content:
+          application/x-www-form-urlencoded:
+           schema:
+             type: object
+             required:
+               - token
+               - client_id
+               - client_secret
+             properties:
+               token:
+                 type: string
+                 description: The access token to introspect.
+                 example: "aurahistoria_abcdefghijk_verylongtokenvalue"
+               client_id:
+                 type: string
+                 description: OAuth client identifier.
+                 example: "my-oauth-client"
+               client_secret:
+                 type: string
+                 description: OAuth client secret.
+                 example: "aurahistoria_abcdefghijk_verylongsecretvalue"
+      responses:
+        "200":
+          description: "Introspection result. `active: false` means the token is unknown, expired, or revoked."
+          headers:
+           Cache-Control:
+             description: Always set to `no-store`.
+             schema:
+               type: string
+             example: "no-store"
+          content:
+           application/json:
+             schema:
+               $ref: "#/components/schemas/OAuthIntrospectionResponseData"
+             examples:
+               active:
+                 summary: Active token
+                 value:
+                   active: true
+                   scope: "products:write"
+                   client_id: "my-oauth-client"
+                   sub: "0196580c-e4ca-723f-a7e0-1a73588380f1"
+                   token_type: "Bearer"
+                   exp: 1780000000
+                   iat: 1748400000
+               inactive:
+                 summary: Inactive / unknown token
+                 value:
+                   active: false
+        "400":
+          description: Bad request — a required form field is missing or the token value is invalid.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               missing_token:
+                 summary: Missing token form field
+                 value:
+                   status: 400
+                   title: "Bad Request"
+                   error: "BAD_BODY_VALUE"
+                   source:
+                     field: "token"
+                     sourceType: "body"
+                   detail: "Missing form field token"
+        "401":
+          description: Unauthorized — invalid OAuth client credentials.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             examples:
+               invalid_client:
+                 summary: Invalid client secret or client not found
+                 value:
+                   status: 401
+                   title: "Unauthorized"
+                   error: "UNAUTHORIZED"
+                   detail: "Invalid OAuth client secret."
+        "500":
+          description: Internal server error.
+          content:
+           application/problem+json:
+             schema:
+               $ref: "#/components/schemas/ApiError"
+             example:
+               status: 500
+               title: "Internal Server Error"
+               error: "INTERNAL_SERVER_ERROR"
+
 components:
   securitySchemes:
     BearerAuth:
@@ -11992,6 +12521,76 @@ components:
           nullable: true
           description: Optional replacement expiration timestamp in RFC 3339 format.
           example: "2026-07-31T00:00:00Z"
+
+    OAuthTokenResponseData:
+      type: object
+      description: |
+        Token response returned by `POST /api/v1/oauth/token` after a successful authorization code
+        exchange (RFC 6749 §5.1). The `access_token` is an Aura Historia bearer access token.
+        `expires_in` is omitted (`null`) for non-expiring tokens.
+      required:
+        - access_token
+        - token_type
+        - scope
+      properties:
+        access_token:
+          type: string
+          description: The issued Aura Historia access token (plaintext bearer value).
+          example: "aurahistoria_abcdefghijk_verylongtokenvalue"
+        token_type:
+          $ref: "#/components/schemas/AccessTokenTypeData"
+        expires_in:
+          type: integer
+          format: int64
+          minimum: 0
+          nullable: true
+          description: Seconds until the access token expires. `null` when the token does not expire.
+          example: null
+        scope:
+          type: string
+          description: Space-separated list of scopes granted to the access token.
+          example: "products:write"
+
+    OAuthIntrospectionResponseData:
+      type: object
+      description: |
+        Introspection response returned by `POST /api/v1/oauth/introspect` (RFC 7662).
+        When `active` is `false` all other fields are omitted.
+        When `active` is `true` the available token metadata is populated.
+      required:
+        - active
+      properties:
+        active:
+          type: boolean
+          description: Whether the token is currently active (not expired, not revoked, and known to this server).
+          example: true
+        scope:
+          type: string
+          description: Space-separated list of scopes granted to the token. Present only when `active` is `true`.
+          example: "products:write"
+        client_id:
+          type: string
+          description: OAuth client that issued the token. Present only when `active` is `true` and the token was issued via the OAuth flow.
+          example: "my-oauth-client"
+        sub:
+          type: string
+          format: uuid
+          description: Subject — the Aura Historia user ID who authorized the token. Present only when `active` is `true`.
+          example: "0196580c-e4ca-723f-a7e0-1a73588380f1"
+        token_type:
+          type: string
+          description: Token type. Always `"Bearer"` when `active` is `true`.
+          example: "Bearer"
+        exp:
+          type: integer
+          format: int64
+          description: Unix timestamp (seconds) when the token expires. Present only when `active` is `true` and the token has an expiry.
+          example: 1780000000
+        iat:
+          type: integer
+          format: int64
+          description: Unix timestamp (seconds) when the token was issued. Present only when `active` is `true` and the issue time is known.
+          example: 1748400000
 
     SortShopFieldData:
       type: string
