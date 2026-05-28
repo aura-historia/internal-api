@@ -5204,15 +5204,21 @@ paths:
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Missing query parameter accessTokenId"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "query"
+                    detail: "Missing required query parameter 'accessTokenId'."
                 invalid_access_token_id:
                   summary: accessTokenId is not a valid UUID
                   value:
                     status: 400
                     title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Invalid accessTokenId"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "accessTokenId"
+                      sourceType: "query"
+                    detail: "invalid character in UUID"
         "401":
           description: Unauthorized - invalid or missing JWT token
           content:
