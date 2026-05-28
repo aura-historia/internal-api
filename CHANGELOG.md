@@ -6,6 +6,69 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-28 - Scoped Access Tokens for Partner APIs (`backend#1095`)
+
+Backend PR `#1095` refactors partner API keys into user-owned Aura Historia access tokens, adds self-service access-token management endpoints, and realigns partner/shop authorization flows around bearer authentication. This update realigns the internal OpenAPI spec with the merged backend contract by documenting the new access-token CRUD routes, the renamed/self-scoped partner-shop lookup, the bearer-authenticated partner ingestion flows, and the removal of obsolete API-key-specific documentation.
+
+### Added
+
+- **New self-service access-token management endpoints**
+
+  | Endpoint | Purpose |
+  |---|---|
+  | `POST /api/v1/me/access-tokens` | Create a new Aura Historia access token for the authenticated user. |
+  | `GET /api/v1/me/access-tokens` | List the authenticated user's non-expired access tokens. |
+  | `GET /api/v1/me/access-tokens/{accessTokenId}` | Get one non-expired access token by ID. |
+  | `PATCH /api/v1/me/access-tokens` | Update access-token metadata (`name`, `scope`, `expiresAt`). |
+  | `DELETE /api/v1/me/access-tokens?accessTokenId=...` | Delete one access token by query parameter. |
+
+  Newly documented schemas:
+  - `AccessTokenScopeData`
+  - `AccessTokenTypeData`
+  - `GetAccessTokenData`
+  - `PostAccessTokenData`
+  - `PatchAccessTokenData`
+
+- **New bearer security scheme for Aura Historia access tokens**
+  - `AccessTokenAuth` documents bearer tokens created through `/api/v1/me/access-tokens`.
+  - Aura Historia access tokens are sent as standard bearer authorization headers.
+
+- **New self-scoped partner-shop listing endpoint**
+  - `GET /api/v1/me/partner-shops` replaces the old partner-ID-based shop lookup for non-admin callers.
+  - The response remains an array of `GetShopData` and returns `[]` when the authenticated user has no linked partner shops.
+
+### Changed
+
+- **Partner batch product ingestion now uses bearer authentication**
+  - `POST /api/v1/shops/{shopId}/products`
+  - `PATCH /api/v1/shops/{shopId}/products`
+  - `PUT /api/v1/shops/{shopId}/products`
+
+  These endpoints no longer use `x-api-key`. They now require:
+  - a Cognito bearer token for the partner user linked to the shop, or
+  - an Aura Historia access token owned by that partner user.
+
+  Additionally:
+  - Aura Historia access tokens on these three endpoints must include the `products:write` scope.
+  - `401` responses now cover missing/invalid bearer tokens and unknown access tokens instead of partner API-key mismatches.
+  - `403` responses now cover authenticated callers that are not linked to the requested partner shop.
+
+- **`POST /api/v1/webhooks/woocommerce/{shopId}` authentication**
+  - The webhook route now authenticates the caller with the `Authorization` bearer header instead of `x-api-key`.
+  - The WooCommerce signature requirements (`x-wc-webhook-topic`, `x-wc-webhook-signature`) are unchanged.
+
+- **`PATCH /api/v1/shops/{shopId}` authentication**
+  - The shop-update route now accepts Aura Historia bearer access tokens for the partner user linked to the shop.
+  - The obsolete partner API-key authentication alternative is no longer documented.
+
+### Removed
+
+- **Removed obsolete API-key-only documentation**
+  - `PUT /api/v1/shops/{shopId}/api-key`
+  - `GET /api/v1/partner/{partnerId}/shops`
+  - `PartnerApiKeyAuth`
+  - `PartnerShopApiKeyResponse`
+
 ## 2026-05-25 - Partner Application Notification Shop Logos (`backend#1087`)
 
 Backend PR `#1087` extends partner-application notifications so the REST notification payload can now expose an optional shop logo URL. This update realigns the internal OpenAPI spec with that backend contract and documents where frontend consumers can expect the new field.
