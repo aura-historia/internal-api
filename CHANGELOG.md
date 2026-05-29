@@ -6,6 +6,46 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-29 - OAuth Client Metadata Management (`backend#1110`)
+
+Backend PR `#1110` adds OAuth client metadata management endpoints so backend admins can create, inspect, update, and delete OAuth clients through the API. This update realigns the internal OpenAPI spec with that backend contract and also documents the tightened UUID-based `client_id` handling on the existing OAuth authorization, token, revocation, and introspection endpoints.
+
+### Added
+
+- **New OAuth client metadata management endpoints**
+
+  | Endpoint | Purpose |
+  |---|---|
+  | `POST /api/v1/oauth/clients` | Create a new OAuth client metadata record and return the plaintext client secret once. |
+  | `GET /api/v1/oauth/clients` | List registered OAuth client metadata records. |
+  | `GET /api/v1/oauth/clients/{clientId}` | Get one OAuth client metadata record by client ID. |
+  | `PATCH /api/v1/oauth/clients/{clientId}` | Update OAuth client metadata (`client_name`, `redirect_uris`, `scope`). |
+  | `DELETE /api/v1/oauth/clients/{clientId}` | Delete an OAuth client metadata record. |
+
+- **New schemas**
+  - `OAuthClientMetadataRequestData`
+  - `OAuthClientMetadataPatchData`
+  - `OAuthClientMetadataResponseData`
+
+### Changed
+
+- **OAuth client identifiers are now UUIDs across the OAuth flow**
+  - `client_id` is now documented as a UUID/UUIDv7-style identifier on:
+    - `GET /api/v1/oauth/authorize`
+    - `POST /api/v1/oauth/token`
+    - `POST /api/v1/oauth/revoke`
+    - `POST /api/v1/oauth/introspect`
+  - The OpenAPI examples and validation/error documentation now reflect `INVALID_UUID` responses when an OAuth `client_id` cannot be parsed.
+  - `OAuthIntrospectionResponseData.client_id` is now documented as the UUID of the issuing OAuth client.
+
+- **OAuth client secret exposure differs by operation**
+  - `POST /api/v1/oauth/clients` returns the raw `client_secret` once at creation time.
+  - List/get/update responses document the masked stored secret display value instead (for example `aurahistoria_oauth_client_secret_abcdefghijk_****`).
+
+### Removed
+
+- Nothing was removed from the API in this update.
+
 ## 2026-05-28 - OAuth2 Authorization Code Flow (`backend#1103`)
 
 Backend PR `#1103` introduces a full OAuth2 authorization code flow with PKCE, allowing third-party OAuth clients to obtain Aura Historia access tokens on behalf of authenticated users. This update adds all four new OAuth endpoints and two new response schemas to the OpenAPI spec.
