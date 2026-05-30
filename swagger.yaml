@@ -9528,10 +9528,11 @@ paths:
         - name: client_id
           in: query
           required: true
-          description: Identifier of the registered OAuth client.
+          description: UUIDv7 identifier of the registered OAuth client.
           schema:
             type: string
-          example: "my-oauth-client"
+            format: uuid
+          example: "01970f22-2bf0-7000-8000-000000000010"
         - name: redirect_uri
           in: query
           required: true
@@ -9655,6 +9656,16 @@ paths:
                       field: "redirect_uri"
                       sourceType: "query"
                     detail: "Redirect URI is not registered for client."
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "client_id"
+                      sourceType: "query"
+                    detail: "invalid character in UUID"
         "401":
           description: Unauthorized — the Cognito bearer token is missing, invalid, or the OAuth client was not found / credentials are invalid.
           content:
@@ -9732,8 +9743,9 @@ paths:
                   example: "https://client.example/callback"
                 client_id:
                   type: string
-                  description: OAuth client identifier.
-                  example: "my-oauth-client"
+                  format: uuid
+                  description: UUIDv7 OAuth client identifier.
+                  example: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret:
                   type: string
                   description: OAuth client secret.
@@ -9761,7 +9773,7 @@ paths:
                 expires_in: null
                 scope: "products:write"
         "400":
-          description: Bad request — a required form field is missing or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
+          description: Bad request — a required form field is missing, `client_id` is not a valid UUID, or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
           content:
             application/problem+json:
               schema:
@@ -9808,6 +9820,16 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "PKCE code_verifier did not match code_challenge."
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "client_id"
+                      sourceType: "body"
+                    detail: "invalid character in UUID"
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
@@ -9864,8 +9886,9 @@ paths:
                   example: "aurahistoria_abcdefghijk_verylongtokenvalue"
                 client_id:
                   type: string
-                  description: OAuth client identifier.
-                  example: "my-oauth-client"
+                  format: uuid
+                  description: UUIDv7 OAuth client identifier.
+                  example: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret:
                   type: string
                   description: OAuth client secret.
@@ -9880,7 +9903,7 @@ paths:
                 type: string
               example: "no-store"
         "400":
-          description: Bad request — a required form field is missing or the token value is invalid.
+          description: Bad request — a required form field is missing, `client_id` is not a valid UUID, or the token value is invalid.
           content:
             application/problem+json:
               schema:
@@ -9896,6 +9919,16 @@ paths:
                       field: "token"
                       sourceType: "body"
                     detail: "Missing form field token"
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "client_id"
+                      sourceType: "body"
+                    detail: "invalid character in UUID"
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
@@ -9952,8 +9985,9 @@ paths:
                   example: "aurahistoria_abcdefghijk_verylongtokenvalue"
                 client_id:
                   type: string
-                  description: OAuth client identifier.
-                  example: "my-oauth-client"
+                  format: uuid
+                  description: UUIDv7 OAuth client identifier.
+                  example: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret:
                   type: string
                   description: OAuth client secret.
@@ -9977,7 +10011,7 @@ paths:
                   value:
                     active: true
                     scope: "products:write"
-                    client_id: "my-oauth-client"
+                    client_id: "01970f22-2bf0-7000-8000-000000000010"
                     sub: "0196580c-e4ca-723f-a7e0-1a73588380f1"
                     token_type: "Bearer"
                     exp: 1780000000
@@ -9987,7 +10021,7 @@ paths:
                   value:
                     active: false
         "400":
-          description: Bad request — a required form field is missing or the token value is invalid.
+          description: Bad request — a required form field is missing, `client_id` is not a valid UUID, or the token value is invalid.
           content:
             application/problem+json:
               schema:
@@ -10003,6 +10037,16 @@ paths:
                       field: "token"
                       sourceType: "body"
                     detail: "Missing form field token"
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "client_id"
+                      sourceType: "body"
+                    detail: "invalid character in UUID"
         "401":
           description: Unauthorized — invalid OAuth client credentials.
           content:
@@ -10017,6 +10061,510 @@ paths:
                     title: "Unauthorized"
                     error: "UNAUTHORIZED"
                     detail: "Invalid OAuth client secret."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/clients:
+    post:
+      summary: Create OAuth client metadata
+      description: |
+        Creates a new OAuth client metadata record.
+        The plaintext `client_secret` is returned only in this create response; later reads return
+        a masked secret display value.
+        Requires valid Cognito JWT authentication and the `ADMIN` role.
+      operationId: postOAuthClient
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        description: OAuth client metadata creation payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuthClientMetadataRequestData"
+            example:
+              client_name: "Acceptance OAuth client"
+              redirect_uris:
+                - "https://client.example/callback"
+              scope:
+                - "products:write"
+      responses:
+        "201":
+          description: OAuth client metadata created successfully.
+          headers:
+            Location:
+              description: URL of the created OAuth client metadata resource.
+              schema:
+                type: string
+                format: uri
+              example: "https://api.aura-historia.com/api/v1/oauth/clients/01970f22-2bf0-7000-8000-000000000010"
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthClientMetadataResponseData"
+              example:
+                client_id: "01970f22-2bf0-7000-8000-000000000010"
+                client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
+                client_name: "Acceptance OAuth client"
+                redirect_uris:
+                  - "https://client.example/callback"
+                scope:
+                  - "products:write"
+                client_id_issued_at: 1748539200
+        "400":
+          description: Bad request — missing, empty, malformed JSON body, or invalid OAuth client metadata.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                empty_redirect_uris:
+                  summary: Redirect URIs are required
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "OAuth client metadata is invalid: redirect_uris cannot be empty"
+                insecure_redirect_uri:
+                  summary: Redirect URI must use HTTPS
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "OAuth client metadata is invalid: redirect_uri 'http://client.example/callback' must use https"
+        "401":
+          description: Unauthorized — invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "403":
+          description: Forbidden — the authenticated user is not an admin.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    get:
+      summary: List OAuth client metadata
+      description: |
+        Lists registered OAuth client metadata records.
+        The returned `client_secret` value is masked and does not reveal the plaintext secret.
+        Requires valid Cognito JWT authentication.
+      operationId: getOAuthClients
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: OAuth client metadata retrieved successfully.
+          headers:
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OAuthClientMetadataResponseData"
+              examples:
+                one_client:
+                  summary: One OAuth client metadata record
+                  value:
+                    - client_id: "01970f22-2bf0-7000-8000-000000000010"
+                      client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
+                      client_name: "Acceptance OAuth client"
+                      redirect_uris:
+                        - "https://client.example/callback"
+                      scope:
+                        - "products:write"
+                      client_id_issued_at: 1748539200
+                no_clients:
+                  summary: No OAuth clients exist
+                  value: []
+        "401":
+          description: Unauthorized — invalid or missing JWT token.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 401
+                title: "Unauthorized"
+                error: "UNAUTHORIZED"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/oauth/clients/{clientId}:
+    get:
+      summary: Get OAuth client metadata
+      description: |
+        Retrieves one OAuth client metadata record.
+        The returned `client_secret` value is masked and does not reveal the plaintext secret.
+        Requires valid Cognito JWT authentication.
+      operationId: getOAuthClient
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: UUIDv7 identifier of the OAuth client.
+          schema:
+            type: string
+            format: uuid
+          example: "01970f22-2bf0-7000-8000-000000000010"
+      responses:
+        "200":
+          description: OAuth client metadata retrieved successfully.
+          headers:
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthClientMetadataResponseData"
+              example:
+                client_id: "01970f22-2bf0-7000-8000-000000000010"
+                client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
+                client_name: "Acceptance OAuth client"
+                redirect_uris:
+                  - "https://client.example/callback"
+                scope:
+                  - "products:write"
+                client_id_issued_at: 1748539200
+        "400":
+          description: Bad request — invalid or missing OAuth client path parameter.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_client_id:
+                  summary: Missing OAuth client path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "Missing path parameter clientId"
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized — invalid or missing JWT token, or the OAuth client does not exist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_bearer:
+                  summary: Missing or invalid bearer token
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                client_not_found:
+                  summary: OAuth client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "OAuth client not found."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    patch:
+      summary: Update OAuth client metadata
+      description: |
+        Updates one OAuth client metadata record.
+        Omitted or `null` optional properties leave the existing value unchanged.
+        The returned `client_secret` value is masked and does not reveal the plaintext secret.
+        Requires valid Cognito JWT authentication and the `ADMIN` role.
+      operationId: patchOAuthClient
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: UUIDv7 identifier of the OAuth client.
+          schema:
+            type: string
+            format: uuid
+          example: "01970f22-2bf0-7000-8000-000000000010"
+      requestBody:
+        required: true
+        description: Partial OAuth client metadata update payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuthClientMetadataPatchData"
+            example:
+              client_name: "Updated acceptance OAuth client"
+              redirect_uris:
+                - "https://client.example/updated"
+              scope:
+                - "shops:manage"
+      responses:
+        "200":
+          description: OAuth client metadata updated successfully.
+          headers:
+            Cache-Control:
+              description: Always set to `no-store`.
+              schema:
+                type: string
+              example: "no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthClientMetadataResponseData"
+              example:
+                client_id: "01970f22-2bf0-7000-8000-000000000010"
+                client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
+                client_name: "Updated acceptance OAuth client"
+                redirect_uris:
+                  - "https://client.example/updated"
+                scope:
+                  - "shops:manage"
+                client_id_issued_at: 1748539200
+        "400":
+          description: Bad request — invalid or missing OAuth client path parameter, empty body, malformed JSON body, or invalid OAuth client metadata.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_client_id:
+                  summary: Missing OAuth client path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "Missing path parameter clientId"
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+                missing_body:
+                  summary: Missing request body
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "Body cannot be empty"
+                insecure_redirect_uri:
+                  summary: Redirect URI must use HTTPS
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    detail: "OAuth client metadata is invalid: redirect_uri 'http://client.example/updated' must use https"
+        "401":
+          description: Unauthorized — invalid or missing JWT token, or the OAuth client does not exist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_bearer:
+                  summary: Missing or invalid bearer token
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                client_not_found:
+                  summary: OAuth client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "OAuth client not found."
+        "403":
+          description: Forbidden — the authenticated user is not an admin.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+    delete:
+      summary: Delete OAuth client metadata
+      description: |
+        Deletes one OAuth client metadata record.
+        Requires valid Cognito JWT authentication and the `ADMIN` role.
+      operationId: deleteOAuthClient
+      tags:
+        - OAuth
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: clientId
+          in: path
+          required: true
+          description: UUIDv7 identifier of the OAuth client.
+          schema:
+            type: string
+            format: uuid
+          example: "01970f22-2bf0-7000-8000-000000000010"
+      responses:
+        "204":
+          description: OAuth client metadata deleted successfully. Empty response body.
+        "400":
+          description: Bad request — invalid or missing OAuth client path parameter.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_client_id:
+                  summary: Missing OAuth client path parameter
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "Missing path parameter clientId"
+                invalid_client_id:
+                  summary: Invalid OAuth client identifier
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "INVALID_UUID"
+                    source:
+                      field: "clientId"
+                      sourceType: "path"
+                    detail: "invalid character in UUID"
+        "401":
+          description: Unauthorized — invalid or missing JWT token, or the OAuth client does not exist.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_bearer:
+                  summary: Missing or invalid bearer token
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                client_not_found:
+                  summary: OAuth client not found
+                  value:
+                    status: 401
+                    title: "Unauthorized"
+                    error: "UNAUTHORIZED"
+                    detail: "OAuth client not found."
+        "403":
+          description: Forbidden — the authenticated user is not an admin.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 403
+                title: "Forbidden"
+                error: "FORBIDDEN"
+                detail: "This action requires the 'ADMIN' role."
         "500":
           description: Internal server error.
           content:
@@ -12522,6 +13070,122 @@ components:
           description: Optional replacement expiration timestamp in RFC 3339 format.
           example: "2026-07-31T00:00:00Z"
 
+    OAuthClientMetadataRequestData:
+      type: object
+      description: |
+        Request body for creating OAuth client metadata.
+        `redirect_uris` must contain at least one HTTPS redirect URI.
+      required:
+        - client_name
+        - redirect_uris
+      properties:
+        client_name:
+          type: string
+          description: Display name of the OAuth client.
+          example: "Acceptance OAuth client"
+        redirect_uris:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          description: Registered HTTPS redirect URIs for the OAuth client.
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://client.example/callback"
+        scope:
+          type: array
+          uniqueItems: true
+          description: Optional allowed scopes for tokens issued to this OAuth client.
+          items:
+            $ref: "#/components/schemas/AccessTokenScopeData"
+          example:
+            - "products:write"
+
+    OAuthClientMetadataPatchData:
+      type: object
+      description: |
+        Request body for updating OAuth client metadata.
+        Omitted or `null` optional properties leave the stored value unchanged.
+      properties:
+        client_name:
+          type: string
+          nullable: true
+          description: Optional replacement display name for the OAuth client.
+          example: "Updated acceptance OAuth client"
+        redirect_uris:
+          type: array
+          nullable: true
+          minItems: 1
+          uniqueItems: true
+          description: Optional replacement set of registered HTTPS redirect URIs.
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://client.example/updated"
+        scope:
+          type: array
+          nullable: true
+          uniqueItems: true
+          description: Optional replacement set of allowed scopes for the OAuth client.
+          items:
+            $ref: "#/components/schemas/AccessTokenScopeData"
+          example:
+            - "shops:manage"
+
+    OAuthClientMetadataResponseData:
+      type: object
+      description: |
+        OAuth client metadata read model.
+        `client_secret` contains the plaintext secret only in the create response.
+        List/get/update responses return a masked secret display value instead.
+      required:
+        - client_id
+        - client_secret
+        - client_name
+        - redirect_uris
+        - scope
+        - client_id_issued_at
+      properties:
+        client_id:
+          type: string
+          format: uuid
+          description: UUIDv7 identifier of the OAuth client.
+          example: "01970f22-2bf0-7000-8000-000000000010"
+        client_secret:
+          type: string
+          description: |
+            OAuth client secret.
+            Create responses return the plaintext secret once; later reads return a masked value such as `aurahistoria_oauth_client_secret_abcdefghijk_****`.
+          example: "aurahistoria_oauth_client_secret_abcdefghijk_****"
+        client_name:
+          type: string
+          description: Display name of the OAuth client.
+          example: "Acceptance OAuth client"
+        redirect_uris:
+          type: array
+          uniqueItems: true
+          description: Registered redirect URIs for the OAuth client.
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://client.example/callback"
+        scope:
+          type: array
+          uniqueItems: true
+          description: Allowed scopes for tokens issued to this OAuth client.
+          items:
+            $ref: "#/components/schemas/AccessTokenScopeData"
+          example:
+            - "products:write"
+        client_id_issued_at:
+          type: integer
+          format: int64
+          description: Unix timestamp (seconds) when the OAuth client was created and its client ID was issued.
+          example: 1748539200
+
     OAuthTokenResponseData:
       type: object
       description: |
@@ -12570,8 +13234,9 @@ components:
           example: "products:write"
         client_id:
           type: string
-          description: OAuth client that issued the token. Present only when `active` is `true` and the token was issued via the OAuth flow.
-          example: "my-oauth-client"
+          format: uuid
+          description: UUIDv7 OAuth client identifier that issued the token. Present only when `active` is `true` and the token was issued via the OAuth flow.
+          example: "01970f22-2bf0-7000-8000-000000000010"
         sub:
           type: string
           format: uuid
