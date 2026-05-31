@@ -7247,6 +7247,11 @@ paths:
                 type: string
                 format: http-date
               example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Cache-Control:
+              description: "`public, max-age=600, s-maxage=3600` for unauthenticated requests, `no-store` for authenticated requests."
+              schema:
+                type: string
+              example: "public, max-age=600, s-maxage=3600"
             Access-Control-Allow-Origin:
               description: CORS header
               schema:
@@ -7307,6 +7312,133 @@ paths:
                       field: "shopSlugId"
                       sourceType: "path"
                     detail: "Missing field 'shopSlugId'."
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/by-domain/shops/{shopDomain}:
+    get:
+      summary: Get shop details by domain
+      description: |
+        Retrieves detailed information about a specific shop by one of its configured domains.
+        Returns complete shop metadata including name, domains, image, address/contact metadata, and timestamps.
+
+        Authentication is optional on this endpoint:
+        - unauthenticated requests return cacheable shared responses
+        - authenticated Cognito JWT or Aura Historia access-token requests return `Cache-Control: no-store`
+      operationId: getShopByDomain
+      tags:
+        - Shops
+      security:
+        - {}
+        - BearerAuth: []
+        - AccessTokenAuth: []
+      parameters:
+        - name: shopDomain
+          in: path
+          required: true
+          description: Configured shop domain
+          schema:
+            type: string
+          examples:
+            primary:
+              value: "tech-store-premium.com"
+              summary: "Primary shop domain"
+            subdomain:
+              value: "apple.tech-store-premium.com"
+              summary: "Shop subdomain"
+      responses:
+        "200":
+          description: Shop found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Cache-Control:
+              description: "`public, max-age=600, s-maxage=3600` for unauthenticated requests, `no-store` for authenticated requests."
+              schema:
+                type: string
+              example: "public, max-age=600, s-maxage=3600"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  [
+                    "tech-store-premium.com",
+                    "tech-store-premium.de",
+                    "apple.tech-store-premium.com",
+                  ]
+                shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
+                shopifyLanguage: "en"
+                woocommerceCurrency: "EUR"
+                woocommerceLanguage: "de"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "DE"
+                  continent: "EUROPE"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                partnerStatus: "PARTNERED"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing shop domain
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_domain:
+                  summary: Missing shop domain
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Missing field 'shopDomain'."
         "404":
           description: Shop not found
           content:
@@ -7497,729 +7629,6 @@ paths:
                       field: "order"
                       sourceType: "query"
                     detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories:
-    get:
-      deprecated: true
-      x-disabled: true
-      summary: Get all categories or simple-search categories
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Retrieves all product categories with localized names when no query parameters are supplied.
-        When query parameters are present, this endpoint performs simple category search and behaves
-        like `POST /api/v1/categories/search` using query-string input instead of a JSON body.
-
-        For simple-search mode, use:
-        - `language` (optional, defaults to `en`)
-        - `nameQuery` (optional)
-        - `sort` and `order` (optional)
-      operationId: getCategories
-      tags:
-        - Categories
-      parameters:
-        - name: language
-          in: query
-          required: false
-          description: Optional language for localization and simple-search matching (defaults to `en`)
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-        - name: nameQuery
-          in: query
-          required: false
-          description: Optional localized name query (simple-search mode)
-          schema:
-            type: string
-          example: furniture
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by in simple-search mode
-          schema:
-            $ref: "#/components/schemas/SortCategoryFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      responses:
-        "200":
-          description: Categories returned successfully
-          headers:
-            Cache-Control:
-              description: Shared/public cache directives for GET category responses
-              schema:
-                type: string
-              example: "public, max-age=86400, s-maxage=604800"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetCategorySummaryData"
-              example:
-                - categoryId: "furniture"
-                  categoryKey: "furniture"
-                  name:
-                    text: "Furniture"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - categoryId: "musical-instruments"
-                  categoryKey: "musical-instruments"
-                  name:
-                    text: "Antique Musical Instruments"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid query parameters in simple-search mode
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                invalid_query:
-                  summary: Invalid query parameter payload
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories/{categoryId}:
-    get:
-      deprecated: true
-      x-disabled: true
-      summary: Get category details by ID
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Retrieves detailed category information by its kebab-case category ID.
-        Localization is based on the optional `language` query parameter (defaults to `en`).
-      operationId: getCategoryById
-      tags:
-        - Categories
-      parameters:
-        - name: categoryId
-          in: path
-          required: true
-          description: Kebab-case identifier of the category
-          schema:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          example: "musical-instruments"
-        - name: language
-          in: query
-          required: false
-          description: |
-            Preferred language for localized content.
-            Defaults to `en` when omitted.
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-      responses:
-        "200":
-          description: Category found and returned successfully
-          headers:
-            Last-Modified:
-              description: When the category was last updated
-              schema:
-                type: string
-                format: http-date
-              example: "Wed, 01 Jan 2024 12:00:00 GMT"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetCategoryData"
-              example:
-                categoryId: "musical-instruments"
-                categoryKey: "musical-instruments"
-                name:
-                  text: "Antique Musical Instruments"
-                  language: "en"
-                description:
-                  text: "Antique instruments, accessories, and related items."
-                  language: "en"
-                created: "2024-01-01T00:00:00Z"
-                updated: "2024-06-01T00:00:00Z"
-        "400":
-          description: Bad request - missing category ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_category_id:
-                  summary: Missing category ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "categoryId"
-                      sourceType: "path"
-                    detail: "Missing field 'categoryId'."
-        "404":
-          description: Category not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/categories/search:
-    post:
-      deprecated: true
-      x-disabled: true
-      summary: Search categories
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Searches categories using a localized name query.
-        Provide an optional language and optionally a nameQuery to filter results.
-      operationId: searchCategories
-      tags:
-        - Categories
-      parameters:
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by
-          schema:
-            $ref: "#/components/schemas/SortCategoryFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      requestBody:
-        required: true
-        description: |
-          Category search configuration.
-          Omit `language` to default to `en`. Omit `nameQuery` to return all categories.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CategorySearchData"
-            examples:
-              name_search:
-                summary: Search by localized name
-                value:
-                  language: "en"
-                  nameQuery: "Furniture"
-              unrestricted:
-                summary: Unrestricted search (language only)
-                value:
-                  language: "en"
-      responses:
-        "200":
-          description: Category search results returned successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetCategorySummaryData"
-              example:
-                - categoryId: "furniture"
-                  categoryKey: "furniture"
-                  name:
-                    text: "Furniture"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - categoryId: "musical-instruments"
-                  categoryKey: "musical-instruments"
-                  name:
-                    text: "Antique Musical Instruments"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid parameters or body
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_body:
-                  summary: Missing request body
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
-                invalid_json:
-                  summary: Invalid JSON format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "expected value at line 1 column 1"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_SORT_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_ORDER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods:
-    get:
-      deprecated: true
-      x-disabled: true
-      summary: Get all periods or simple-search periods
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Retrieves all product periods with localized names when no query parameters are supplied.
-        When query parameters are present, this endpoint performs simple period search and behaves
-        like `POST /api/v1/periods/search` using query-string input instead of a JSON body.
-
-        For simple-search mode, use:
-        - `language` (optional, defaults to `en`)
-        - `nameQuery` (optional)
-        - `sort` and `order` (optional)
-      operationId: getPeriods
-      tags:
-        - Periods
-      parameters:
-        - name: language
-          in: query
-          required: false
-          description: Optional language for localization and simple-search matching (defaults to `en`)
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-        - name: nameQuery
-          in: query
-          required: false
-          description: Optional localized name query (simple-search mode)
-          schema:
-            type: string
-          example: renaissance
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by in simple-search mode
-          schema:
-            $ref: "#/components/schemas/SortPeriodFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      responses:
-        "200":
-          description: Periods returned successfully
-          headers:
-            Cache-Control:
-              description: Shared/public cache directives for GET period responses
-              schema:
-                type: string
-              example: "public, max-age=86400, s-maxage=604800"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetPeriodSummaryData"
-              example:
-                - periodId: "renaissance"
-                  periodKey: "RENAISSANCE"
-                  name:
-                    text: "Renaissance"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - periodId: "baroque"
-                  periodKey: "BAROQUE"
-                  name:
-                    text: "Baroque"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid query parameters in simple-search mode
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                invalid_query:
-                  summary: Invalid query parameter payload
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_QUERY_PARAMETER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc' or 'desc'. Got: 'invalid'"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods/{periodId}:
-    get:
-      deprecated: true
-      x-disabled: true
-      summary: Get period details by ID
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Retrieves detailed period information by its kebab-case period ID.
-        Localization is based on the optional `language` query parameter (defaults to `en`).
-      operationId: getPeriodById
-      tags:
-        - Periods
-      parameters:
-        - name: periodId
-          in: path
-          required: true
-          description: Kebab-case identifier of the period
-          schema:
-            type: string
-            pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          example: "renaissance"
-        - name: language
-          in: query
-          required: false
-          description: |
-            Preferred language for localized content.
-            Defaults to `en` when omitted.
-          schema:
-            $ref: "#/components/schemas/LanguageData"
-          example: de
-      responses:
-        "200":
-          description: Period found and returned successfully
-          headers:
-            Last-Modified:
-              description: When the period was last updated
-              schema:
-                type: string
-                format: http-date
-              example: "Wed, 01 Jan 2024 12:00:00 GMT"
-            Cache-Control:
-              description: Shared/public cache directives for GET period responses
-              schema:
-                type: string
-              example: "public, max-age=3600, s-maxage=86400"
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GetPeriodData"
-              example:
-                periodId: "renaissance"
-                periodKey: "RENAISSANCE"
-                name:
-                  text: "Renaissance"
-                  language: "en"
-                description:
-                  text: "European cultural period from the 14th to 17th centuries marked by revival of classical art, humanism, and major artistic innovation."
-                  language: "en"
-                created: "2024-01-01T00:00:00Z"
-                updated: "2024-06-01T00:00:00Z"
-        "400":
-          description: Bad request - missing period ID
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_period_id:
-                  summary: Missing period ID
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_PATH_PARAMETER_VALUE"
-                    source:
-                      field: "periodId"
-                      sourceType: "path"
-                    detail: "Missing field 'periodId'."
-        "404":
-          description: Period not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 404
-                title: "Not Found"
-                error: "NOT_FOUND"
-        "500":
-          description: Internal server error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              example:
-                status: 500
-                title: "Internal Server Error"
-                error: "INTERNAL_SERVER_ERROR"
-
-  /api/v1/periods/search:
-    post:
-      deprecated: true
-      x-disabled: true
-      summary: Search periods
-      description: |
-        Disabled: currently not enabled in the backend. This contract remains documented for internal reference.
-
-        Searches periods using a localized name query.
-        Provide an optional language and optionally a nameQuery to filter results.
-      operationId: searchPeriods
-      tags:
-        - Periods
-      parameters:
-        - name: sort
-          in: query
-          required: false
-          description: Field to sort results by
-          schema:
-            $ref: "#/components/schemas/SortPeriodFieldData"
-          example: name
-        - name: order
-          in: query
-          required: false
-          description: Sort order (only valid when sort is specified)
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: asc
-          example: asc
-      requestBody:
-        required: true
-        description: |
-          Period search configuration.
-          Omit `language` to default to `en`. Omit `nameQuery` to return all periods.
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PeriodSearchData"
-            examples:
-              name_search:
-                summary: Search by localized name
-                value:
-                  language: "en"
-                  nameQuery: "Renaissance"
-              unrestricted:
-                summary: Unrestricted search (language only)
-                value:
-                  language: "en"
-      responses:
-        "200":
-          description: Period search results returned successfully
-          headers:
-            Access-Control-Allow-Origin:
-              description: CORS header
-              schema:
-                type: string
-              example: "*"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/GetPeriodSummaryData"
-              example:
-                - periodId: "renaissance"
-                  periodKey: "RENAISSANCE"
-                  name:
-                    text: "Renaissance"
-                    language: "en"
-                  created: "2024-01-01T00:00:00Z"
-                  updated: "2024-06-01T00:00:00Z"
-                - periodId: "baroque"
-                  periodKey: "BAROQUE"
-                  name:
-                    text: "Baroque"
-                    language: "en"
-                  created: "2024-01-05T00:00:00Z"
-                  updated: "2024-06-05T00:00:00Z"
-        "400":
-          description: Bad request - invalid parameters or body
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ApiError"
-              examples:
-                missing_body:
-                  summary: Missing request body
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "Body cannot be empty. If you want to search without any restrictions, supply the body '{}'."
-                invalid_json:
-                  summary: Invalid JSON format
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_BODY_VALUE"
-                    detail: "expected value at line 1 column 1"
-                invalid_sort_field:
-                  summary: Invalid sort field
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_SORT_VALUE"
-                    source:
-                      field: "sort"
-                      sourceType: "query"
-                    detail: "Expected any of: 'score', 'name', 'updated', 'created'. Got: 'invalid'"
-                invalid_order:
-                  summary: Invalid sort order
-                  value:
-                    status: 400
-                    title: "Bad Request"
-                    error: "BAD_ORDER_VALUE"
-                    source:
-                      field: "order"
-                      sourceType: "query"
-                    detail: "Expected any of: 'asc', 'desc'. Got: 'invalid'"
         "500":
           description: Internal server error
           content:
@@ -11748,6 +11157,7 @@ components:
           example: "My Tech Store Search"
         enhancedSearchDescription:
           type: string
+          nullable: true
           description: |
             Optional natural-language description used by the AI-enhanced search filter matching service.
             When provided, a language model evaluates each matched product against this description and only
@@ -11814,6 +11224,7 @@ components:
       properties:
         feedback:
           type: boolean
+          nullable: true
           description: |
             Optional relevance feedback for the matched product.
             `true` marks the product as relevant to the saved search filter, `false` marks it as not relevant.
@@ -13472,224 +12883,6 @@ components:
           nullable: true
           example: 127
 
-    CategorySearchData:
-      deprecated: true
-      type: object
-      description: Search configuration for categories
-      properties:
-        language:
-          $ref: "#/components/schemas/LanguageData"
-        nameQuery:
-          type: string
-          description: Optional localized name query for categories
-          example: "Furniture"
-
-    SortCategoryFieldData:
-      deprecated: true
-      type: string
-      enum: [score, name, updated, created]
-      description: |
-        Fields available for sorting categories:
-        - score: Sort by relevance score (default, only available when searching with text query)
-        - name: Sort by localized category name
-        - updated: Sort by last updated timestamp
-        - created: Sort by creation timestamp
-      default: score
-      example: name
-
-    GetCategorySummaryData:
-      deprecated: true
-      type: object
-      description: Summary information about a category
-      required:
-        - categoryId
-        - categoryKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        categoryId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the category
-          example: "musical-instruments"
-        categoryKey:
-          type: string
-          description: Stable key for the category
-          example: "musical-instruments"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this category
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the category was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the category was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    GetCategoryData:
-      deprecated: true
-      type: object
-      description: Detailed category information
-      required:
-        - categoryId
-        - categoryKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        categoryId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the category
-          example: "musical-instruments"
-        categoryKey:
-          type: string
-          description: Stable key for the category
-          example: "musical-instruments"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this category
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the category was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the category was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    PeriodSearchData:
-      deprecated: true
-      type: object
-      description: Search configuration for periods
-      properties:
-        language:
-          $ref: "#/components/schemas/LanguageData"
-        nameQuery:
-          type: string
-          description: Optional localized name query for periods
-          example: "Renaissance"
-
-    SortPeriodFieldData:
-      deprecated: true
-      type: string
-      enum: [score, name, updated, created]
-      description: |
-        Fields available for sorting periods:
-        - score: Sort by relevance score (default, only available when searching with text query)
-        - name: Sort by localized period name
-        - updated: Sort by last updated timestamp
-        - created: Sort by creation timestamp
-      default: score
-      example: name
-
-    GetPeriodSummaryData:
-      deprecated: true
-      type: object
-      description: Summary information about a period
-      required:
-        - periodId
-        - periodKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        periodId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the period
-          example: "renaissance"
-        periodKey:
-          type: string
-          description: Stable key for the period
-          example: "RENAISSANCE"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this period
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the period was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the period was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
-    GetPeriodData:
-      deprecated: true
-      type: object
-      description: Detailed period information
-      required:
-        - periodId
-        - periodKey
-        - name
-        - products
-        - created
-        - updated
-      properties:
-        periodId:
-          type: string
-          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-          description: Kebab-case identifier of the period
-          example: "renaissance"
-        periodKey:
-          type: string
-          description: Stable key for the period
-          example: "RENAISSANCE"
-        name:
-          allOf:
-            - $ref: "#/components/schemas/LocalizedTextData"
-          description: Localized display name
-        products:
-          type: integer
-          format: int32
-          minimum: 0
-          description: Total number of products associated with this period
-          example: 42
-        created:
-          type: string
-          format: date-time
-          description: When the period was created (RFC3339 format)
-          example: "2024-01-01T00:00:00Z"
-        updated:
-          type: string
-          format: date-time
-          description: When the period was last updated (RFC3339 format)
-          example: "2024-06-01T00:00:00Z"
-
     ProductKeyData:
       type: object
       description: Identifier for a product using shop ID and shop's product ID
@@ -14586,7 +13779,7 @@ components:
         size:
           type: integer
           minimum: 0
-          description: Number of notifications in the current page.
+          description: Requested page size echoed back from the cursor payload; this does not necessarily equal `items.length`.
           example: 21
         searchAfter:
           type: string
