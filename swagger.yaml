@@ -7247,6 +7247,11 @@ paths:
                 type: string
                 format: http-date
               example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Cache-Control:
+              description: "`public, max-age=600, s-maxage=3600` for unauthenticated requests, `no-store` for authenticated requests."
+              schema:
+                type: string
+              example: "public, max-age=600, s-maxage=3600"
             Access-Control-Allow-Origin:
               description: CORS header
               schema:
@@ -7307,6 +7312,133 @@ paths:
                       field: "shopSlugId"
                       sourceType: "path"
                     detail: "Missing field 'shopSlugId'."
+        "404":
+          description: Shop not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 404
+                title: "Not Found"
+                error: "SHOP_NOT_FOUND"
+        "500":
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                status: 500
+                title: "Internal Server Error"
+                error: "INTERNAL_SERVER_ERROR"
+
+  /api/v1/by-domain/shops/{shopDomain}:
+    get:
+      summary: Get shop details by domain
+      description: |
+        Retrieves detailed information about a specific shop by one of its configured domains.
+        Returns complete shop metadata including name, domains, image, address/contact metadata, and timestamps.
+
+        Authentication is optional on this endpoint:
+        - unauthenticated requests return cacheable shared responses
+        - authenticated Cognito JWT or Aura Historia access-token requests return `Cache-Control: no-store`
+      operationId: getShopByDomain
+      tags:
+        - Shops
+      security:
+        - {}
+        - BearerAuth: []
+        - AccessTokenAuth: []
+      parameters:
+        - name: shopDomain
+          in: path
+          required: true
+          description: Configured shop domain
+          schema:
+            type: string
+          examples:
+            primary:
+              value: "tech-store-premium.com"
+              summary: "Primary shop domain"
+            subdomain:
+              value: "apple.tech-store-premium.com"
+              summary: "Shop subdomain"
+      responses:
+        "200":
+          description: Shop found and returned successfully
+          headers:
+            Last-Modified:
+              description: When the shop was last updated
+              schema:
+                type: string
+                format: http-date
+              example: "Wed, 01 Jan 2024 12:00:00 GMT"
+            Cache-Control:
+              description: "`public, max-age=600, s-maxage=3600` for unauthenticated requests, `no-store` for authenticated requests."
+              schema:
+                type: string
+              example: "public, max-age=600, s-maxage=3600"
+            Access-Control-Allow-Origin:
+              description: CORS header
+              schema:
+                type: string
+              example: "*"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetShopData"
+              example:
+                shopId: "550e8400-e29b-41d4-a716-446655440000"
+                shopSlugId: "tech-store-premium"
+                name: "Tech Store Premium"
+                shopType: "COMMERCIAL_DEALER"
+                domains:
+                  [
+                    "tech-store-premium.com",
+                    "tech-store-premium.de",
+                    "apple.tech-store-premium.com",
+                  ]
+                shopifyDomain: "tech-store-premium.myshopify.com"
+                shopifyCurrency: "EUR"
+                shopifyLanguage: "en"
+                woocommerceCurrency: "EUR"
+                woocommerceLanguage: "de"
+                url: "https://tech-store-premium.com/"
+                viewUrl: "https://tech-store-premium.com/?utm_source=aura_historia&utm_medium=referral"
+                image: "https://tech-store-premium.com/logo.svg"
+                structuredAddress:
+                  addressline: "Pariser Platz 1"
+                  addresslineExtra: "2. Etage"
+                  postalCode: "10117"
+                  locality: "Berlin"
+                  country: "DE"
+                  continent: "EUROPE"
+                geoAddress:
+                  lat: 52.516275
+                  lon: 13.377704
+                phone: "+49 30 123456"
+                email: "contact@tech-store-premium.com"
+                partnerStatus: "PARTNERED"
+                created: "2024-01-01T10:00:00Z"
+                updated: "2024-01-01T12:00:00Z"
+        "400":
+          description: Bad request - invalid or missing shop domain
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              examples:
+                missing_shop_domain:
+                  summary: Missing shop domain
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_PATH_PARAMETER_VALUE"
+                    source:
+                      field: "shopDomain"
+                      sourceType: "path"
+                    detail: "Missing field 'shopDomain'."
         "404":
           description: Shop not found
           content:
@@ -11748,6 +11880,7 @@ components:
           example: "My Tech Store Search"
         enhancedSearchDescription:
           type: string
+          nullable: true
           description: |
             Optional natural-language description used by the AI-enhanced search filter matching service.
             When provided, a language model evaluates each matched product against this description and only
@@ -11814,6 +11947,7 @@ components:
       properties:
         feedback:
           type: boolean
+          nullable: true
           description: |
             Optional relevance feedback for the matched product.
             `true` marks the product as relevant to the saved search filter, `false` marks it as not relevant.
@@ -14586,7 +14720,7 @@ components:
         size:
           type: integer
           minimum: 0
-          description: Number of notifications in the current page.
+          description: Requested page size echoed back from the cursor payload; this does not necessarily equal `items.length`.
           example: 21
         searchAfter:
           type: string

@@ -6,6 +6,51 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-31 - Shop Lookup by Domain and OpenAPI Drift Repair
+
+This update realigns the internal OpenAPI spec with the backend's current shop lookup, saved-search, and notification contracts. It adds the missing domain-based shop lookup endpoint, documents cache behavior for slug-based shop lookups, and corrects request/response schema details for saved-search creation, saved-search match feedback, and notification pagination metadata.
+
+### Added
+
+- **New shop lookup endpoint**
+  - `GET /api/v1/by-domain/shops/{shopDomain}`
+  - Path parameter: `shopDomain` (configured shop domain; primary domains and subdomains are accepted)
+  - Authentication: optional
+    - unauthenticated requests return cacheable shared responses
+    - authenticated Cognito JWT or Aura Historia access-token requests return `Cache-Control: no-store`
+  - Response: `200 OK` with `GetShopData`
+  - Response headers: `Last-Modified`, `Cache-Control`
+  - Error responses:
+    - `400 Bad Request` for missing or invalid `shopDomain`
+    - `404 Not Found` / `SHOP_NOT_FOUND`
+
+### Changed
+
+- **`GET /api/v1/by-slug/shops/{shopSlugId}`**
+  - The `200 OK` response now explicitly documents the `Cache-Control` header.
+  - Cache behavior is now described as:
+    - `public, max-age=600, s-maxage=3600` for unauthenticated requests
+    - `no-store` for authenticated requests
+
+- **`POST /api/v1/me/search-filters`**
+  - `PostUserSearchFilterData.enhancedSearchDescription` is now documented as nullable.
+  - Clients may send explicit JSON `null` for this optional field.
+
+- **`PATCH /api/v1/me/search-filters/{userSearchFilterId}/matches/{shopId}/{shopsProductId}`**
+  - `PatchUserSearchFilterMatchData.feedback` is now documented as nullable.
+  - Clients may send explicit JSON `null` in addition to boolean feedback values.
+
+- **Notification collection pagination metadata**
+  - `NotificationCollectionData.size` description is corrected.
+  - `size` now explicitly documents the requested page size echoed from the cursor payload; it is not guaranteed to equal `items.length`.
+  - This affects:
+    - `GET /api/v1/me/notifications`
+    - `PATCH /api/v1/me/notifications`
+
+### Removed
+
+- No documented endpoints or schemas were removed in this update.
+
 ## 2026-05-31 - Audit Actor Metadata on Response DTOs (`backend#1113`)
 
 Backend PR `#1113` adds actor-based audit metadata to multiple REST response models. The backend now exposes both the creator and the last updater on affected resources as plain strings: either the literal `SYSTEM` or the UUID of the acting user.
