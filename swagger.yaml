@@ -10638,6 +10638,19 @@ components:
         Tokens are sent as standard bearer authorization headers.
         Selected partner routes accept this scheme instead of the removed partner API-key flow.
   schemas:
+    ActorData:
+      oneOf:
+        - type: string
+          enum: [SYSTEM]
+          description: Backend-initiated actor marker.
+        - type: string
+          format: uuid
+          description: UUID of the user who performed the change.
+      description: |
+        Audit actor encoded as a plain string.
+        Values are either the literal `SYSTEM` or the UUID of the acting user.
+      example: "SYSTEM"
+
     GetProductData:
       type: object
       description: Complete product information including metadata and localized content
@@ -10656,6 +10669,8 @@ components:
         - url
         - viewUrl
         - images
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -10747,6 +10762,10 @@ components:
             Optional auction time window information.
             Only present for products from auction houses with scheduled auction times.
             Contains start and/or end timestamps for the auction.
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time
@@ -10777,6 +10796,8 @@ components:
         - url
         - viewUrl
         - images
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -10847,6 +10868,10 @@ components:
             Optional auction time window information.
             Only present for products from auction houses with scheduled auction times.
             Contains start and/or end timestamps for the auction.
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time
@@ -11986,6 +12011,8 @@ components:
         - notifications
         - state
         - search
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -12022,6 +12049,10 @@ components:
           $ref: "#/components/schemas/ResourceStateData"
         search:
           $ref: "#/components/schemas/ProductSearchData"
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time
@@ -12066,6 +12097,8 @@ components:
         - shopId
         - shopsProductId
         - productId
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -12099,6 +12132,10 @@ components:
             Optional feedback recorded by the user for this saved-search match.
             Present only after the user has explicitly marked the match as relevant or not relevant.
           example: true
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time
@@ -12582,6 +12619,8 @@ components:
         - shopType
         - domains
         - partnerStatus
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -12693,6 +12732,12 @@ components:
           example: "contact@tech-store-premium.com"
         partnerStatus:
           $ref: "#/components/schemas/ShopPartnerStatusData"
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who created this shop record
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who last updated this shop record
         created:
           type: string
           format: date-time
@@ -13004,6 +13049,8 @@ components:
         - name
         - token
         - tokenType
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -13044,6 +13091,12 @@ components:
           nullable: true
           description: Optional non-negative number of seconds remaining until expiry.
           example: 2851200
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who created this access token
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who last updated this access token
         created:
           type: string
           format: date-time
@@ -13894,6 +13947,8 @@ components:
         - prohibitedContentConsent
         - tier
         - role
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -13951,6 +14006,12 @@ components:
             - $ref: "#/components/schemas/GeoAddressData"
           nullable: true
           description: Optional latitude/longitude coordinates derived by the backend from `structuredAddress`.
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who created this user account
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
+          description: Actor who last updated this user account
         created:
           type: string
           format: date-time
@@ -14164,6 +14225,8 @@ components:
         - payload
         - seen
         - external
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -14187,6 +14250,10 @@ components:
           type: boolean
           description: Whether the notification has been sent externally to the user via a third-party medium (e.g. mail, SMS). `true` means it was sent externally; `false` means it was not.
           example: false
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time
@@ -15011,6 +15078,8 @@ components:
         - businessState
         - executionState
         - payload
+        - createdBy
+        - updatedBy
         - created
         - updated
       properties:
@@ -15034,6 +15103,10 @@ components:
           description: Workflow execution state of the application.
         payload:
           $ref: "#/components/schemas/GetPartnerShopApplicationPayloadData"
+        createdBy:
+          $ref: "#/components/schemas/ActorData"
+        updatedBy:
+          $ref: "#/components/schemas/ActorData"
         created:
           type: string
           format: date-time

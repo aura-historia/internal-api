@@ -6,6 +6,102 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-31 - Audit Actor Metadata on Response DTOs (`backend#1113`)
+
+Backend PR `#1113` adds actor-based audit metadata to multiple REST response models. The backend now exposes both the creator and the last updater on affected resources as plain strings: either the literal `SYSTEM` or the UUID of the acting user.
+
+### Added
+
+- **New shared schema**
+  - `ActorData`
+
+- **New response fields**
+  - `createdBy`
+  - `updatedBy`
+
+  These fields are now documented on:
+  - `GetProductData`
+  - `GetProductSummaryData`
+  - `UserSearchFilterData`
+  - `SearchFilterProductMatchData`
+  - `GetNotificationData`
+  - `GetPartnerShopApplicationData`
+  - `GetShopData`
+  - `GetAccessTokenData`
+  - `GetUserAccountData`
+
+### Changed
+
+- **Product responses now include audit actors**
+  - Product detail and product-summary payloads now expose `createdBy` and `updatedBy`.
+  - This affects product data returned by:
+    - `GET /api/v1/shops/{shopId}/products/{shopsProductId}`
+    - `GET /api/v1/by-slug/shops/{shopSlugId}/products/{productSlugId}`
+    - `GET /api/v1/shops/{shopId}/products/{shopsProductId}/similar`
+    - `GET /api/v1/products`
+    - `POST /api/v1/products/search`
+    - `GET /api/v1/me/watchlist`
+    - `POST /api/v1/me/watchlist`
+    - `PATCH /api/v1/me/watchlist/{shopId}/{shopsProductId}`
+    - `GET /api/v1/me/search-filters/{userSearchFilterId}/products`
+    - `GET /api/v1/me/search-filters/{userSearchFilterId}/matches`
+
+- **Saved-search and match responses now include audit actors**
+  - `UserSearchFilterData` and `SearchFilterProductMatchData` now return `createdBy` and `updatedBy`.
+  - This affects:
+    - `POST /api/v1/me/search-filters`
+    - `GET /api/v1/me/search-filters/{userSearchFilterId}`
+    - `PATCH /api/v1/me/search-filters/{userSearchFilterId}`
+    - `PATCH /api/v1/me/search-filters/{userSearchFilterId}/matches/{shopId}/{shopsProductId}`
+
+- **Notification responses now include audit actors**
+  - `GetNotificationData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me/notifications`
+    - `PATCH /api/v1/me/notifications`
+    - `PATCH /api/v1/me/notifications/{eventId}`
+
+- **Partner shop application responses now include audit actors**
+  - `GetPartnerShopApplicationData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me/partner-applications`
+    - `POST /api/v1/me/partner-applications`
+    - `GET /api/v1/me/partner-applications/{partnerApplicationId}`
+    - `PATCH /api/v1/me/partner-applications/{partnerApplicationId}`
+    - `GET /api/v1/partner-applications`
+    - `GET /api/v1/partner-applications/{partnerApplicationId}`
+    - `PATCH /api/v1/partner-applications/{partnerApplicationId}`
+    - `POST /api/v1/partner-applications/{partnerApplicationId}/decision`
+
+- **Shop responses now include audit actors**
+  - `GetShopData` now returns `createdBy` and `updatedBy`.
+  - This affects every endpoint that returns shop data, including:
+    - `GET /api/v1/shops`
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/me/partner-shops`
+
+- **Access token responses now include audit actors**
+  - `GetAccessTokenData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me/access-tokens`
+    - `POST /api/v1/me/access-tokens`
+    - `GET /api/v1/me/access-tokens/{accessTokenId}`
+    - `PATCH /api/v1/me/access-tokens/{accessTokenId}`
+
+- **User account responses now include audit actors**
+  - `GetUserAccountData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me`
+    - `PATCH /api/v1/me`
+    - `GET /api/v1/users/{userId}` (admin)
+
+### Removed
+
+- No documented endpoints or schemas were removed in this update.
+
 ## 2026-05-31 - OAuth Client URI Metadata and Redirect URI Validation (`backend#1117`, `backend#1116`)
 
 Backend PR `#1117` adds the RFC 7591-style URI metadata fields to OAuth client payloads, and backend PR `#1116` tightens OAuth redirect URI handling so malformed URI values are rejected at the API boundary. This update realigns the internal OpenAPI spec with both backend changes.
