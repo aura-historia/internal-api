@@ -6,6 +6,42 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-05-31 - OAuth Client URI Metadata and Redirect URI Validation (`backend#1117`, `backend#1116`)
+
+Backend PR `#1117` adds the RFC 7591-style URI metadata fields to OAuth client payloads, and backend PR `#1116` tightens OAuth redirect URI handling so malformed URI values are rejected at the API boundary. This update realigns the internal OpenAPI spec with both backend changes.
+
+### Added
+
+- **New OAuth client metadata URI fields**
+  - `tos_uri`
+  - `policy_uri`
+  - `client_uri`
+  - `logo_uri`
+
+  These fields are now documented on:
+  - `POST /api/v1/oauth/clients`
+  - `GET /api/v1/oauth/clients`
+  - `GET /api/v1/oauth/clients/{clientId}`
+  - `PATCH /api/v1/oauth/clients/{clientId}`
+  - `OAuthClientMetadataRequestData`
+  - `OAuthClientMetadataPatchData`
+  - `OAuthClientMetadataResponseData`
+
+### Changed
+
+- **OAuth client metadata payload shapes**
+  - OAuth client create requests now require `tos_uri`, `policy_uri`, `client_uri`, and `logo_uri` in addition to `client_name` and `redirect_uris`.
+  - OAuth client patch requests now support updating those four URI metadata fields individually.
+  - OAuth client create/list/get/update response examples now expose the stored URI metadata fields.
+
+- **OAuth redirect URI validation on authorization and token exchange**
+  - `GET /api/v1/oauth/authorize` now documents `400 BAD_QUERY_PARAMETER_VALUE` for malformed `redirect_uri` query values.
+  - `POST /api/v1/oauth/token` now documents `400 BAD_BODY_VALUE` for malformed `redirect_uri` form values.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-05-29 - OAuth Client Metadata Management (`backend#1110`)
 
 Backend PR `#1110` adds OAuth client metadata management endpoints so backend admins can create, inspect, update, and delete OAuth clients through the API. This update realigns the internal OpenAPI spec with that backend contract and also documents the tightened UUID-based `client_id` handling on the existing OAuth authorization, token, revocation, and introspection endpoints.

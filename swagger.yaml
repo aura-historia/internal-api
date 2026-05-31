@@ -9590,7 +9590,7 @@ paths:
                 type: string
               example: "no-store"
         "400":
-          description: Bad request — a required query parameter is missing or has an unsupported value.
+          description: Bad request — a required query parameter is missing, malformed, or has an unsupported value.
           content:
             application/problem+json:
               schema:
@@ -9656,6 +9656,16 @@ paths:
                       field: "redirect_uri"
                       sourceType: "query"
                     detail: "Redirect URI is not registered for client."
+                malformed_redirect_uri:
+                  summary: Redirect URI is not a valid absolute URI
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_QUERY_PARAMETER_VALUE"
+                    source:
+                      field: "redirect_uri"
+                      sourceType: "query"
+                    detail: "relative URL without a base"
                 invalid_client_id:
                   summary: Invalid OAuth client identifier
                   value:
@@ -9773,7 +9783,7 @@ paths:
                 expires_in: null
                 scope: "products:write"
         "400":
-          description: Bad request — a required form field is missing, `client_id` is not a valid UUID, or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
+          description: Bad request — a required form field is missing, `client_id` is not a valid UUID, `redirect_uri` is malformed, or an authorization code error occurred (code not found, expired, mismatched client or redirect URI, or invalid PKCE verifier).
           content:
             application/problem+json:
               schema:
@@ -9820,6 +9830,16 @@ paths:
                     title: "Bad Request"
                     error: "BAD_BODY_VALUE"
                     detail: "PKCE code_verifier did not match code_challenge."
+                malformed_redirect_uri:
+                  summary: Redirect URI is not a valid absolute URI
+                  value:
+                    status: 400
+                    title: "Bad Request"
+                    error: "BAD_BODY_VALUE"
+                    source:
+                      field: "redirect_uri"
+                      sourceType: "body"
+                    detail: "relative URL without a base"
                 invalid_client_id:
                   summary: Invalid OAuth client identifier
                   value:
@@ -10094,6 +10114,10 @@ paths:
               $ref: "#/components/schemas/OAuthClientMetadataRequestData"
             example:
               client_name: "Acceptance OAuth client"
+              tos_uri: "https://client.example/tos"
+              policy_uri: "https://client.example/policy"
+              client_uri: "https://client.example"
+              logo_uri: "https://client.example/logo.png"
               redirect_uris:
                 - "https://client.example/callback"
               scope:
@@ -10121,6 +10145,10 @@ paths:
                 client_id: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_abcdefghijklmnopqrstuvwxyz1234567"
                 client_name: "Acceptance OAuth client"
+                tos_uri: "https://client.example/tos"
+                policy_uri: "https://client.example/policy"
+                client_uri: "https://client.example"
+                logo_uri: "https://client.example/logo.png"
                 redirect_uris:
                   - "https://client.example/callback"
                 scope:
@@ -10218,6 +10246,10 @@ paths:
                     - client_id: "01970f22-2bf0-7000-8000-000000000010"
                       client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
                       client_name: "Acceptance OAuth client"
+                      tos_uri: "https://client.example/tos"
+                      policy_uri: "https://client.example/policy"
+                      client_uri: "https://client.example"
+                      logo_uri: "https://client.example/logo.png"
                       redirect_uris:
                         - "https://client.example/callback"
                       scope:
@@ -10285,6 +10317,10 @@ paths:
                 client_id: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
                 client_name: "Acceptance OAuth client"
+                tos_uri: "https://client.example/tos"
+                policy_uri: "https://client.example/policy"
+                client_uri: "https://client.example"
+                logo_uri: "https://client.example/logo.png"
                 redirect_uris:
                   - "https://client.example/callback"
                 scope:
@@ -10377,6 +10413,10 @@ paths:
               $ref: "#/components/schemas/OAuthClientMetadataPatchData"
             example:
               client_name: "Updated acceptance OAuth client"
+              tos_uri: "https://client.example/updated-tos"
+              policy_uri: "https://client.example/updated-policy"
+              client_uri: "https://updated-client.example"
+              logo_uri: "https://updated-client.example/logo.png"
               redirect_uris:
                 - "https://client.example/updated"
               scope:
@@ -10398,6 +10438,10 @@ paths:
                 client_id: "01970f22-2bf0-7000-8000-000000000010"
                 client_secret: "aurahistoria_oauth_client_secret_abcdefghijk_****"
                 client_name: "Updated acceptance OAuth client"
+                tos_uri: "https://client.example/updated-tos"
+                policy_uri: "https://client.example/updated-policy"
+                client_uri: "https://updated-client.example"
+                logo_uri: "https://updated-client.example/logo.png"
                 redirect_uris:
                   - "https://client.example/updated"
                 scope:
@@ -13077,12 +13121,36 @@ components:
         `redirect_uris` must contain at least one HTTPS redirect URI.
       required:
         - client_name
+        - tos_uri
+        - policy_uri
+        - client_uri
+        - logo_uri
         - redirect_uris
       properties:
         client_name:
           type: string
           description: Display name of the OAuth client.
           example: "Acceptance OAuth client"
+        tos_uri:
+          type: string
+          format: uri
+          description: HTTPS URL of the OAuth client's terms-of-service document.
+          example: "https://client.example/tos"
+        policy_uri:
+          type: string
+          format: uri
+          description: HTTPS URL of the OAuth client's privacy policy document.
+          example: "https://client.example/policy"
+        client_uri:
+          type: string
+          format: uri
+          description: HTTPS URL of the OAuth client's homepage or product site.
+          example: "https://client.example"
+        logo_uri:
+          type: string
+          format: uri
+          description: HTTPS URL of the OAuth client's logo image.
+          example: "https://client.example/logo.png"
         redirect_uris:
           type: array
           minItems: 1
@@ -13113,6 +13181,30 @@ components:
           nullable: true
           description: Optional replacement display name for the OAuth client.
           example: "Updated acceptance OAuth client"
+        tos_uri:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional replacement terms-of-service document URL for the OAuth client.
+          example: "https://client.example/updated-tos"
+        policy_uri:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional replacement privacy-policy document URL for the OAuth client.
+          example: "https://client.example/updated-policy"
+        client_uri:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional replacement homepage or product-site URL for the OAuth client.
+          example: "https://updated-client.example"
+        logo_uri:
+          type: string
+          format: uri
+          nullable: true
+          description: Optional replacement logo image URL for the OAuth client.
+          example: "https://updated-client.example/logo.png"
         redirect_uris:
           type: array
           nullable: true
@@ -13144,6 +13236,10 @@ components:
         - client_id
         - client_secret
         - client_name
+        - tos_uri
+        - policy_uri
+        - client_uri
+        - logo_uri
         - redirect_uris
         - scope
         - client_id_issued_at
@@ -13163,6 +13259,26 @@ components:
           type: string
           description: Display name of the OAuth client.
           example: "Acceptance OAuth client"
+        tos_uri:
+          type: string
+          format: uri
+          description: Terms-of-service document URL registered for the OAuth client.
+          example: "https://client.example/tos"
+        policy_uri:
+          type: string
+          format: uri
+          description: Privacy-policy document URL registered for the OAuth client.
+          example: "https://client.example/policy"
+        client_uri:
+          type: string
+          format: uri
+          description: Homepage or product-site URL registered for the OAuth client.
+          example: "https://client.example"
+        logo_uri:
+          type: string
+          format: uri
+          description: Logo image URL registered for the OAuth client.
+          example: "https://client.example/logo.png"
         redirect_uris:
           type: array
           uniqueItems: true
