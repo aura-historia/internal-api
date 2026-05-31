@@ -26,6 +26,9 @@ Backend PR `#1113` adds actor-based audit metadata to multiple REST response mod
   - `SearchFilterProductMatchData`
   - `GetNotificationData`
   - `GetPartnerShopApplicationData`
+  - `GetShopData`
+  - `GetAccessTokenData`
+  - `GetUserAccountData`
 
 ### Changed
 
@@ -69,6 +72,31 @@ Backend PR `#1113` adds actor-based audit metadata to multiple REST response mod
     - `GET /api/v1/partner-applications/{partnerApplicationId}`
     - `PATCH /api/v1/partner-applications/{partnerApplicationId}`
     - `POST /api/v1/partner-applications/{partnerApplicationId}/decision`
+
+- **Shop responses now include audit actors**
+  - `GetShopData` now returns `createdBy` and `updatedBy`.
+  - This affects every endpoint that returns shop data, including:
+    - `GET /api/v1/shops`
+    - `POST /api/v1/shops`
+    - `GET /api/v1/shops/{shopId}`
+    - `PATCH /api/v1/shops/{shopId}`
+    - `POST /api/v1/shops/search`
+    - `GET /api/v1/me/partner-shops`
+
+- **Access token responses now include audit actors**
+  - `GetAccessTokenData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me/access-tokens`
+    - `POST /api/v1/me/access-tokens`
+    - `GET /api/v1/me/access-tokens/{accessTokenId}`
+    - `PATCH /api/v1/me/access-tokens/{accessTokenId}`
+
+- **User account responses now include audit actors**
+  - `GetUserAccountData` now returns `createdBy` and `updatedBy`.
+  - This affects:
+    - `GET /api/v1/me`
+    - `PATCH /api/v1/me`
+    - `GET /api/v1/users/{userId}` (admin)
 
 ### Removed
 
