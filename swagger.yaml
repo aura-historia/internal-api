@@ -10069,10 +10069,14 @@ paths:
               example:
                 access_token: "aurahistoria_abcdefghijk_verylongtokenvalue"
                 token_type: "BEARER"
-                expires_in: 3600
+                expires_in: null
                 scope: "products:write"
         "400":
-          description: Bad request — the path parameter is missing/invalid, or the exchange code was not found or already expired.
+          description: |
+            Bad request — the path parameter is missing/invalid, or the exchange code was not found
+            or already expired. The backend currently uses the same
+            `OAUTH_THIRD_PARTY_EXCHANGE_CODE_NOT_FOUND` error code for both unknown and expired
+            exchange codes; the `detail` text distinguishes the two cases.
           content:
             application/problem+json:
               schema:
