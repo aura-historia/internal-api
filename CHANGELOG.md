@@ -6,6 +6,57 @@ This changelog is for internal communication between frontend and backend teams.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2026-06-05 - OAuth Third-Party Exchange Code (`backend#1148`)
+
+Backend PR `#1148` extends the OAuth authorization-code flow with a short-lived third-party exchange code. This update realigns the internal OpenAPI spec with that backend contract by documenting the new exchange endpoint, the extended token response payload, and the OAuth-specific error codes now returned by the affected routes.
+
+### Added
+
+- **New OAuth exchange endpoint**
+  - `GET /api/v1/oauth/tokens/by-third-party-code/{thirdPartyCode}`
+  - No bearer token or client credentials are required.
+  - Exchanges a one-time `third_party_exchange_code` for the same Aura Historia access token returned by the original OAuth token exchange.
+  - The path parameter `thirdPartyCode` is a UUIDv7 value.
+  - `400` responses now document:
+    - `BAD_PATH_PARAMETER_VALUE` for a missing path parameter
+    - `INVALID_UUID` for a malformed path parameter
+    - `OAUTH_THIRD_PARTY_EXCHANGE_CODE_NOT_FOUND` for unknown or expired exchange codes
+
+### Changed
+
+- **`POST /api/v1/oauth/token` response payload**
+  - `OAuthTokenResponseData` now includes the optional `third_party_exchange_code` field.
+  - Successful authorization-code exchanges now return that code alongside `access_token`, `token_type`, `expires_in`, and `scope`.
+  - The code is single-use, expires after 60 seconds, and can be redeemed through `GET /api/v1/oauth/tokens/by-third-party-code/{thirdPartyCode}`.
+
+- **OAuth-specific error codes are now documented across the OAuth flow**
+  - `GET /api/v1/oauth/authorize`
+    - `OAUTH_CLIENT_NOT_FOUND`
+    - `OAUTH_INVALID_REDIRECT_URI`
+    - `OAUTH_INVALID_SCOPE`
+  - `POST /api/v1/oauth/token`
+    - `INVALID_OAUTH_CLIENT_SECRET`
+    - `OAUTH_CLIENT_NOT_FOUND`
+    - `OAUTH_AUTHORIZATION_CODE_NOT_FOUND`
+    - `OAUTH_AUTHORIZATION_CODE_EXPIRED`
+    - `OAUTH_AUTHORIZATION_CODE_CLIENT_MISMATCH`
+    - `OAUTH_AUTHORIZATION_REDIRECT_URI_MISMATCH`
+    - `OAUTH_INVALID_CODE_VERIFIER`
+  - `POST /api/v1/oauth/revoke`
+    - `INVALID_OAUTH_CLIENT_SECRET`
+    - `OAUTH_CLIENT_NOT_FOUND`
+  - `POST /api/v1/oauth/introspect`
+    - `INVALID_OAUTH_CLIENT_SECRET`
+    - `OAUTH_CLIENT_NOT_FOUND`
+
+- **OAuth client metadata validation examples**
+  - `POST /api/v1/oauth/clients` and `PATCH /api/v1/oauth/clients/{clientId}` now document `OAUTH_INVALID_CLIENT_METADATA` for backend metadata validation failures instead of the old generic body-validation code.
+  - `GET`, `PATCH`, and `DELETE /api/v1/oauth/clients/{clientId}` now document `OAUTH_CLIENT_NOT_FOUND` when the referenced client does not exist.
+
+### Removed
+
+- No endpoints or documented schemas were removed in this update.
+
 ## 2026-05-31 - Shop Lookup by Domain and OpenAPI Drift Repair
 
 This update realigns the internal OpenAPI spec with the backend's current shop lookup, saved-search, and notification contracts. It adds the missing domain-based shop lookup endpoint, documents cache behavior for slug-based shop lookups, and corrects request/response schema details for saved-search creation, saved-search match feedback, and notification pagination metadata.
